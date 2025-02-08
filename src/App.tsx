@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import Student from "./pages/Student";
 import ESakuForm from "./pages/EsakuForm";
 import History from "./pages/History";
+import Login from "./pages/Login";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/student" element={<Student />} />
           <Route path="/esakuform" element={<ESakuForm />} />
           <Route path="/history" element={<History />} />
+          <Route path="/login" element={<Login />} />
         </Routes>
       </Router>
     </TooltipProvider>
