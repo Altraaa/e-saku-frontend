@@ -26,10 +26,10 @@ export default function ViewLogin() {
                 </p>
               </div>
               <FormInput
-                id="nip"
-                label="NIP"
+                id="username"
+                label="Username"
                 type="text"
-                placeholder="Enter your NIP"
+                placeholder="Enter your Username"
               />
               <FormInput
                 id="password"
