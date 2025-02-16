@@ -1,49 +1,32 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
+import { useSidebar } from "@/context/sidebarContext";
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
+  const { isOpen, toggleSidebar } = useSidebar();
   const [isMobile, setIsMobile] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    // Initial check for window size
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleSidebarToggle = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar */}
-      <Sidebar
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        isMobile={isMobile}
-      />
+      <Sidebar open={isOpen} onClose={toggleSidebar} isMobile={isMobile} />
 
-      {/* Main content area */}
       <div
-        className={`flex-1 flex flex-col bg-gray-100 transition-all duration-300 ease-in-out ${
-          sidebarOpen ? "ml-64" : "ml-0" // Only shift content when sidebar is open
+        className={`flex-1 flex flex-col bg-gray-100 transition-all duration-300 ${
+          isOpen ? "ml-64" : "ml-0"
         }`}
       >
-        {/* Navbar with sidebar toggle */}
         <Navbar
-          onSidebarToggle={handleSidebarToggle}
+          onSidebarToggle={toggleSidebar}
           onToggleNotification={() => {}}
         />
-
-        {/* Main content area with padding */}
         <div className="p-6 flex-1">{children}</div>
       </div>
     </div>
