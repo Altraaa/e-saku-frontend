@@ -1,4 +1,3 @@
-import MainLayout from "@/components/layouts/MainLayout";
 import { Search } from "lucide-react";
 import {
   Card,
@@ -9,7 +8,7 @@ import {
 
 const ViewStudent = () => {
   return (
-    <MainLayout>
+    <>
       <div className="flex justify-between items-center px-6 py-4">
         <div>
           <h1 className="text-3xl font-bold text-green-500">Elisabet Ni Nyoman Rusmiati, S.Pd</h1>
@@ -103,7 +102,7 @@ const ViewStudent = () => {
         </a>
       </div>
       
-    </MainLayout>
+    </>
   );
 };
 
