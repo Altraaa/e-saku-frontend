@@ -1,5 +1,4 @@
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-import MainLayout from "@/components/layouts/MainLayout";
 import {
   Card,
   CardContent,
@@ -14,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MessageCircleWarning, School, TrendingUp } from "lucide-react";
+import { Layers, School, TrendingUp, UsersRound, XCircle } from "lucide-react";
 import {
   ChartConfig,
   ChartContainer,
@@ -44,53 +43,69 @@ const chartConfig = {
 
 const ViewDashboard = () => {
   return (
-    <MainLayout>
+    <>
       <div className="gap-6 grid grid-cols-2">
         {/* Statistik Kotak-Kotak */}
         <div className="grid grid-cols-2 gap-6">
-          <Card className="bg-green-100 border-2 border-green-500 shadow-md rounded-lg py-2">
-            <CardHeader className="flex items-center gap-4">
-              <div className="bg-green-500 p-3 rounded-full text-white">
-                <TrendingUp className="h-6 w-6" />
+          {/* Card Total Siswa Melanggar */}
+          <Card className="bg-green-500 text-white shadow-lg rounded-lg p-4">
+            <CardHeader>
+              <div className="w-full flex justify-between">
+                <UsersRound className="h-8 w-8" />
+                <div className="bg-white text-green-500 px-3 py-1 rounded-full text-sm font-semibold flex items-center">
+                  ↑ 10%
+                </div>
               </div>
-              <CardTitle className="text-lg text-center font-semibold">
-                Total Students Violated
-              </CardTitle>
             </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-3xl font-bold text-gray-800">40</p>
-            </CardContent>
-            <CardFooter className="text-red-600 flex justify-center items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              <span className="text-lg font-medium">10% Trending Up</span>
-            </CardFooter>
-          </Card>
-
-          <Card className="bg-green-100 border-2 border-green-500 shadow-md rounded-lg py-2">
-            <CardHeader className="flex items-center gap-4">
-              <div className="bg-green-500 p-3 rounded-full text-white">
-                <School className="h-5 w-5" />
-              </div>
-              <CardTitle className="text-lg text-center font-semibold">
-                Most Violator Class
+            <CardContent>
+              <p className="text-4xl font-bold">40</p>
+              <CardTitle className="text-lg font-medium">
+                Total Siswa Melanggar
               </CardTitle>
-            </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-3xl font-bold text-gray-800">XII RPL 3</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-green-100 border-2 border-green-500 shadow-md rounded-lg py-2">
-            <CardHeader className="flex items-center gap-4">
-              <div className="bg-green-500 p-3 rounded-full text-white">
-                <MessageCircleWarning className="h-5 w-5" />
-              </div>
-              <CardTitle className="text-lg text-center font-semibold">
-                Total Violation Points
-              </CardTitle>
+          {/* Card Kelas Pelanggar Terbanyak */}
+          <Card className="bg-green-500 text-white shadow-lg rounded-lg p-4">
+            <CardHeader>
+              <School className="h-8 w-8" />
             </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-3xl font-bold text-gray-800">800</p>
+            <CardContent>
+              <p className="text-3xl font-bold">XII RPL 3</p>
+              <CardTitle className="text-lg font-medium">
+                Kelas Pelanggar Terbanyak
+              </CardTitle>
+            </CardContent>
+          </Card>
+
+          {/* Card Total Poin Pelanggaran */}
+          <Card className="bg-green-500 text-white shadow-lg rounded-lg p-4">
+            <CardHeader>
+              <div className="flex justify-between ">
+                <XCircle className="h-8 w-8" />
+                <div className="bg-white text-red-500 px-3 py-1 rounded-full text-sm font-semibold flex items-center">
+                  ↓ 5%
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-4xl font-bold">800</p>
+              <CardTitle className="text-lg font-medium">
+                Total Poin Pelanggaran
+              </CardTitle>
+            </CardContent>
+          </Card>
+
+          {/* Card Tingkat Pelanggar Terbanyak */}
+          <Card className="bg-green-500 text-white shadow-lg rounded-lg p-4">
+            <CardHeader>
+              <Layers className="h-8 w-8" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">XII</p>
+              <CardTitle className="text-lg font-medium">
+                Tingkat Pelanggar Terbanyak
+              </CardTitle>
             </CardContent>
           </Card>
         </div>
@@ -200,7 +215,7 @@ const ViewDashboard = () => {
           </CardContent>
         </Card>
       </div>
-    </MainLayout>
+    </>
   );
 };
 

@@ -6,19 +6,25 @@ import Student from "./pages/Student";
 import ESakuForm from "./pages/EsakuForm";
 import History from "./pages/History";
 import Login from "./pages/Login";
+import { SidebarProvider } from "./context/sidebarContext";
+import MainLayout from "./components/layouts/MainLayout";
 
 function App() {
   return (
     <TooltipProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/student" element={<Student />} />
-          <Route path="/esakuform" element={<ESakuForm />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </Router>
+      <SidebarProvider>
+        <Router>
+          <MainLayout>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/student" element={<Student />} />
+              <Route path="/esakuform" element={<ESakuForm />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/login" element={<Login />} />
+            </Routes>
+          </MainLayout>
+        </Router>
+      </SidebarProvider>
     </TooltipProvider>
   );
 }
