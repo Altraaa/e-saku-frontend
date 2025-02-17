@@ -11,7 +11,7 @@ import {
 const ViewStudentByClass = () => {
       return(
             <MainLayout>
-                  <div className="m-3">
+                  <div className="m-1">
                         <div className="flex gap-2">
                               <MoveLeft/>
                               <h1>Back</h1>
@@ -19,8 +19,8 @@ const ViewStudentByClass = () => {
 
                         <div className="flex flex-col items-start gap-2 lg:flex-row lg:justify-between lg:items-center px-6 py-4 mt-2">
                               <div>
-                                    <h1 className="text-3xl font-bold text-green-500">Elisabet Ni Nyoman Rusmiati, S.Pd</h1>
-                                    <p className="text-xl ">Kelas yang diampu :</p>
+                                    <h1 className="text-3xl font-bold text-green-500">XII RPL 3</h1>
+                                    <p className="text-xl ">Diampu oleh : <span className="font-semibold">Elisabet Ni Nyoman Rusmiati, S.Pd.</span></p>
                               </div>
                               <div className="flex gap-4 items-center p-3 bg-white rounded-md">
                                     <label htmlFor="searchName"><Search className="size-6" /></label>
@@ -50,9 +50,11 @@ const ViewStudentByClass = () => {
                                                 <TableCell className="text-center">20</TableCell>
                                                 <TableCell className="text-center">20</TableCell>
                                                 <TableCell className="text-center">0</TableCell>
-                                                <TableCell className="justify-center flex gap-3">
-                                                      <button className="text-blue-500"><SquarePen/></button>
-                                                      <button className="text-red-600"><Trash2/></button>
+                                                <TableCell className="text-center">
+                                                      <div className="flex justify-center gap-3 items-center align-middle">
+                                                            <button className="text-blue-500"><SquarePen/></button>
+                                                            <button className="text-red-600"><Trash2/></button>
+                                                      </div>
                                                 </TableCell>
                                           </TableRow>
                                     </TableBody>
