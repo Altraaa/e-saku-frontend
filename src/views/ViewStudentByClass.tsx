@@ -1,4 +1,3 @@
-import MainLayout from "@/components/layouts/MainLayout";
 import { Search, MoveLeft, SquarePen, Trash2} from "lucide-react";
 import {
       Table,
@@ -10,7 +9,7 @@ import {
 
 const ViewStudentByClass = () => {
       return(
-            <MainLayout>
+            <>
                   <div className="m-1">
                         <div className="flex gap-2">
                               <MoveLeft/>
@@ -30,7 +29,7 @@ const ViewStudentByClass = () => {
 
                         <div className="h-[2px] bg-black w-full my-2"></div>
                         <div>
-                              <Table className="p-2">
+                              <Table className="p-2 overflow-x-auto">
                                     <TableHeader>
                                           <TableRow>
                                                 <TableCell className="text-center">No</TableCell>
@@ -61,7 +60,7 @@ const ViewStudentByClass = () => {
                               </Table>
                         </div>
                   </div>
-            </MainLayout>
+            </>
       );
 }
 export default ViewStudentByClass;
