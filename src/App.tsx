@@ -8,6 +8,8 @@ import History from "./pages/History";
 import Login from "./pages/Login";
 import StudentByClass from "./pages/StudentByClass";
 import StudentBio from "./pages/StudentBio";
+import BioAccomplisments from "./pages/BioAccomplisments";
+import BioViolations from "./pages/BioViolations";
 import { SidebarProvider } from "./context/sidebarContext";
 import MainLayout from "./components/layouts/MainLayout";
 
@@ -25,6 +27,9 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/class" element={<StudentByClass />} />
               <Route path="/studentbio" element={<StudentBio />} />
+              <Route path="/studentbio/accomplishments" element={<BioAccomplisments />} />
+              <Route path="/studentbio/violations" element={<BioViolations />} />
+
             </Routes>
           </MainLayout>
         </Router>
