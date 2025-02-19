@@ -78,3 +78,12 @@
   scrollbar-width: none; /* Firefox */
 }
 
+[data-sonner-toast] {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  right: 0 !important;
+  left: auto !important;
+  margin-right: 0 !important;
+  padding: 0 !important;
+}
