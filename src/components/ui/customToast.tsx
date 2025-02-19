@@ -1,72 +1,60 @@
 import { toast } from "sonner"; // Menggunakan toast dari sonner
 import { Toaster } from "./sonner"; // Toaster dari sonner
-import { CheckCircle, XCircle, Info, LogIn, LogOut } from "lucide-react";
-import { JSX } from "react";
+import { CheckCircle, XCircle, Info, AlertTriangle } from "lucide-react";
 
-// interface CustomToastProps {
-//   type: "create" | "update" | "delete" | "login" | "logout";
-//   message?: string;
-// }
+interface CustomToastProps {
+  type: "success" | "error" | "warning" | "info";
+  title: string;
+  message: string;
+}
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const showToast = (
-  type: "create" | "update" | "delete" | "login" | "logout",
-  message?: string
-) => {
-  let icon: JSX.Element;
-  let toastMessage: string;
-  let bgColor: string;
-  let borderColor: string;
+export const CustomToast = ({ type, title, message }: CustomToastProps) => {
+  const toastStyles = {
+    success: {
+      icon: <CheckCircle className="text-green-600" />,
+      bgColor: "bg-green-50",
+      borderColor: "border-green-500",
+      iconBg: "bg-green-200",
+    },
+    error: {
+      icon: <XCircle className="text-red-600" />,
+      bgColor: "bg-red-50",
+      borderColor: "border-red-500",
+      iconBg: "bg-red-200",
+    },
+    warning: {
+      icon: <AlertTriangle className="text-yellow-600" />,
+      bgColor: "bg-yellow-50",
+      borderColor: "border-yellow-500",
+      iconBg: "bg-yellow-200",
+    },
+    info: {
+      icon: <Info className="text-blue-600" />,
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-500",
+      iconBg: "bg-blue-200",
+    },
+  };
 
-  switch (type) {
-    case "create":
-      icon = <CheckCircle className="text-green-500" />;
-      toastMessage = message || "Item created successfully!";
-      bgColor = "bg-green-50";
-      borderColor = "border-green-500";
-      break;
-    case "update":
-      icon = <Info className="text-blue-500" />;
-      toastMessage = message || "Item updated successfully!";
-      bgColor = "bg-blue-50";
-      borderColor = "border-blue-500";
-      break;
-    case "delete":
-      icon = <XCircle className="text-red-500" />;
-      toastMessage = message || "Item deleted successfully!";
-      bgColor = "bg-red-50";
-      borderColor = "border-red-500";
-      break;
-    case "login":
-      icon = <LogIn className="text-green-500" />;
-      toastMessage = "You have successfully logged in!";
-      bgColor = "bg-green-50";
-      borderColor = "border-green-500";
-      break;
-    case "logout":
-      icon = <LogOut className="text-red-500" />;
-      toastMessage = "You have successfully logged out!";
-      bgColor = "bg-red-50";
-      borderColor = "border-red-500";
-      break;
-    default:
-      icon = <Info className="text-gray-500" />;
-      toastMessage = "Operation successful!";
-      bgColor = "bg-gray-50";
-      borderColor = "border-gray-500";
-  }
+  const { icon, bgColor, borderColor, iconBg } = toastStyles[type];
 
-  // Panggil toast dari sonner
   toast(
     <div
-      className={`flex w-full justify-center items-center p-4 border rounded-md ${bgColor} ${borderColor}`}
+      className={`flex w-full items-center gap-3 p-4 rounded-lg border ${bgColor} ${borderColor}`}
     >
-      {icon}
-      <span className="ml-2 text-sm font-medium">{toastMessage}</span>
+      <div
+        className={`w-10 h-10 flex items-center justify-center rounded-full ${iconBg}`}
+      >
+        {icon}
+      </div>
+      <div className="flex flex-col">
+        <span className="font-semibold text-gray-900">{title}</span>
+        <span className="text-gray-600 text-sm">{message}</span>
+      </div>
     </div>
   );
 };
 
 export const ToastProvider = () => {
-  return <Toaster position="top-center" />;
+  return <Toaster position="top-center" />; // Hanya menggunakan Toaster dari sonner
 };

@@ -21,6 +21,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
+
 // Data untuk grafik
 const chartData = [
   { day: "Monday", violations: 20, achievments: 13 },
@@ -200,7 +201,6 @@ const ViewDashboard = () => {
             </Table>
           </CardContent>
         </Card>
-
         {/* Leaderboard */}
         <Card className="bg-white mt-8">
           <CardHeader>
