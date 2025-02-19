@@ -27,7 +27,7 @@ const ViewStudentBio = () => {
                             </div>
                             <div className="w-full flex text-center">
                                 <a
-                                    href="/studentbio/violations/nis"
+                                    href="/studentbio/violations?nis"
                                     className="w-full bg-red-500 p-3 font-semibold text-white rounded-md hover:bg-red-600 transition-all duration-200"
                                 >
                                     Student Violations
