@@ -6,7 +6,6 @@ import esakulogin from "../assets/esakulogin.jpg";
 export default function ViewLogin() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Logika untuk login di sini
   };
 
   return (

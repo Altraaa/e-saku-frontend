@@ -12,6 +12,7 @@ type FormInputProps = {
     id: string;
     label: string; 
     type: string;
+    value?: string;
     placeholder: string;
 }
 
@@ -27,11 +28,11 @@ export function Form({ onSubmit, children }: FormProps) {
   );
 }
 
-export function FormInput({ id, label, type = "text", placeholder }: FormInputProps) {
+export function FormInput({ id, label, value, type = "text", placeholder }: FormInputProps) {
   return (
     <div className="grid gap-2">
       <Label htmlFor={id}>{label}</Label>
-      <Input id={id} type={type} placeholder={placeholder} required />
+      <Input id={id} type={type} value={value} placeholder={placeholder} required />
     </div>
   );
 }
