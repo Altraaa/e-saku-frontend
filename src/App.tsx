@@ -6,6 +6,7 @@ import Student from "./pages/Student";
 import ESakuForm from "./pages/EsakuForm";
 import History from "./pages/History";
 import Login from "./pages/Login";
+import StudentByClass from "./pages/StudentByClass";
 import { SidebarProvider } from "./context/sidebarContext";
 import MainLayout from "./components/layouts/MainLayout";
 
@@ -21,6 +22,7 @@ function App() {
               <Route path="/esakuform" element={<ESakuForm />} />
               <Route path="/history" element={<History />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/class" element={<StudentByClass />} />
             </Routes>
           </MainLayout>
         </Router>
