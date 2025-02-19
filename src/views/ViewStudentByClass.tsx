@@ -11,10 +11,12 @@ const ViewStudentByClass = () => {
       return(
             <>
                   <div className="m-1">
-                        <div className="flex gap-2">
-                              <MoveLeft/>
-                              <h1>Back</h1>
-                        </div>
+                        <a href="/student">
+                              <div className="flex gap-2">
+                                    <MoveLeft/>
+                                    <h1>Back</h1>
+                              </div>
+                        </a>
 
                         <div className="flex flex-col items-start gap-2 lg:flex-row lg:justify-between lg:items-center px-6 py-4 mt-2">
                               <div>
@@ -51,7 +53,7 @@ const ViewStudentByClass = () => {
                                                 <TableCell className="text-center">0</TableCell>
                                                 <TableCell className="text-center">
                                                       <div className="flex justify-center gap-3 items-center align-middle">
-                                                            <button className="text-blue-500"><SquarePen/></button>
+                                                            <a href="/studentbio?nis" className="text-blue-500"><SquarePen/></a>
                                                             <button className="text-red-600"><Trash2/></button>
                                                       </div>
                                                 </TableCell>
