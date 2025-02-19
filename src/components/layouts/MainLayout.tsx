@@ -4,7 +4,7 @@ import Navbar from "../shared/Navbar";
 import { useSidebar } from "@/context/sidebarContext";
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
-  const { isOpen, toggleSidebar } = useSidebar();
+  const { isOpen } = useSidebar(); // Menggunakan useSidebar
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -16,17 +16,14 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar open={isOpen} onClose={toggleSidebar} isMobile={isMobile} />
+      <Sidebar isMobile={isMobile} />
 
       <div
         className={`flex-1 flex flex-col bg-gray-100 transition-all duration-300 ${
           isOpen ? "ml-64" : "ml-0"
         }`}
       >
-        <Navbar
-          onSidebarToggle={toggleSidebar}
-          onToggleNotification={() => {}}
-        />
+        <Navbar onToggleNotification={() => {}} />
         <div className="p-6 flex-1">{children}</div>
       </div>
     </div>
