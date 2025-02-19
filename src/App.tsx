@@ -10,11 +10,13 @@ import StudentByClass from "./pages/StudentByClass";
 import StudentBio from "./pages/StudentBio";
 import { SidebarProvider } from "./context/sidebarContext";
 import MainLayout from "./components/layouts/MainLayout";
+import { ToastProvider } from "./components/ui/customToast";
 
 function App() {
   return (
     <TooltipProvider>
       <SidebarProvider>
+        <ToastProvider/>
         <Router>
           <MainLayout>
             <Routes>
