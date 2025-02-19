@@ -3,6 +3,7 @@ import { createContext, useContext, useState, ReactNode } from "react";
 interface SidebarContextType {
   isOpen: boolean;
   toggleSidebar: () => void;
+  setIsOpen: (value: boolean) => void;
 }
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
@@ -13,7 +14,7 @@ export const SidebarProvider = ({ children }: { children: ReactNode }) => {
   const toggleSidebar = () => setIsOpen((prev) => !prev);
 
   return (
-    <SidebarContext.Provider value={{ isOpen, toggleSidebar }}>
+    <SidebarContext.Provider value={{ isOpen, toggleSidebar, setIsOpen }}>
       {children}
     </SidebarContext.Provider>
   );

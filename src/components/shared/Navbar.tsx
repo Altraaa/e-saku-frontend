@@ -4,20 +4,15 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Tooltip } from "@radix-ui/react-tooltip";
 import { motion } from "motion/react";
+import { useSidebar } from "@/context/sidebarContext";
 
 const Navbar = ({
   onToggleNotification,
-  onSidebarToggle,
 }: {
   onToggleNotification: () => void;
-  onSidebarToggle: () => void;
 }) => {
   const [showNotification, setShowNotification] = useState(false);
-
-  // Consolidated toggle handler
-  const handleSidebarToggle = () => {
-    onSidebarToggle(); // Call the parent's sidebar toggle function
-  };
+  const { toggleSidebar } = useSidebar(); // Menggunakan useSidebar
 
   return (
     <div className="flex items-center justify-between p-4 bg-white shadow-md">
@@ -26,7 +21,7 @@ const Navbar = ({
         <Button
           variant="ghost"
           className="text-gray-600"
-          onClick={handleSidebarToggle} // Use the consolidated handler
+          onClick={toggleSidebar} // Memanggil toggleSidebar
         >
           <Menu />
         </Button>
