@@ -1,7 +1,7 @@
-import { MoveLeft } from "lucide-react";
-import { Form, FormInput } from "@/components/ui/form";
+import { MoveLeft, SaveAll } from "lucide-react";
+import { Form, FormInput, FormButton } from "@/components/ui/form";
 
-const ViewStudentBio = () => {
+const ViewEditStudentBio = () => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         // Logika untuk login di sini
@@ -16,17 +16,17 @@ const ViewStudentBio = () => {
                     </div>
                 </a>
                 <Form onSubmit={handleSubmit}>
-                    <div className="text-3xl font-bold mt-8 px-8">
-                            Biodata Siswa
-                    </div>
-                    <div className="w-full flex px-8">
+                    <div className="w-full flex  px-8 mt-8">
                         <div className="w-[25%] max-w-[25%] ">
+                            <div className="text-3xl font-bold mb-5">
+                                Biodata Siswa
+                            </div>
                             <div className="flex flex-col gap-3 justify-center items-center">
                                 <div className="aspect-[3/4] w-full bg-gray-300 "></div>
-                                {/* <div className="w-full">
+                                <div className="w-full">
                                     <button className="w-full bg-blue-600 p-3 font-semibold text-white rounded-md hover:bg-blue-500 transition-all duration-200">Update Profile Picture</button>
-                                </div> */}
-                                <div className="w-full flex text-center">
+                                </div>
+                                {/* <div className="w-full flex text-center">
                                 <a
                                     href="/studentbio/accomplishments?nis"
                                     className="w-full bg-green-600 p-3 font-semibold text-white rounded-md hover:bg-green-500 transition-all duration-200"
@@ -41,11 +41,18 @@ const ViewStudentBio = () => {
                                 >
                                     Student Violations
                                 </a>
-                            </div>
+                            </div> */}
                             </div>
                         </div>
                         <div className="w-[75%] max-w-[75%] pl-10">
-                            <div className="shadow-md border p-8 flex flex-col gap-4 max-h-full overflow-y-auto">
+                            <div className="flex justify-end gap-3">
+                                <div className="w-32 flex">
+                                    <FormButton>
+                                        Save <SaveAll className="w-7" />
+                                    </FormButton>
+                                </div>
+                            </div>
+                            <div className="shadow-md border p-8 mt-5 flex flex-col gap-4 max-h-full overflow-y-auto">
                                 <h1 className="text-3xl font-bold mb-1">
                                     Personal Information
                                 </h1>
@@ -245,4 +252,4 @@ const ViewStudentBio = () => {
     );
 };
 
-export default ViewStudentBio;
+export default ViewEditStudentBio;
