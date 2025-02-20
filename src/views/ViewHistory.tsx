@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent,  } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { FileSpreadsheet, Search } from "lucide-react";
 // import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 
 const ViewHistory = () => {
@@ -28,7 +28,8 @@ const ViewHistory = () => {
           <div className="border-2 rounded hover:border-[#009616]">
               <input className="rounded py-1.5 px-4 focus:outline-none focus:ring-1 focus:ring-[#009616]" type="date" name="" id="" />
           </div>
-          <div className="border-2 hover:bg-[#009616] hover:border-[#009616] hover:text-white hover:transition-all py-2 px-4 rounded text-black">
+          <div className="flex gap-3 border-2 hover:bg-[#009616] hover:border-[#009616] hover:text-white hover:transition-all py-2 px-5 rounded text-black">
+            <FileSpreadsheet/>
             <button>Import Excel</button>
           </div>
         </div>
