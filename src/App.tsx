@@ -10,6 +10,7 @@ import StudentByClass from "./pages/StudentByClass";
 import StudentBio from "./pages/StudentBio";
 import BioAccomplisments from "./pages/BioAccomplisments";
 import BioViolations from "./pages/BioViolations";
+import Help from "./pages/Help";
 import { SidebarProvider } from "./context/sidebarContext";
 import MainLayout from "./components/layouts/MainLayout";
 
@@ -29,7 +30,7 @@ function App() {
               <Route path="/studentbio" element={<StudentBio />} />
               <Route path="/studentbio/accomplishments" element={<BioAccomplisments />} />
               <Route path="/studentbio/violations" element={<BioViolations />} />
-
+              <Route path="/help" element={<Help/>}/>
             </Routes>
           </MainLayout>
         </Router>
