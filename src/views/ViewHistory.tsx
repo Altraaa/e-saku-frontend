@@ -31,15 +31,17 @@ const ViewHistory = () => {
           </Button>
         </div>
 
-        <div className="flex sm:w-full sm:justify-start lg:w-1/2 lg:justify-end gap-2">
-          <Button variant="ghost">
-            <Search className="text-gray-600" />
-          </Button>
-          <Input
-            placeholder="Search student"
-            className="hidden sm:block w-3/4"
-          />
-        </div>
+        <div className="flex gap-4 items-center p-3 bg-white rounded-md">
+                        <label htmlFor="searchName">
+                            <Search className="size-6" />
+                        </label>
+                        <input
+                            type="text"
+                            id="searchName"
+                            placeholder="Search "
+                            className="w-72 text-sm outline-none placeholder:text-xs"
+                        />
+                    </div>
       </div>
 
       <Separator className="mt-5 mb-5" />
