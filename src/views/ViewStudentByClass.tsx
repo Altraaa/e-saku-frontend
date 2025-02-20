@@ -47,13 +47,13 @@ const ViewStudentByClass = () => {
                                           <TableRow>
                                                 <TableCell className="text-center">1</TableCell>
                                                 <TableCell className="text-center">30688</TableCell>
-                                                <TableCell>I Made Gerrald Wahyu Darmawan</TableCell>
+                                                <TableCell><a href="/studentbio?nis" className="hover:underline transition-all duration-300">I Made Gerrald Wahyu Darmawan</a></TableCell>
                                                 <TableCell className="text-center">20</TableCell>
                                                 <TableCell className="text-center">20</TableCell>
                                                 <TableCell className="text-center">0</TableCell>
                                                 <TableCell className="text-center">
                                                       <div className="flex justify-center gap-3 items-center align-middle">
-                                                            <a href="/studentbio?nis" className="text-blue-500"><SquarePen/></a>
+                                                            <a href="/studentbio/edit?nis" className="text-blue-500"><SquarePen/></a>
                                                             <button className="text-red-600"><Trash2/></button>
                                                       </div>
                                                 </TableCell>
