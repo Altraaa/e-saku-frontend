@@ -3,7 +3,7 @@ import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
 import { useSidebar } from "@/context/sidebarContext";
 
-const MainLayout = ({ children }: { children: React.ReactNode }) => {
+const MainLayout = ({ children, title }: { children: React.ReactNode, title?: string }) => {
   const { isOpen } = useSidebar(); // Menggunakan useSidebar
   const [isMobile, setIsMobile] = useState(false);
 
@@ -23,7 +23,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           isOpen ? "ml-64" : "ml-0"
         }`}
       >
-        <Navbar onToggleNotification={() => {}} />
+        <Navbar onToggleNotification={() => {}} title={title}/>
         <div className="p-6 flex-1">{children}</div>
       </div>
     </div>

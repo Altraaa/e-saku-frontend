@@ -1,6 +1,11 @@
 import "./App.css";
 import { TooltipProvider } from "./components/ui/tooltip";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Student from "./pages/Student";
 import ESakuForm from "./pages/EsakuForm";
@@ -10,25 +15,44 @@ import StudentByClass from "./pages/StudentByClass";
 import StudentBio from "./pages/StudentBio";
 import { SidebarProvider } from "./context/sidebarContext";
 import MainLayout from "./components/layouts/MainLayout";
-import { ToastProvider } from "./components/ui/customToast";
+import { ToastProvider } from "./components/ui/toast";
+
+const AppContent = () => {
+  const location = useLocation();
+
+  const pageTitles: Record<string, string> = {
+    "/": "Dashboard",
+    "/student": "Student",
+    "/esakuform": "E-Saku Form",
+    "/history": "History",
+    "/class": "Class",
+    "/studentbio": "Student Bio",
+  };
+
+  const title = pageTitles[location.pathname] || "Unknown Page";
+
+  return (
+    <MainLayout title={title}>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/student" element={<Student />} />
+        <Route path="/esakuform" element={<ESakuForm />} />
+        <Route path="/history" element={<History />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/class" element={<StudentByClass />} />
+        <Route path="/studentbio" element={<StudentBio />} />
+      </Routes>
+    </MainLayout>
+  );
+};
 
 function App() {
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <ToastProvider/>
+        <ToastProvider />
         <Router>
-          <MainLayout>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/student" element={<Student />} />
-              <Route path="/esakuform" element={<ESakuForm />} />
-              <Route path="/history" element={<History />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/class" element={<StudentByClass />} />
-              <Route path="/studentbio" element={<StudentBio />} />
-            </Routes>
-          </MainLayout>
+          <AppContent />
         </Router>
       </SidebarProvider>
     </TooltipProvider>
