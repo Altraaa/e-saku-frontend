@@ -78,3 +78,11 @@
   scrollbar-width: none; /* Firefox */
 }
 
+[data-sonner-toast] {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  display: flex !important;
+  justify-content: end !important;
+  padding: 0 !important;
+}

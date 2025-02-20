@@ -1,21 +1,22 @@
 import { useState } from "react";
-import { Search, Bell, Menu } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 import { Tooltip } from "@radix-ui/react-tooltip";
 import { motion } from "motion/react";
 import { useSidebar } from "@/context/sidebarContext";
 
 const Navbar = ({
   onToggleNotification,
+  title
 }: {
   onToggleNotification: () => void;
+  title?: string;
 }) => {
   const [showNotification, setShowNotification] = useState(false);
   const { toggleSidebar } = useSidebar(); // Menggunakan useSidebar
 
   return (
-    <div className="flex items-center justify-between p-4 bg-white shadow-md">
+    <div className="flex items-center justify-between p-[18px] bg-white shadow-md">
       <div className="flex items-center space-x-4">
         {/* Sidebar Toggle Button */}
         <Button
@@ -25,11 +26,7 @@ const Navbar = ({
         >
           <Menu />
         </Button>
-
-        <Button variant="ghost" className="text-gray-600" onClick={() => {}}>
-          <Search />
-        </Button>
-        <Input placeholder="Search..." className="hidden sm:block w-1/3" />
+        <h1 className="uppercase text-2xl font-bold">{title}</h1>
       </div>
 
       <div className="flex items-center space-x-4">
