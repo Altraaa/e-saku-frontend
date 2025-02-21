@@ -20,10 +20,10 @@ const ViewStudent = () => {
         </div>
       </div>
 
-      <div className="my-4 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-10 px-20 mt-10">
+      <div className="my-4 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-8 mt-10">
         <a href="/class?xtkp1" className="group">
-          <Card className="bg-white shadow-md w-72 2xl:w-96 py-24 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
-            <CardHeader className="w-40 h-40 rounded-full bg-gray-400" />
+          <Card className="bg-white shadow-md py-12 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
+            <CardHeader className="w-32 h-32 rounded-full bg-gray-400" />
             <CardTitle className="mt-8 text-3xl font-semibold">
               <a href="/class?xtkp1" className="group-hover:text-green-500 transition-all duration-200">X TKP 1</a> 
             </CardTitle>
@@ -32,8 +32,8 @@ const ViewStudent = () => {
         </a>
         
         <a href="/class?xtkp2" className="group">
-          <Card className="bg-white shadow-md w-72 2xl:w-96 py-24 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
-            <CardHeader className="w-40 h-40 rounded-full bg-gray-400" />
+          <Card className="bg-white shadow-md py-12 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
+            <CardHeader className="w-32 h-32 rounded-full bg-gray-400" />
             <CardTitle className="mt-8 text-3xl font-semibold">
               <a href="/class?xtkp2" className="group-hover:text-green-500 transition-all duration-200">X TKP 2</a>
             </CardTitle>
@@ -42,8 +42,8 @@ const ViewStudent = () => {
         </a>
 
         <a href="/class?xirpl1" className="group">
-          <Card className="bg-white shadow-md w-72 2xl:w-96 py-24 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
-            <CardHeader className="w-40 h-40 rounded-full bg-gray-400" />
+          <Card className="bg-white shadow-md py-12 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
+            <CardHeader className="w-32 h-32 rounded-full bg-gray-400" />
             <CardTitle className="mt-8 text-3xl font-semibold">
               <a href="/class?xirpl1" className="group-hover:text-green-500 transition-all duration-200">XI RPL 1</a>
             </CardTitle>
@@ -52,8 +52,8 @@ const ViewStudent = () => {
         </a>
 
         <a href="/class?xirpl2" className="group">
-          <Card className="bg-white shadow-md w-72 2xl:w-96 py-24 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
-            <CardHeader className="w-40 h-40 rounded-full bg-gray-400" />
+          <Card className="bg-white shadow-md py-12 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
+            <CardHeader className="w-32 h-32 rounded-full bg-gray-400" />
             <CardTitle className="mt-8 text-3xl font-semibold">
               <a href="/class?xirpl2" className="group-hover:text-green-500 transition-all duration-200">XI RPL 2</a>
             </CardTitle>
@@ -62,8 +62,8 @@ const ViewStudent = () => {
         </a>
 
         <a href="/class?xirpl3" className="group">
-          <Card className="bg-white shadow-md w-72 2xl:w-96 py-24 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
-            <CardHeader className="w-40 h-40 rounded-full bg-gray-400" />
+          <Card className="bg-white shadow-md py-12 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
+            <CardHeader className="w-32 h-32 rounded-full bg-gray-400" />
             <CardTitle className="mt-8 text-3xl font-semibold">
               <a href="/class?xirpl3" className="group-hover:text-green-500 transition-all duration-200">XI RPL 3</a>
             </CardTitle>
@@ -72,8 +72,8 @@ const ViewStudent = () => {
         </a>
 
         <a href="/class?xitkp1" className="group">
-          <Card className="bg-white shadow-md w-72 2xl:w-96 py-24 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
-            <CardHeader className="w-40 h-40 rounded-full bg-gray-400" />
+          <Card className="bg-white shadow-md py-12 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
+            <CardHeader className="w-32 h-32 rounded-full bg-gray-400" />
             <CardTitle className="mt-8 text-3xl font-semibold">
               <a href="/class?xitkp1" className="group-hover:text-green-500 transition-all duration-200">XI TKP 1</a>
             </CardTitle>
@@ -82,8 +82,8 @@ const ViewStudent = () => {
         </a>
 
         <a href="/class?xitkp2" className="group">
-          <Card className="bg-white shadow-md w-72 2xl:w-96 py-24 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
-            <CardHeader className="w-40 h-40 rounded-full bg-gray-400" />
+          <Card className="bg-white shadow-md py-12 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
+            <CardHeader className="w-32 h-32 rounded-full bg-gray-400" />
             <CardTitle className="mt-8 text-3xl font-semibold">
               <a href="/class?xitkp2" className="group-hover:text-green-500 transition-all duration-200">XI TKP 2</a>
             </CardTitle>
@@ -92,8 +92,8 @@ const ViewStudent = () => {
         </a>
 
         <a href="/class?xiibkp1" className="group">
-          <Card className="bg-white shadow-md w-72 2xl:w-96 py-24 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
-            <CardHeader className="w-40 h-40 rounded-full bg-gray-400" />
+          <Card className="bg-white shadow-md py-12 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
+            <CardHeader className="w-32 h-32 rounded-full bg-gray-400" />
             <CardTitle className="mt-8 text-3xl font-semibold">
               <a href="/class?xiibkp1" className="group-hover:text-green-500 transition-all duration-200">XII BKP 1</a>
             </CardTitle>
@@ -102,8 +102,8 @@ const ViewStudent = () => {
         </a>
 
         <a href="/class?xiibkp2" className="group">
-          <Card className="bg-white shadow-md w-72 2xl:w-96 py-24 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
-            <CardHeader className="w-40 h-40 rounded-full bg-gray-400" />
+          <Card className="bg-white shadow-md py-12 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
+            <CardHeader className="w-32 h-32 rounded-full bg-gray-400" />
             <CardTitle className="mt-8 text-3xl font-semibold">
               <a href="/class?xiibkp2" className="group-hover:text-green-500 transition-all duration-200">XII BKP 2</a>
             </CardTitle>
@@ -112,8 +112,8 @@ const ViewStudent = () => {
         </a>
 
         <a href="/class?xiirpl3" className="group">
-          <Card className="bg-white shadow-md w-72 2xl:w-96 py-24 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
-            <CardHeader className="w-40 h-40 rounded-full bg-gray-400" />
+          <Card className="bg-white shadow-md py-12 flex flex-col items-center group-hover:shadow-green-500 transition-all duration-200">
+            <CardHeader className="w-32 h-32 rounded-full bg-gray-400" />
             <CardTitle className="mt-8 text-3xl font-semibold">
               <a href="/class?xiirpl3" className="group-hover:text-green-500 transition-all duration-200">XII RPL 3</a>
             </CardTitle>
