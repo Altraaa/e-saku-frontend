@@ -57,7 +57,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[90%] sm:w-[400px] md:w-[450px] lg:w-[500px] p-6 sm:p-8 md:p-10 text-center bg-white rounded-lg shadow-lg">
         <DialogHeader className="flex flex-col items-center">
-          {/* ICON DENGAN LATAR KOTAK ROUNDED */}
           <div className={`p-3 sm:p-4 rounded-lg ${typeStyles[type].bgColor}`}>
             {typeStyles[type].icon}
           </div>
