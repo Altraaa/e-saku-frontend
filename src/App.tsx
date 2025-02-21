@@ -18,7 +18,6 @@ import BioAccomplisments from "./pages/BioAccomplisments";
 import BioViolations from "./pages/BioViolations";
 import { SidebarProvider } from "./context/sidebarContext";
 import MainLayout from "./components/layouts/MainLayout";
-import { Toaster } from "./components/ui/toaster";
 
 const AppContent = () => {
   const location = useLocation();
@@ -62,7 +61,6 @@ function App() {
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <Toaster />
         <Router>
           <AppContent />
         </Router>
