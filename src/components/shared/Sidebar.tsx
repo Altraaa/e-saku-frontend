@@ -9,20 +9,27 @@ import {
   Users,
   CircleHelp,
 } from "lucide-react";
-import { Drawer, DrawerContent } from "../ui/drawer";
 import { motion, AnimatePresence } from "framer-motion";
 import skensalogo from "@/assets/skensa.png";
 import { Link, useLocation } from "react-router-dom";
-import { useSidebar } from "@/context/sidebarContext";
+import { useSidebar } from "@/utils/context/sidebarContext";
+import { Sheet, SheetContent } from "../ui/sheet";
 
 const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
   const location = useLocation();
   const [activeItem, setActiveItem] = useState(location.pathname);
-  const { isOpen, toggleSidebar,  } = useSidebar(); // Menggunakan useSidebar
+  const { isOpen, toggleSidebar } = useSidebar();
 
   useEffect(() => {
     setActiveItem(location.pathname);
   }, [location.pathname]);
+
+  const handleCloseSidebar = (e: React.MouseEvent) => {
+    if (isMobile && isOpen) {
+      e.stopPropagation();
+      toggleSidebar();
+    }
+  };
 
   const platformItems = [
     { label: "Dashboard", icon: Home, path: "/" },
@@ -48,7 +55,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
         x: -256,
         transition: { type: "spring", stiffness: 200, damping: 20 },
       }}
-      className="fixed top-0 left-0 h-full bg-white dark:bg-background shadow-lg z-50 flex flex-col overflow-hidden"
+      className="fixed top-0 left-0 h-screen bg-white dark:bg-background shadow-lg z-50 flex flex-col overflow-hidden"
     >
       <div className="flex items-center p-4 space-x-3 bg-gray-100">
         <img src={skensalogo} alt="Logo" className="w-10 h-10 rounded-md" />
@@ -123,9 +130,17 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
   );
 
   return isMobile ? (
-    <Drawer open={isOpen} onClose={toggleSidebar}>
-      <DrawerContent>{SidebarContent}</DrawerContent>
-    </Drawer>
+    <>
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={handleCloseSidebar}
+        />
+      )}
+      <Sheet open={isOpen} onOpenChange={toggleSidebar}>
+        <SheetContent>{SidebarContent}</SheetContent>
+      </Sheet>
+    </>
   ) : (
     <AnimatePresence>{isOpen && SidebarContent}</AnimatePresence>
   );

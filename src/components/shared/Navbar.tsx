@@ -3,11 +3,11 @@ import { Bell, Menu } from "lucide-react";
 import { Button } from "../ui/button";
 import { Tooltip } from "@radix-ui/react-tooltip";
 import { motion } from "motion/react";
-import { useSidebar } from "@/context/sidebarContext";
+import { useSidebar } from "@/utils/context/sidebarContext";
 
 const Navbar = ({
   onToggleNotification,
-  title
+  title,
 }: {
   onToggleNotification: () => void;
   title?: string;
@@ -22,7 +22,7 @@ const Navbar = ({
         <Button
           variant="ghost"
           className="text-gray-600"
-          onClick={toggleSidebar} // Memanggil toggleSidebar
+          onClick={toggleSidebar}
         >
           <Menu />
         </Button>
