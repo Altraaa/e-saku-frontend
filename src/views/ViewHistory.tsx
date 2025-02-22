@@ -1,9 +1,25 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Search, SquarePen, Trash2 } from "lucide-react";
+import {  SquarePen, Trash2 } from "lucide-react";
+import { DatePicker } from "@/components/shared/component/DatePicker";
 
 const ViewHistory = () => {
   return (
@@ -13,16 +29,21 @@ const ViewHistory = () => {
       <div className="flex sm:flex-col sm:gap-y-3 lg:flex-row w-full justify-between items-center">
         <div className="flex sm:w-full lg:w-1/2 justify-start ml-2 gap-3 items-center">
           <Button className="bg-[#009616] text-white">Terbaru</Button>
-          <select className="py-2 px-4 border rounded focus:outline-none focus:ring-1 focus:ring-[#009616] hover:border-[#009616]">
-            <option value="" disabled selected>
-              Kelas
-            </option>
-            <option value="XII RPL 3">XII RPL 3</option>
-          </select>
-          <Input
-            type="date"
-            className="border rounded focus:ring-1 focus:ring-[#009616]"
-          />
+          <Select>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Class" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>All Class</SelectLabel>
+                <SelectItem value="xiirpl3">XII RPL 3</SelectItem>
+                <SelectItem value="xiirpl2">XII RPL 2</SelectItem>
+                <SelectItem value="xiirpl1">XII RPL 1</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+
+          <DatePicker />
           <Button
             variant="outline"
             className="hover:bg-[#009616] hover:text-white transition-all"
@@ -30,18 +51,6 @@ const ViewHistory = () => {
             Import Excel
           </Button>
         </div>
-
-        <div className="flex gap-4 items-center p-3 bg-white rounded-md">
-                        <label htmlFor="searchName">
-                            <Search className="size-6" />
-                        </label>
-                        <input
-                            type="text"
-                            id="searchName"
-                            placeholder="Search "
-                            className="w-72 text-sm outline-none placeholder:text-xs"
-                        />
-                    </div>
       </div>
 
       <Separator className="mt-5 mb-5" />
@@ -52,13 +61,27 @@ const ViewHistory = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="font-bold text-black text-sm">No</TableHead>
-                <TableHead className="font-bold text-black text-sm">Nama</TableHead>
-                <TableHead className="font-bold text-black text-sm">Kelas</TableHead>
-                <TableHead className="font-bold text-black text-sm">Jenis Pelanggaran</TableHead>
-                <TableHead className="font-bold text-black text-sm">Deskripsi</TableHead>
-                <TableHead className="font-bold text-black text-sm">Waktu</TableHead>
-                <TableHead className="font-bold text-black text-sm">Aksi</TableHead>
+                <TableHead className="font-bold text-black text-sm">
+                  No
+                </TableHead>
+                <TableHead className="font-bold text-black text-sm">
+                  Nama
+                </TableHead>
+                <TableHead className="font-bold text-black text-sm">
+                  Kelas
+                </TableHead>
+                <TableHead className="font-bold text-black text-sm">
+                  Jenis Pelanggaran
+                </TableHead>
+                <TableHead className="font-bold text-black text-sm">
+                  Deskripsi
+                </TableHead>
+                <TableHead className="font-bold text-black text-sm">
+                  Waktu
+                </TableHead>
+                <TableHead className="font-bold text-black text-sm">
+                  Aksi
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -91,5 +114,3 @@ const ViewHistory = () => {
 };
 
 export default ViewHistory;
-
-
