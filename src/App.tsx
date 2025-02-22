@@ -17,6 +17,7 @@ import EditStudentBio from "./pages/EditStudentBio";
 import BioAccomplisments from "./pages/BioAccomplisments";
 import BioViolations from "./pages/BioViolations";
 import Help from "./pages/Help";
+import ProfileStudent from "./pages/ProfileStudent";
 import { SidebarProvider } from "./context/sidebarContext";
 import MainLayout from "./components/layouts/MainLayout";
 
@@ -34,6 +35,7 @@ const AppContent = () => {
     "/studentbio/accomplishments": "Accomplishments Student",
     "/studentbio/violations": "Violations Student",
     "/help": "Help",
+    "/profile" : "Profile"
   };
 
   const title = pageTitles[location.pathname] || "Unknown Page";
@@ -55,6 +57,7 @@ const AppContent = () => {
         />
         <Route path="/studentbio/violations" element={<BioViolations />} />
         <Route path="/help" element={<Help />} />
+        <Route path="/profile" element={<ProfileStudent />} />
       </Routes>
     </MainLayout>
   );
