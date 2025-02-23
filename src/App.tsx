@@ -20,6 +20,7 @@ import Help from "./pages/Help";
 import ProfileStudent from "./pages/ProfileStudent";
 import { SidebarProvider } from "./utils/context/sidebarContext";
 import MainLayout from "./components/layouts/MainLayout";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const AppContent = () => {
   const location = useLocation();
@@ -64,7 +65,9 @@ const AppContent = () => {
 };
 
 function App() {
+  const queryClient = new QueryClient();
   return (
+    <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <SidebarProvider>
         <Router>
@@ -72,6 +75,7 @@ function App() {
         </Router>
       </SidebarProvider>
     </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 

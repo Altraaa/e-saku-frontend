@@ -1,6 +1,6 @@
 import { ApiRequest } from "./Api.service";
 
-export const ApiClassroom = {
+export const ApiClassrooms = {
   getAll: () => ApiRequest({ url: "/classes", method: "GET" }),
   getById: (id: number) =>
     ApiRequest({ url: `/classes/${id}`, method: "GET" }),
