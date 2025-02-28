@@ -5,6 +5,8 @@ import {
   Routes,
   Route,
   useLocation,
+  Outlet,
+  Navigate,
 } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Student from "./pages/Student";
@@ -21,8 +23,9 @@ import ProfileStudent from "./pages/ProfileStudent";
 import { SidebarProvider } from "./utils/context/sidebarContext";
 import MainLayout from "./components/layouts/MainLayout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ProtectedRoute } from "./config/Routes/ProtectedRoutes";
 
-const AppContent = () => {
+const LayoutWrapper = () => {
   const location = useLocation();
 
   const pageTitles: Record<string, string> = {
@@ -43,26 +46,41 @@ const AppContent = () => {
 
   return (
     <MainLayout title={title}>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/student" element={<Student />} />
-        <Route path="/esakuform" element={<ESakuForm />} />
-        <Route path="/history" element={<History />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/class" element={<StudentByClass />} />
-        <Route path="/studentbio" element={<StudentBio />} />
-        <Route path="/studentbio/edit" element={<EditStudentBio />} />
-        <Route
-          path="/studentbio/accomplishments"
-          element={<BioAccomplisments />}
-        />
-        <Route path="/studentbio/violations" element={<BioViolations />} />
-        <Route path="/help" element={<Help />} />
-        <Route path="/profile" element={<ProfileStudent />} />
-      </Routes>
+      <Outlet />
     </MainLayout>
   );
 };
+
+export function AppContent() {
+   const token = localStorage.getItem("token");
+
+  return (
+    <Routes>
+      <Route
+        path="/login"
+        element={token ? <Navigate to="/" replace /> : <Login />}
+      />
+      <Route element={<ProtectedRoute />}>
+        <Route element={<LayoutWrapper />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/student" element={<Student />} />
+          <Route path="/esakuform" element={<ESakuForm />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/class" element={<StudentByClass />} />
+          <Route path="/studentbio" element={<StudentBio />} />
+          <Route path="/studentbio/edit" element={<EditStudentBio />} />
+          <Route
+            path="/studentbio/accomplishments"
+            element={<BioAccomplisments />}
+          />
+          <Route path="/studentbio/violations" element={<BioViolations />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/profile" element={<ProfileStudent />} />
+        </Route>
+      </Route>
+    </Routes>
+  );
+}
 
 function App() {
   const queryClient = new QueryClient();
