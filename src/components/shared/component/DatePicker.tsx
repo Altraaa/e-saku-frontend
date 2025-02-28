@@ -11,10 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 
 interface DatePickerProps {
-  id: string;
-  label: string;
+  id?: string;
+  label?: string;
   value?: Date;
-  onChange: (date: Date | undefined) => void;
+  onChange?: (date: Date | undefined) => void;
 }
 
 export function DatePicker({ id, label, value, onChange }: DatePickerProps) {

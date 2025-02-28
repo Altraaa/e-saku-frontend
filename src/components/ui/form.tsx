@@ -41,6 +41,7 @@ interface FormTextareaProps {
 interface FormSelectProps {
   id: string;
   label: string;
+  placeholder?: string;
   options: { value: string; label: string }[];
   value?: string;
   onChange?: (value: string) => void;
@@ -123,6 +124,7 @@ export function FormSelect({
   id,
   label,
   options,
+  placeholder,
   value,
   onChange,
   disabled,
@@ -132,7 +134,7 @@ export function FormSelect({
       <Label htmlFor={id}>{label}</Label>
       <Select value={value} onValueChange={onChange} disabled={disabled}>
         <SelectTrigger id={id}>
-          <SelectValue placeholder="Pilih opsi" />
+          <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
           {options.map((option) => (
