@@ -1,23 +1,26 @@
-// src/components/ui/form.tsx
 import { Button } from "./button";
 import { Input } from "./input";
 import { Label } from "./label";
 
-type FormProps = {
+interface FormProps {
   onSubmit: (e: React.FormEvent) => void;
   children: React.ReactNode;
-};
-
-type FormInputProps = {
-    id: string;
-    label: string; 
-    type: string;
-    value?: string;
-    placeholder: string;
+  isLoading?: boolean;
 }
 
-type FormButtonProps = {
-    children: React.ReactNode
+interface FormInputProps {
+  id: string;
+  label: string;
+  type?: string;
+  value?: string;
+  placeholder: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
+}
+
+interface FormButtonProps {
+  children: React.ReactNode;
+  isLoading?: boolean;
 }
 
 export function Form({ onSubmit, children }: FormProps) {
@@ -28,19 +31,35 @@ export function Form({ onSubmit, children }: FormProps) {
   );
 }
 
-export function FormInput({ id, label, value, type = "text", placeholder }: FormInputProps) {
+export function FormInput({
+  id,
+  label,
+  value,
+  type = "text",
+  placeholder,
+  onChange,
+  disabled,
+}: FormInputProps) {
   return (
     <div className="grid gap-2">
       <Label htmlFor={id}>{label}</Label>
-      <Input id={id} type={type} value={value} placeholder={placeholder} required />
+      <Input
+        id={id}
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        onChange={onChange}
+        disabled={disabled}
+        required
+      />
     </div>
   );
 }
 
-export function FormButton({ children }: FormButtonProps) {
+export function FormButton({ children, isLoading }: FormButtonProps) {
   return (
-    <Button type="submit" className="w-full">
-      {children}
+    <Button type="submit" className="w-full" disabled={isLoading}>
+      {isLoading ? "Loading..." : children}
     </Button>
   );
 }
