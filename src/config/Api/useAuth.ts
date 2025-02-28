@@ -9,7 +9,7 @@ export const useLogin = () => {
     mutationFn: ApiAuth.login,
     onSuccess: (data) => {
       localStorage.setItem("token", data.token);
-      console.log("Login successful");
+      
       navigate("/");
     },
     onError: (error) => {
@@ -25,8 +25,7 @@ export const useLogout = () => {
     mutationFn: ApiAuth.logout,
     onSuccess: () => {
       localStorage.removeItem("token");
-      console.log("Logout successful");
-      navigate("/login"); // Redirect ke halaman login setelah logout
+      navigate("/login"); 
     },
     onError: (error) => {
       console.error("Logout failed:", error);

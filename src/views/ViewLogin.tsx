@@ -15,6 +15,15 @@ export default function ViewLogin() {
     loginMutation.mutate({ identifier, password });
   };
 
+  const handleInputChange = (
+    setter: React.Dispatch<React.SetStateAction<string>>
+  ) => {
+    return (e: React.ChangeEvent<HTMLInputElement> | Date | undefined) => {
+      if (!e || e instanceof Date) return;
+      setter(e.target.value);
+    };
+  };
+
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="flex flex-col p-6">
@@ -35,7 +44,7 @@ export default function ViewLogin() {
                 id="identifier"
                 label="Username"
                 value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
+                onChange={handleInputChange(setIdentifier)}
                 placeholder="Enter your username"
                 disabled={loginMutation.isPending}
               />
@@ -44,7 +53,7 @@ export default function ViewLogin() {
                 label="Password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handleInputChange(setPassword)}
                 placeholder="Enter your password"
                 disabled={loginMutation.isPending}
               />
