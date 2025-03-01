@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Layers, School, TrendingUp, UsersRound, XCircle } from "lucide-react";
+import { ArrowDown, ArrowUp, Layers, School, TrendingUp, UsersRound, XCircle } from "lucide-react";
 import {
   ChartConfig,
   ChartContainer,
@@ -38,7 +38,7 @@ const chartConfig = {
   },
   achievments: {
     label: "Achievements",
-    color: "#16a34a", // Warna oranye untuk pemulihan
+    color: "#00BB1C", // Warna oranye untuk pemulihan
   },
 } satisfies ChartConfig;
 
@@ -49,12 +49,13 @@ const ViewDashboard = () => {
         {/* Statistik Kotak-Kotak */}
         <div className="grid grid-cols-2 gap-6">
           {/* Card Total Siswa Melanggar */}
-          <Card className="bg-green-500 text-white shadow-lg rounded-lg p-4">
-            <CardHeader>
-              <div className="w-full flex justify-between">
-                <UsersRound className="h-8 w-8" />
-                <div className="bg-white text-green-500 px-3 py-1 rounded-full text-sm font-semibold flex items-center">
-                  ↑ 10%
+          <Card className="bg-green-500 text-white shadow-lg rounded-lg flex flex-col items-start justify-center">
+            <CardHeader className="w-full">
+              <div className="w-full flex justify-between items-start">
+                <UsersRound className="h-12 w-12" />
+                <div className="bg-white text-green-500 px-2.5 py-1.5 rounded-full text-sm font-semibold flex items-center justify-start gap-1">
+                  <ArrowUp className="h-5 w-5"/>
+                  <p>10%</p>
                 </div>
               </div>
             </CardHeader>
@@ -67,12 +68,12 @@ const ViewDashboard = () => {
           </Card>
 
           {/* Card Kelas Pelanggar Terbanyak */}
-          <Card className="bg-green-500 text-white shadow-lg rounded-lg p-4">
+          <Card className="bg-green-500 text-white shadow-lg rounded-lg flex flex-col items-start justify-center">
             <CardHeader>
-              <School className="h-8 w-8" />
+              <School className="h-12 w-12" />
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">XII RPL 3</p>
+              <p className="text-4xl font-bold">XII RPL 3</p>
               <CardTitle className="text-lg font-medium">
                 Kelas Pelanggar Terbanyak
               </CardTitle>
@@ -80,12 +81,13 @@ const ViewDashboard = () => {
           </Card>
 
           {/* Card Total Poin Pelanggaran */}
-          <Card className="bg-green-500 text-white shadow-lg rounded-lg p-4">
-            <CardHeader>
-              <div className="flex justify-between ">
-                <XCircle className="h-8 w-8" />
-                <div className="bg-white text-red-500 px-3 py-1 rounded-full text-sm font-semibold flex items-center">
-                  ↓ 5%
+          <Card className="bg-green-500 text-white shadow-lg rounded-lg flex flex-col items-start justify-center">
+            <CardHeader className="w-full">
+              <div className="w-full flex justify-between items-start">
+                <XCircle className="h-12 w-12" />
+                <div className="bg-white text-red-500 px-2.5 py-1.5 rounded-full text-sm font-semibold flex items-center justify-start gap-1">
+                  <ArrowDown className="h-5 w-5"/>
+                  <p>10%</p>
                 </div>
               </div>
             </CardHeader>
@@ -98,12 +100,12 @@ const ViewDashboard = () => {
           </Card>
 
           {/* Card Tingkat Pelanggar Terbanyak */}
-          <Card className="bg-green-500 text-white shadow-lg rounded-lg p-4">
+          <Card className="bg-green-500 text-white shadow-lg rounded-lg flex flex-col items-start justify-center">
             <CardHeader>
-              <Layers className="h-8 w-8" />
+              <Layers className="h-12 w-12" />
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">XII</p>
+              <p className="text-4xl font-bold">XII</p>
               <CardTitle className="text-lg font-medium">
                 Tingkat Pelanggar Terbanyak
               </CardTitle>
@@ -116,9 +118,21 @@ const ViewDashboard = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-xl">
-                Weekly diagram - Multiple
+                Grafik Aktivitas Siswa SMKN 1 Denpasar
               </CardTitle>
-              <p className="text-lg text-gray-500">Monday - Friday</p>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center justify-center">
+                  <select className="rounded border-2 border-gray-500 py-2 px-6 text-sm" name="" id="">
+                    <option value="">Semua</option>
+                    <option value="">Pelanggaran</option>
+                    <option value="">Prestasi</option>
+                  </select>
+                </div>
+                <div className="flex gap-4">
+                  <p className="flex items-center py-2 px-3 text-xs rounded border-2 border-gray-500">Mingguan</p>
+                  <p className="flex items-center py-2 px-3 text-xs rounded border-2 border-gray-500">Bulanan</p>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <ChartContainer config={chartConfig}>
@@ -147,12 +161,14 @@ const ViewDashboard = () => {
                 </BarChart>
               </ChartContainer>
             </CardContent>
-            <CardFooter className="flex-col items-start gap-2 text-sm">
+            <CardFooter className="flex-row justify-center items-start gap-5 text-sm">
               <div className="flex gap-2 font-medium leading-none">
-                Trending up by 5.2% this day <TrendingUp className="h-4 w-4" />
+                <span className=" py-1 px-1.5 bg-[#14532d]"></span>
+                <p>Pelanggaran</p>
               </div>
-              <div className="leading-none text-muted-foreground">
-                Showing total achievements and violations for the last week
+              <div className="flex gap-2 font-medium leading-none">
+                <span className="py-1 px-1.5 bg-[#00BB1C]"></span>
+                <p>Prestasi</p>
               </div>
             </CardFooter>
           </Card>
@@ -163,7 +179,7 @@ const ViewDashboard = () => {
       <div className="grid grid-cols-[2fr_1fr] gap-6">
         <Card className="bg-white mt-8">
           <CardHeader>
-            <CardTitle>List of offending students</CardTitle>
+            <CardTitle className="text-xl">Daftar Siswa yang Melanggar hari ini</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -203,14 +219,14 @@ const ViewDashboard = () => {
         </Card>
         {/* Leaderboard */}
         <Card className="bg-white mt-8">
-          <CardHeader>
+          <CardHeader className="flex justify-center items-center text-xl rounded bg-[#00BB1C]">
             <CardTitle>Leaderboard</CardTitle>
           </CardHeader>
-          <CardContent>
-            <ol className="space-y-2">
-              <li>#1 I Made Gerrald Wahyu Darmawan - 69</li>
-              <li>#2 Putu Berliana Suardana Putri - 50</li>
-              <li>#3 Cristiyan Mikha Adi Putra - 48</li>
+          <CardContent className="pt-5">
+            <ol className="space-y-10">
+              <li className="text-base">#1 I Made Gerrald Wahyu Darmawan - 69</li>
+              <li className="text-base">#2 Putu Berliana Suardana Putri - 50</li>
+              <li className="text-base">#3 Cristiyan Mikha Adi Putra - 48</li>
             </ol>
           </CardContent>
         </Card>
