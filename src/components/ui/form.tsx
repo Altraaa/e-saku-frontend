@@ -75,8 +75,8 @@ export function FormInput({
       <DatePicker
         id={id}
         label={label}
-        value={value as Date | undefined}
         onChange={(date) => onChange?.(date)}
+        isForm={true}
       />
     );
   }
