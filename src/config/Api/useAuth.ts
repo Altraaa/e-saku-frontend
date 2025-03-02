@@ -9,7 +9,7 @@ export const useLogin = () => {
     mutationFn: ApiAuth.login,
     onSuccess: (data) => {
       localStorage.setItem("token", data.token);
-      
+      localStorage.setItem("teacher_id", data.user?.teacher_id);
       navigate("/");
     },
     onError: (error) => {
@@ -18,6 +18,7 @@ export const useLogin = () => {
   });
 };
 
+
 export const useLogout = () => {
   const navigate = useNavigate();
 
@@ -25,6 +26,7 @@ export const useLogout = () => {
     mutationFn: ApiAuth.logout,
     onSuccess: () => {
       localStorage.removeItem("token");
+      localStorage.removeItem("teacher_id");
       navigate("/login"); 
     },
     onError: (error) => {

@@ -3,6 +3,8 @@ import { IClassroom } from "../Models/Classroom";
 import { ApiClassrooms } from "../Services/Classrooms.service";
 
 //fetch all classroom
+
+
 export const useClassroom = () => {
   return useQuery<IClassroom[]>({
     queryKey: ["classes"],
@@ -16,6 +18,20 @@ export const useClassroomById = (id: number) => {
     queryKey: ["classes", id],
     queryFn: () => ApiClassrooms.getById(id),
     enabled: !!id,
+  });
+};
+
+export const useClassroomByTeacherId = () => {
+  const teacher_id = parseInt(localStorage.getItem("teacher_id") || "0", 10);
+
+  return useQuery({
+    queryKey: ["teacherClasses", teacher_id],
+    queryFn: async () => {
+      if (!teacher_id) return [];
+      return ApiClassrooms.getByTeacherId(teacher_id);
+    },
+    enabled: !!teacher_id, 
+    select: (data) => data || [],
   });
 };
 
