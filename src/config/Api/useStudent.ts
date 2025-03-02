@@ -19,6 +19,14 @@ export const useStudentById = (id: number) => {
   });
 };
 
+export const useStudentsByClassId = (class_id: number) => {
+  return useQuery<IStudent[]>({
+    queryKey: ["students", "class", class_id],
+    queryFn: () => ApiStudents.getByClassId(class_id),
+    enabled: !!class_id, 
+  });
+};
+
 //create student
 export const useStudentCreate = () => {
   const queryClient = useQueryClient();
@@ -28,6 +36,9 @@ export const useStudentCreate = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
     },
+    onError: (error) => {
+      console.error("Error creating student:", error);
+    },
   });
 };
 
@@ -36,11 +47,14 @@ export const useStudentUpdate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<IStudent> }) =>
+    mutationFn: ({ id, data }: { id: number; data: IStudent }) =>
       ApiStudents.update(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
       queryClient.invalidateQueries({ queryKey: ["student", id] });
+    },
+    onError: (error) => {
+      console.error("Error updated student:", error);
     },
   });
 };
@@ -51,8 +65,15 @@ export const useStudentDelete = () => {
 
   return useMutation({
     mutationFn: (id: number) => ApiStudents.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["students"] });
+    onSuccess: (_, id) => {
+      queryClient.setQueryData(
+        ["students"],
+        (oldData: IStudent[] | undefined) =>
+          oldData ? oldData.filter((student) => student.id !== id) : []
+      );
+    },
+    onError: (error) => {
+      console.error("Error deleting student:", error);
     },
   });
 };

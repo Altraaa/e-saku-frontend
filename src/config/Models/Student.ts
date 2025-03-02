@@ -1,4 +1,3 @@
-import { IClassroom } from "./Classroom";
 
 export interface IStudent {
   id: number;
@@ -26,5 +25,4 @@ export interface IStudent {
   created_at: string;
   updated_at: string;
   class_id: number;
-  class: IClassroom;
 }
