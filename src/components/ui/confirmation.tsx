@@ -24,22 +24,22 @@ const typeStyles = {
   delete: {
     icon: <Trash2 className="w-8 h-8 text-red-500" />,
     bgColor: "bg-red-100",
-    buttonColor: "bg-red-500 hover:bg-red-600",
+    buttonColor: "outline-none focus:outline-none focus:border-none bg-red-500 hover:bg-red-600",
   },
   update: {
     icon: <Info className="w-8 h-8 text-blue-500" />,
     bgColor: "bg-blue-100",
-    buttonColor: "bg-blue-500 hover:bg-blue-600",
+    buttonColor: "outline-none focus:outline-none focus:border-none bg-blue-500 hover:bg-blue-600",
   },
   add: {
     icon: <PlusCircle className="w-8 h-8 text-green-500" />,
     bgColor: "bg-green-100",
-    buttonColor: "bg-green-500 hover:bg-green-600",
+    buttonColor: "outline-none focus:outline-none focus:border-none bg-green-500 hover:bg-green-600",
   },
   logout: {
     icon: <AlertTriangle className="w-8 h-8 text-red-500" />,
     bgColor: "bg-red-100",
-    buttonColor: "bg-red-500 hover:bg-red-600",
+    buttonColor: "outline-none focus:outline-none focus:border-none bg-red-500 hover:bg-red-600",
   },
 };
 
