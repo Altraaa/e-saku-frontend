@@ -27,6 +27,7 @@ interface FormInputProps {
   onDateChange?: (date: Date | undefined) => void;
   disabled?: boolean;
   required?: boolean;
+  error?: string;
 }
 
 interface FormTextareaProps {
@@ -36,6 +37,7 @@ interface FormTextareaProps {
   placeholder?: string;
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   disabled?: boolean;
+  error?: string
 }
 
 interface FormSelectProps {
@@ -46,6 +48,7 @@ interface FormSelectProps {
   value?: string;
   onChange?: (value: string) => void;
   disabled?: boolean;
+  error?: string;
 }
 
 interface FormButtonProps {
@@ -77,6 +80,7 @@ export function FormInput({
   onDateChange,
   disabled,
   required = true,
+  error
 }: FormInputProps) {
   if (type === "date") {
     return (
@@ -124,6 +128,7 @@ export function FormInput({
         disabled={disabled}
         required={required}
       />
+      {error && <div className="text-red-500">{error}</div>}
     </div>
   );
 }
@@ -135,6 +140,7 @@ export function FormTextarea({
   placeholder,
   onChange,
   disabled,
+  error
 }: FormTextareaProps) {
   return (
     <div className="grid gap-2">
@@ -147,6 +153,7 @@ export function FormTextarea({
         disabled={disabled}
         required
       />
+      {error && <div className="text-red-500">{error}</div>}
     </div>
   );
 }
@@ -159,6 +166,7 @@ export function FormSelect({
   value,
   onChange,
   disabled,
+  error
 }: FormSelectProps) {
   return (
     <div className="grid gap-2">
@@ -179,6 +187,7 @@ export function FormSelect({
           ))}
         </SelectContent>
       </Select>
+      {error && <div className="text-red-500">{error}</div>}
     </div>
   );
 }

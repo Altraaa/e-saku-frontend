@@ -27,22 +27,20 @@ import { ProtectedRoute } from "./config/Routes/ProtectedRoutes";
 
 const LayoutWrapper = () => {
   const location = useLocation();
+  const path = location.pathname.split("/")[1] || "/";
 
   const pageTitles: Record<string, string> = {
     "/": "Dashboard",
-    "/student": "Student",
-    "/esakuform": "E-Saku Form",
-    "/history": "History",
-    "/class": "Class",
-    "/studentbio": "Student Bio",
-    "/studentbio/edit": "Edit Student Bio",
-    "/studentbio/accomplishments": "Accomplishments Student",
-    "/studentbio/violations": "Violations Student",
-    "/help": "Help",
-    "/profile": "Profile",
+    student: "Student",
+    esakuform: "E-Saku Form",
+    history: "History",
+    class: "Class",
+    studentbio: "Student Bio",
+    help: "Help",
+    profile: "Profile",
   };
 
-  const title = pageTitles[location.pathname] || "Unknown Page";
+  const title = pageTitles[path] || "Unknown Page";
 
   return (
     <MainLayout title={title}>
@@ -52,7 +50,7 @@ const LayoutWrapper = () => {
 };
 
 export function AppContent() {
-   const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
   return (
     <Routes>
@@ -66,14 +64,17 @@ export function AppContent() {
           <Route path="/student" element={<Student />} />
           <Route path="/esakuform" element={<ESakuForm />} />
           <Route path="/history" element={<History />} />
-          <Route path="/class" element={<StudentByClass />} />
-          <Route path="/studentbio" element={<StudentBio />} />
-          <Route path="/studentbio/edit" element={<EditStudentBio />} />
+          <Route path="/class/:id" element={<StudentByClass />} />
+          <Route path="/studentbio/:id" element={<StudentBio />} />
+          <Route path="/studentbio/edit/:id" element={<EditStudentBio />} />
           <Route
-            path="/studentbio/accomplishments"
+            path="/studentbio/accomplishments/:id"
             element={<BioAccomplisments />}
           />
-          <Route path="/studentbio/violations" element={<BioViolations />} />
+          <Route
+            path="/studentbio/violations/:id"
+            element={<BioViolations />}
+          />
           <Route path="/help" element={<Help />} />
           <Route path="/profile" element={<ProfileStudent />} />
         </Route>
@@ -86,13 +87,13 @@ function App() {
   const queryClient = new QueryClient();
   return (
     <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <SidebarProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </SidebarProvider>
-    </TooltipProvider>
+      <TooltipProvider>
+        <SidebarProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </SidebarProvider>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }
