@@ -1,4 +1,4 @@
-import ViewStudent from "@/views/ViewStudent";
+import ViewStudent from "@/views/Student/ViewStudent";
 
 export default function Student() {
   return <ViewStudent />;

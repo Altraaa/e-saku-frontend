@@ -1,5 +1,5 @@
-import ViewBioViolations from "@/views/ViewBioViolations";
+import ViewBioViolations from "@/views/Student/DetailStudent/BioStudent/Violations/ViewBioViolations";
 
 export default function BioViolations() {
-    return <ViewBioViolations />
+  return <ViewBioViolations />;
 }

@@ -6,7 +6,6 @@ import { useStudentById } from "@/config/Api/useStudent";
 const ViewStudentBio = () => {
   const { id } = useParams();
   const studentId = parseInt(id || "0");
-
   const { data: student, isLoading } = useStudentById(studentId);
 
   if (isLoading) {
@@ -20,7 +19,7 @@ const ViewStudentBio = () => {
   return (
     <>
       <div className="m-1">
-        <Link to="/class">
+        <Link to={`/class/${student.class_id}`}>
           <div className="flex gap-2">
             <MoveLeft />
             <h1>Back</h1>
@@ -102,12 +101,12 @@ const ViewStudentBio = () => {
                 />
                 <div className="flex gap-12">
                   <FormInput
-                  id="gender"
-                  label="Gender"
-                  type="text"
-                  value={student.gender === "L" ? "Laki-Laki" : "Perempuan"}
-                  disabled
-                />
+                    id="gender"
+                    label="Gender"
+                    type="text"
+                    value={student.gender === "L" ? "Laki-Laki" : "Perempuan"}
+                    disabled
+                  />
                   <FormInput
                     id="religion"
                     label="Religion"

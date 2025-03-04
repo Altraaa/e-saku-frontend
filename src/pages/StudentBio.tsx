@@ -1,5 +1,5 @@
-import ViewStudentBio from "@/views/ViewStudentBio";
+import ViewStudentBio from "@/views/Student/DetailStudent/BioStudent/ViewStudentBio";
 
 export default function StudentBio() {
-    return <ViewStudentBio />
+  return <ViewStudentBio />;
 }
