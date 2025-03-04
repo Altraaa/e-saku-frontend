@@ -12,7 +12,7 @@ import {
 } from "./select";
 
 interface FormProps {
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void | Promise<void>;
   children: React.ReactNode;
   isLoading?: boolean;
 }
@@ -21,19 +21,19 @@ interface FormInputProps {
   id: string;
   label: string;
   type?: string;
-  value?: string | Date;
-  placeholder: string;
-  onChange?: (
-    e: React.ChangeEvent<HTMLInputElement> | Date | undefined
-  ) => void;
+  value?: string | Date | null;
+  placeholder?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDateChange?: (date: Date | undefined) => void;
   disabled?: boolean;
+  required?: boolean;
 }
 
 interface FormTextareaProps {
   id: string;
   label: string;
   value?: string;
-  placeholder: string;
+  placeholder?: string;
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   disabled?: boolean;
 }
@@ -49,13 +49,19 @@ interface FormSelectProps {
 }
 
 interface FormButtonProps {
+  type?: "button" | "submit" | "reset" | undefined;
+  onClick?: () => void;
   children: React.ReactNode;
   isLoading?: boolean;
+  disabled?: boolean;
 }
 
 export function Form({ onSubmit, children }: FormProps) {
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-6">
+    <form
+      onSubmit={onSubmit as (e: React.FormEvent<HTMLFormElement>) => void}
+      className="flex flex-col gap-6"
+    >
       {children}
     </form>
   );
@@ -68,14 +74,33 @@ export function FormInput({
   value,
   placeholder,
   onChange,
+  onDateChange,
   disabled,
+  required = true,
 }: FormInputProps) {
   if (type === "date") {
     return (
       <DatePicker
         id={id}
         label={label}
-        onChange={(date) => onChange?.(date)}
+        value={value}
+        onChange={(date) => {
+          // Handle date change and convert to expected format
+          if (onChange) {
+            const event = {
+              target: {
+                id,
+                value: date ? date.toISOString().split("T")[0] : "",
+              },
+            } as React.ChangeEvent<HTMLInputElement>;
+            onChange(event);
+          }
+
+          // Also call onDateChange if provided
+          if (onDateChange) {
+            onDateChange(date);
+          }
+        }}
         isForm={true}
       />
     );
@@ -87,11 +112,17 @@ export function FormInput({
       <Input
         id={id}
         type={type}
-        value={value as string}
+        value={
+          typeof value === "string"
+            ? value
+            : value instanceof Date
+            ? value.toISOString().split("T")[0]
+            : ""
+        }
         placeholder={placeholder}
-        onChange={onChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
+        onChange={onChange}
         disabled={disabled}
-        required
+        required={required}
       />
     </div>
   );
@@ -132,7 +163,11 @@ export function FormSelect({
   return (
     <div className="grid gap-2">
       <Label htmlFor={id}>{label}</Label>
-      <Select value={value} onValueChange={onChange} disabled={disabled}>
+      <Select
+        value={value}
+        onValueChange={onChange ?? (() => {})}
+        disabled={disabled}
+      >
         <SelectTrigger id={id}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
@@ -148,9 +183,9 @@ export function FormSelect({
   );
 }
 
-export function FormButton({ children, isLoading }: FormButtonProps) {
+export function FormButton({ children, isLoading, onClick, type}: FormButtonProps) {
   return (
-    <Button type="submit" className="w-full" disabled={isLoading}>
+    <Button type={type} className="w-full" disabled={isLoading} onClick={onClick}>
       {isLoading ? "Loading..." : children}
     </Button>
   );
