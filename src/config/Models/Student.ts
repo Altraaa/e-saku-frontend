@@ -4,9 +4,10 @@ export interface IStudent {
   name: string;
   nis: string;
   nisn: string;
-  email: string | null;
+  email?: string | null;
   place_of_birth: string;
   birth_date: string;
+  gender: string;
   religion: string;
   height: string;
   weight: string;
