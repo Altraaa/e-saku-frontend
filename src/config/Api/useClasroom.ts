@@ -3,8 +3,6 @@ import { IClassroom } from "../Models/Classroom";
 import { ApiClassrooms } from "../Services/Classrooms.service";
 
 //fetch all classroom
-
-
 export const useClassroom = () => {
   return useQuery<IClassroom[]>({
     queryKey: ["classes"],

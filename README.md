@@ -1,4 +1,4 @@
-# Proyek Vite + React + shadcn/ui
+ # Proyek Vite + React + shadcn/ui
 
 Ini adalah proyek Front End menggunakan framework Vite dan React yang telah di-clone dari Git. Proyek ini juga menggunakan **shadcn/ui** untuk komponen UI yang elegan dan mudah digunakan.
 
