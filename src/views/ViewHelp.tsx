@@ -1,60 +1,399 @@
-import { ChevronRight, CircleHelp } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown, CircleHelp, Search, Mail, Phone, ExternalLink, Shield, Book, HelpCircle } from "lucide-react";
+import { useState, useRef, useEffect, ReactNode } from "react";
 
+interface FAQItemProps {
+  question: string;
+  answer: string;
+  icon?: ReactNode;
+  category?: string;
+}
 
-const ViewHelp = () => {
-    const [isOpen, setIsOpen] = useState(false);
-    const toggleFAQ = () => {
-        setIsOpen(!isOpen);
-      };
+interface PolicyItemProps {
+  title: string;
+  content: string;
+  icon?: ReactNode;
+}
 
-    return (
-      <>
-        <div className="flex justify-between gap-10">
-            <div className="flex flex-col w-full pl-2">
-                <h1 className="text-xl font-semibold">Frequently Asked Questions (FAQ)</h1>
-                <p>These are the most commonly asked questions about E-Saku</p>
-                <div id="faq-title" className="flex flex-col items-start pt-5">
-                    <div className="flex w-full items-center" onClick={toggleFAQ}>
-                        <div className="flex items-center justify-center p-2.5 mr-4 border-gray-500 rounded border">
-                            <CircleHelp className="text-gray-600 opacity-70"/>
-                        </div>
-                        <div className="flex w-full font-semibold">
-                            <h3>What is E-Saku?</h3>
-                        </div>
-                        <div className="flex w-1/4 items-center justify-end">
-                            <ChevronRight className={` ${isOpen ? 'transform rotate-90' : ''}`} />
-                        </div>
-                    </div>
-                    {isOpen && (
-                        <div id="faq-desc" className="flex max-w-max justify-start pl-[60px] pt-2">
-                            <p className="opacity-70">
-                            E-Saku is a digital platform used by schools to track, monitor, and manage students' achievements and disciplinary records. With e-Saku, teachers, students, and parents can monitor academic progress and student behavior transparently.
-                            </p>
-                        </div>
-                    )}
-                </div>
-                
-                
-            </div>
-            <div className="flex flex-col w-full pl-2">
-                <h1 className="text-xl font-semibold">Privacy Policy</h1>
-                <p>Here is the privacy policy of the E-Saku website</p>
-                <div className="flex items-center pt-5">
-                    <div className="flex items-center justify-center p-2.5 mr-4 border-gray-400 rounded border">
-                        <CircleHelp className="text-gray-500 opacity-50"/>
-                    </div>
-                    <div className="flex w-full">
-                        <h3>Information We Collect</h3>
-                    </div>
-                    <div className="flex w-1/4 items-center justify-start">
-                        <ChevronRight/>
-                    </div>
-                </div>
-            </div>
+interface FAQItemData extends FAQItemProps {
+  id: string;
+}
+
+interface PolicyItemData extends PolicyItemProps {
+  id: string;
+}
+
+// Enhanced accordion component with smooth animations and better accessibility
+const FAQItem = ({ question, answer, icon, category }: FAQItemProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState(0);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      setContentHeight(isOpen ? contentRef.current.scrollHeight : 0);
+    }
+  }, [isOpen]);
+
+  return (
+    <div className="border border-gray-200 rounded-lg overflow-hidden mb-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+      {category && (
+        <div className="bg-blue-50 px-4 py-1 text-xs font-medium text-blue-600">
+          {category}
         </div>
-      </>
-    );
-  };
+      )}
+      <button
+        className={`w-full flex items-center p-4 cursor-pointer transition-colors duration-300 ${
+          isOpen ? "bg-blue-50" : "hover:bg-gray-50"
+        }`}
+        onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-controls={`faq-answer-${question.replace(/\s+/g, '-').toLowerCase()}`}
+      >
+        <div className="flex items-center justify-center p-2 mr-4 rounded-full bg-blue-100 text-blue-600">
+          {icon || <HelpCircle size={20} />}
+        </div>
+        <h3 className="flex-1 font-medium text-gray-800 text-left">{question}</h3>
+        <ChevronDown 
+          className={`text-gray-500 transition-transform duration-300 ease-in-out ${
+            isOpen ? "transform rotate-180" : ""
+          }`} 
+          size={20}
+        />
+      </button>
+      <div 
+        className="overflow-hidden transition-all duration-300 ease-in-out"
+        style={{ maxHeight: `${contentHeight}px` }}
+        id={`faq-answer-${question.replace(/\s+/g, '-').toLowerCase()}`}
+        role="region"
+      >
+        <div 
+          ref={contentRef}
+          className="p-6 pt-4 pl-16 text-gray-600 bg-white"
+        >
+          {answer}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Enhanced policy component with better styling and accessibility
+const PolicyItem = ({ title, content, icon }: PolicyItemProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState(0);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      setContentHeight(isOpen ? contentRef.current.scrollHeight : 0);
+    }
+  }, [isOpen]);
+
+  return (
+    <div className="border border-gray-200 rounded-lg overflow-hidden mb-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <button
+        className={`w-full flex items-center p-4 cursor-pointer transition-colors duration-300 ${
+          isOpen ? "bg-green-50" : "hover:bg-gray-50"
+        }`}
+        onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-controls={`policy-content-${title.replace(/\s+/g, '-').toLowerCase()}`}
+      >
+        <div className="flex items-center justify-center p-2 mr-4 rounded-full bg-green-100 text-green-600">
+          {icon || <Shield size={20} />}
+        </div>
+        <h3 className="flex-1 font-medium text-gray-800 text-left">{title}</h3>
+        <ChevronDown 
+          className={`text-gray-500 transition-transform duration-300 ease-in-out ${
+            isOpen ? "transform rotate-180" : ""
+          }`} 
+          size={20}
+        />
+      </button>
+      <div 
+        className="overflow-hidden transition-all duration-300 ease-in-out"
+        style={{ maxHeight: `${contentHeight}px` }}
+        id={`policy-content-${title.replace(/\s+/g, '-').toLowerCase()}`}
+        role="region"
+      >
+        <div 
+          ref={contentRef}
+          className="p-6 pt-4 pl-16 text-gray-600 bg-white"
+        >
+          {content || "Default content"}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Added new contact card component
+const ContactCard = ({ title, description, icon, actionText, actionUrl }: {
+  title: string;
+  description: string;
+  icon: ReactNode;
+  actionText: string;
+  actionUrl: string;
+}) => {
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="flex items-center mb-4">
+        <div className="p-2 rounded-full bg-purple-100 text-purple-600 mr-4">
+          {icon}
+        </div>
+        <h3 className="font-medium text-lg">{title}</h3>
+      </div>
+      <p className="text-gray-600 mb-4">{description}</p>
+      <a 
+        href={actionUrl}
+        className="inline-flex items-center text-purple-600 hover:text-purple-800 font-medium"
+      >
+        {actionText} <ExternalLink size={16} className="ml-1" />
+      </a>
+    </div>
+  );
+};
+
+const ViewHelpPreview = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("faq");
   
-export default ViewHelp;  
+  // Enhanced data with IDs and categories
+      const faqItems: FAQItemData[] = [
+    {
+      id: "what-is-esaku",
+      question: "What is E-Saku?",
+      answer: "E-Saku is a digital platform used by schools to track, monitor, and manage students' achievements and disciplinary records. With E-Saku, teachers, students, and parents can monitor academic progress and student behavior transparently.",
+      category: "General",
+      icon: <HelpCircle size={20} />
+    },
+    {
+      id: "who-can-access",
+      question: "Who can access E-Saku?",
+      answer: "E-Saku can be accessed by school administrators, teachers, students, and parents. Each user type has different access levels and permissions based on their role.",
+      category: "Access & Permissions"
+    },
+    {
+      id: "data-security",
+      question: "Is students data on E-Saku secure?",
+      answer: "Yes, E-Saku implements strong security measures to protect all student data. We use encryption, secure authentication, and regular security audits to ensure data privacy and protection.",
+      icon: <Shield size={20} />,
+      category: "Security & Privacy"
+    },
+    {
+      id: "password-reset",
+      question: "How do I reset my password?",
+      answer: "To reset your password, click on the 'Forgot Password' link on the login page. Enter your registered email address and follow the instructions sent to your email to create a new password.",
+      category: "Account Management"
+    },
+    {
+      id: "data-export",
+      question: "Can I export data from E-Saku?",
+      answer: "Yes, authorized users can export reports and data from E-Saku in various formats including PDF, Excel, and CSV. This feature is available in the Reports section of your dashboard.",
+      category: "Features"
+    }
+  ];
+
+  const policyItems: PolicyItemData[] = [
+    {
+      id: "info-collect",
+      title: "Information We Collect",
+      content: "E-Saku collects personal information such as names, contact details, academic records, and behavioral notes. This information is provided by schools, teachers, parents, and students and is used solely for educational management purposes.",
+      icon: <Book size={20} />
+    },
+    {
+      id: "info-usage",
+      title: "How We Use Your Information",
+      content: "We use your information to provide and improve the E-Saku platform services. This includes personalizing your experience, communicating with you about your account, and ensuring the platform meets your needs.",
+      icon: <CircleHelp size={20} />
+    },
+    {
+      id: "data-security",
+      title: "Data Security",
+      content: "We implement a variety of security measures to maintain the safety of your personal information. All data is encrypted both in transit and at rest. We regularly perform security audits and update our systems to prevent unauthorized access.",
+      icon: <Shield size={20} />
+    },
+    {
+      id: "data-retention",
+      title: "Data Retention",
+      content: "We retain personal information only for as long as necessary to fulfill the purposes for which it was collected. Academic records may be maintained for longer periods as required by educational regulations and with appropriate safeguards.",
+      icon: <Book size={20} />
+    }
+  ];
+
+  // Filter FAQ items based on search term
+  const filteredFaqItems = faqItems.filter(item => 
+    item.question.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    item.answer.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="max-w-7xl mx-auto p-2">
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8 mb-8 shadow-sm">
+        <h1 className="text-3xl font-bold mb-3 text-gray-800">Help Center</h1>
+        <p className="text-gray-600 max-w-2xl mb-6">
+          Find answers to common questions about E-Saku, learn about our privacy policies, 
+          and discover how to make the most of our platform.
+        </p>
+
+        <div className="relative max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search size={18} className="text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search for answers..."
+            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+      
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="flex space-x-8">
+          <button
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "faq"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+            onClick={() => setActiveTab("faq")}
+          >
+            Frequently Asked Questions
+          </button>
+          <button
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "policy"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+            onClick={() => setActiveTab("policy")}
+          >
+            Privacy Policy
+          </button>
+          <button
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "contact"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+            onClick={() => setActiveTab("contact")}
+          >
+            Contact Support
+          </button>
+        </nav>
+      </div>
+      
+      <div className="min-h-[400px]">
+        {activeTab === "faq" && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-1">Frequently Asked Questions</h2>
+              <p className="text-gray-600">
+                Find answers to the most common questions about E-Saku
+              </p>
+            </div>
+            
+            {searchTerm && (
+              <p className="mb-4 text-sm text-gray-500">
+                {filteredFaqItems.length} results found for "{searchTerm}"
+              </p>
+            )}
+            
+            {filteredFaqItems.length > 0 ? (
+              <div className="space-y-4">
+                {filteredFaqItems.map((item) => (
+                  <FAQItem 
+                    key={item.id}
+                    question={item.question}
+                    answer={item.answer}
+                    icon={item.icon}
+                    category={item.category}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <HelpCircle size={48} className="mx-auto text-gray-300 mb-4" />
+                <h3 className="text-lg font-medium text-gray-700 mb-2">No results found</h3>
+                <p className="text-gray-500 max-w-md mx-auto">
+                  We couldn't find any FAQs matching your search. Try different keywords or contact our support team.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {activeTab === "policy" && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-1">Privacy & Data Policy</h2>
+              <p className="text-gray-600">
+                Learn how we handle your information and protect your privacy
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              {policyItems.map((item) => (
+                <PolicyItem 
+                  key={item.id}
+                  title={item.title}
+                  content={item.content}
+                  icon={item.icon}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {activeTab === "contact" && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-1">Contact Support</h2>
+              <p className="text-gray-600">
+                Get in touch with our support team for personalized assistance
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <ContactCard
+                title="Email Support"
+                description="Send us an email and we'll get back to you within 24 hours. Our support team is available Monday through Friday."
+                icon={<Mail size={20} />}
+                actionText="Contact via Email"
+                actionUrl="mailto:support@esaku.edu"
+              />
+              
+              <ContactCard
+                title="Phone Support"
+                description="For urgent matters, call our support line during business hours (9AM - 5PM local time)."
+                icon={<Phone size={20} />}
+                actionText="Call Support"
+                actionUrl="tel:+123456789"
+              />
+              
+              <ContactCard
+                title="Knowledge Base"
+                description="Browse our extensive collection of guides, tutorials and troubleshooting articles."
+                icon={<Book size={20} />}
+                actionText="Visit Knowledge Base"
+                actionUrl="#knowledge-base"
+              />
+              
+              <ContactCard
+                title="Feature Requests"
+                description="Have an idea to improve E-Saku? Submit your feature requests and feedback."
+                icon={<HelpCircle size={20} />}
+                actionText="Submit Request"
+                actionUrl="#feature-request"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ViewHelpPreview;
