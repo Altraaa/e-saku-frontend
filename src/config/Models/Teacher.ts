@@ -6,4 +6,6 @@ export interface ITeacher {
     email: string | null;
     created_at: string;
     updated_at: string;
+    last_active?: string;
+    classes?: Array<{ id: string | number }>;
 }

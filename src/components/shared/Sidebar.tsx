@@ -53,6 +53,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
   const accountItems = [
     { label: "Settings", icon: Settings, path: "/settings" },
     { label: "Profile", icon: User, path: "/profile" },
+    { label: "Profile", icon: User, path: "/profileteacher" },
     { label: "Help", icon: CircleHelp, path: "/help" },
   ];
 
