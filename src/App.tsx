@@ -19,6 +19,7 @@ import EditStudentBio from "./pages/EditStudentBio";
 import BioAccomplisments from "./pages/BioAccomplisments";
 import BioViolations from "./pages/BioViolations";
 import Help from "./pages/Help";
+import Settings from "./pages/Settings";
 import ProfileStudent from "./pages/ProfileStudent";
 import { SidebarProvider } from "./utils/context/sidebarContext";
 import MainLayout from "./components/layouts/MainLayout";
@@ -75,6 +76,7 @@ export function AppContent() {
             path="/studentbio/violations/:id"
             element={<BioViolations />}
           />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/help" element={<Help />} />
           <Route path="/profile" element={<ProfileStudent />} />
         </Route>
