@@ -46,11 +46,11 @@ const ViewSettings = () => {
                     </div>
                 </Card>
             </div>
-            <div className="flex justify-end px-2 pt-5">
+            {/* <div className="flex justify-end px-2 pt-5">
                 <button className="bg-[#00BB1C] text-white font-semibold px-8 py-2 rounded-sm hover:bg-opacity-75">
                     Save
                 </button>
-            </div>
+            </div> */}
         </div>
     )
 }

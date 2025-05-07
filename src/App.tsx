@@ -39,6 +39,7 @@ const LayoutWrapper = () => {
     studentbio: "Student Bio",
     help: "Help",
     profile: "Profile",
+    settings: "Settings",
   };
 
   const title = pageTitles[path] || "Unknown Page";
