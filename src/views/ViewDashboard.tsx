@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowDown, ArrowUp, Layers, School, TrendingUp, UsersRound, XCircle } from "lucide-react";
+import { ArrowDown, ArrowUp, Layers, School, UsersRound, XCircle } from "lucide-react";
 import {
   ChartConfig,
   ChartContainer,

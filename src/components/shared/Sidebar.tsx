@@ -34,7 +34,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
     if (activeItem !== location.pathname) {
       setActiveItem(location.pathname);
     }
-  }, [location.pathname, activeItem]);
+  }, [location.pathname]);
 
   const handleCloseSidebar = (e: React.MouseEvent) => {
     if (isMobile && isOpen) {
