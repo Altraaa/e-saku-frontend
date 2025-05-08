@@ -1,237 +1,547 @@
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { ArrowDown, ArrowUp, Layers, School, TrendingUp, UsersRound, XCircle } from "lucide-react";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import { useState, useEffect, useCallback, useMemo, ChangeEvent } from 'react';
+import { 
+  ArrowDown, 
+  ArrowUp, 
+  Layers, 
+  School, 
+  Search,
+  Users, 
+  AlertTriangle,
+  Award
+} from "lucide-react";
+import { useTeacherById } from "@/config/Api/useTeacher";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
-// Data untuk grafik
 const chartData = [
-  { day: "Monday", violations: 20, achievments: 13 },
-  { day: "Tuesday", violations: 30, achievments: 22 },
-  { day: "Wednesday", violations: 25, achievments: 10 },
-  { day: "Thursday", violations: 10, achievments: 7 },
-  { day: "Friday", violations: 40, achievments: 20 },
+  { day: "Monday", violations: 20, achievements: 13 },
+  { day: "Tuesday", violations: 30, achievements: 22 },
+  { day: "Wednesday", violations: 25, achievements: 10 },
+  { day: "Thursday", violations: 10, achievements: 7 },
+  { day: "Friday", violations: 40, achievements: 20 },
 ];
 
-const chartConfig = {
-  violations: {
-    label: "Violations",
-    color: "#14532d", // Warna hijau untuk pelanggaran
+const violationData = [
+  {
+    id: 1,
+    nis: "30688",
+    name: "I Made Gerrald Wahyu Darmawan",
+    class: "XII RPL 3",
+    violationType: "Rambut Panjang",
+    violationPoint: 2,
+    totalPoint: 14
   },
-  achievments: {
-    label: "Achievements",
-    color: "#00BB1C", // Warna oranye untuk pemulihan
+  {
+    id: 2,
+    nis: "30890",
+    name: "Putu Berliana Suardana Putri",
+    class: "XII MM 1",
+    violationType: "Mencuri hatiku",
+    violationPoint: 10,
+    totalPoint: 69
   },
-} satisfies ChartConfig;
+  {
+    id: 3,
+    nis: "30686",
+    name: "I Made Dio Kartiana Putra",
+    class: "XII RPL 3",
+    violationType: "Suka sama Shandy",
+    violationPoint: 10,
+    totalPoint: 20
+  }
+];
+
+const leaderboardData = [
+  { rank: 1, name: "Tomas Ibrahim", points: 60 },
+  { rank: 2, name: "I Wayan Purnayasa", points: 50 },
+  { rank: 3, name: "Cristiyan Mikha Adi Putra", points: 48 }
+];
+
+interface PayloadItem {
+  value: number;
+  name: string;
+  color: string;
+  dataKey: string;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: PayloadItem[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-3 border rounded shadow-lg">
+        <p className="font-bold text-gray-800 mb-1">{label}</p>
+        {payload.map((entry, index) => (
+          <div key={index} className="flex items-center gap-2 mb-1">
+            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: entry.color }}></div>
+            <p className="text-sm">
+              <span className="font-medium">{entry.name}:</span> {entry.value}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+
+
+const DashboardSkeleton = () => {
+  return (
+    <div className="p-6 space-y-6">
+      <Skeleton className="h-8 w-64" />
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className="rounded-xl overflow-hidden">
+            <CardHeader className="p-4">
+              <div className="flex justify-between items-start mb-3">
+                <Skeleton className="w-8 h-8 rounded-full" />
+                <Skeleton className="w-12 h-6 rounded-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+            </CardHeader>
+          </Card>
+        ))}
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="col-span-1 lg:col-span-2">
+          <Skeleton className="h-80 w-full rounded-xl" />
+        </div>
+        <Skeleton className="h-80 w-full rounded-xl" />
+      </div>
+    </div>
+  );
+};
 
 const ViewDashboard = () => {
+  const [teacherName, setTeacherName] = useState("");
+  const [timeRange, setTimeRange] = useState("weekly");
+  const [activityType, setActivityType] = useState("all");
+  const [searchText, setSearchText] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentBreakpoint, setCurrentBreakpoint] = useState<'xs' | 'sm' | 'md' | 'lg' | 'xl'>('md');
+  
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 640) setCurrentBreakpoint('xs');
+      else if (width < 768) setCurrentBreakpoint('sm');
+      else if (width < 1024) setCurrentBreakpoint('md');
+      else if (width < 1280) setCurrentBreakpoint('lg');
+      else setCurrentBreakpoint('xl');
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  const teacherId = localStorage.getItem('teacher_id');
+  
+  const { 
+    data: teacher, 
+    isLoading: teacherLoading,
+  } = useTeacherById(teacherId ? Number(teacherId) : 0);
+  
+  useEffect(() => {
+    if (teacher) {
+      setTeacherName(teacher.name);
+    }
+  }, [teacher]);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  useEffect(() => {
+    if (!teacher && !teacherLoading) {
+      try {
+        const storedName = localStorage.getItem('teacherName');
+        if (storedName) {
+          setTeacherName(storedName);
+        }
+      } catch (error) {
+        console.error('Error accessing localStorage:', error);
+      }
+    }
+  }, [teacher, teacherLoading]);
+  
+  const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const timeoutId = setTimeout(() => {
+      setSearchText(value);
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
+  }, []);
+  
+  const filteredViolationData = useMemo(() => {
+    return violationData.filter(student => 
+      searchText === "" || 
+      student.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      student.nis.includes(searchText) ||
+      student.class.toLowerCase().includes(searchText.toLowerCase()) ||
+      student.violationType.toLowerCase().includes(searchText.toLowerCase())
+    );
+  }, [searchText]);
+
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+
   return (
-    <>
-      <div className="gap-6 grid grid-cols-2">
-        {/* Statistik Kotak-Kotak */}
-        <div className="grid grid-cols-2 gap-6">
-          {/* Card Total Siswa Melanggar */}
-          <Card className="bg-green-500 text-white shadow-lg rounded-lg flex flex-col items-start justify-center">
-            <CardHeader className="w-full">
-              <div className="w-full flex justify-between items-start">
-                <UsersRound className="h-12 w-12" />
-                <div className="bg-white text-green-500 px-2.5 py-1.5 rounded-full text-sm font-semibold flex items-center justify-start gap-1">
-                  <ArrowUp className="h-5 w-5"/>
-                  <p>10%</p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-4xl font-bold">40</p>
-              <CardTitle className="text-lg font-medium">
-                Total Siswa Melanggar
-              </CardTitle>
-            </CardContent>
-          </Card>
-
-          {/* Card Kelas Pelanggar Terbanyak */}
-          <Card className="bg-green-500 text-white shadow-lg rounded-lg flex flex-col items-start justify-center">
-            <CardHeader>
-              <School className="h-12 w-12" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-4xl font-bold">XII RPL 3</p>
-              <CardTitle className="text-lg font-medium">
-                Kelas Pelanggar Terbanyak
-              </CardTitle>
-            </CardContent>
-          </Card>
-
-          {/* Card Total Poin Pelanggaran */}
-          <Card className="bg-green-500 text-white shadow-lg rounded-lg flex flex-col items-start justify-center">
-            <CardHeader className="w-full">
-              <div className="w-full flex justify-between items-start">
-                <XCircle className="h-12 w-12" />
-                <div className="bg-white text-red-500 px-2.5 py-1.5 rounded-full text-sm font-semibold flex items-center justify-start gap-1">
-                  <ArrowDown className="h-5 w-5"/>
-                  <p>10%</p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-4xl font-bold">800</p>
-              <CardTitle className="text-lg font-medium">
-                Total Poin Pelanggaran
-              </CardTitle>
-            </CardContent>
-          </Card>
-
-          {/* Card Tingkat Pelanggar Terbanyak */}
-          <Card className="bg-green-500 text-white shadow-lg rounded-lg flex flex-col items-start justify-center">
-            <CardHeader>
-              <Layers className="h-12 w-12" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-4xl font-bold">XII</p>
-              <CardTitle className="text-lg font-medium">
-                Tingkat Pelanggar Terbanyak
-              </CardTitle>
-            </CardContent>
-          </Card>
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-green-800">
+            Selamat Datang, {teacherName}
+          </h1>
         </div>
-
-        {/* Grafik */}
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">
-                Grafik Aktivitas Siswa SMKN 1 Denpasar
-              </CardTitle>
-              <div className="flex justify-between items-center">
-                <div className="flex items-center justify-center">
-                  <select className="rounded border-2 border-gray-500 py-2 px-6 text-sm" name="" id="">
-                    <option value="">Semua</option>
-                    <option value="">Pelanggaran</option>
-                    <option value="">Prestasi</option>
-                  </select>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <Card className="rounded-xl overflow-hidden">
+          <CardContent className="p-0">
+            <div className="bg-green-500 p-5 text-white">
+              <div className="flex justify-between items-start mb-4">
+                <div className="bg-green-600/40 p-2 rounded-lg">
+                  <AlertTriangle className="h-6 w-6" />
                 </div>
-                <div className="flex gap-4">
-                  <p className="flex items-center py-2 px-3 text-xs rounded border-2 border-gray-500">Mingguan</p>
-                  <p className="flex items-center py-2 px-3 text-xs rounded border-2 border-gray-500">Bulanan</p>
+                <Badge variant="secondary" className="bg-white text-red-500 rounded-full">
+                  <ArrowDown className="h-3 w-3 mr-1"/>
+                  <span>5%</span>
+                </Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-bold">800</p>
+                <p className="text-sm text-white/80">Total Poin Pelanggaran</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="rounded-xl overflow-hidden">
+          <CardContent className="p-0">
+            <div className="bg-green-500 p-5 text-white">
+              <div className="flex justify-between items-start mb-4">
+                <div className="bg-green-600/40 p-2 rounded-lg">
+                  <Users className="h-6 w-6" />
+                </div>
+                <Badge variant="secondary" className="bg-white text-green-600 rounded-full">
+                  <ArrowUp className="h-3 w-3 mr-1"/>
+                  <span>10%</span>
+                </Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-bold">40</p>
+                <p className="text-sm text-white/80">Total Siswa Melanggar</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="rounded-xl overflow-hidden">
+          <CardContent className="p-0">
+            <div className="bg-green-500 p-5 text-white">
+              <div className="flex items-start mb-4">
+                <div className="bg-green-600/40 p-2 rounded-lg">
+                  <School className="h-6 w-6" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-bold">XII RPL 3</p>
+                <p className="text-sm text-white/80">Kelas Pelanggar Terbanyak</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-xl overflow-hidden">
+          <CardContent className="p-0">
+            <div className="bg-green-500 p-5 text-white">
+              <div className="flex items-start mb-4">
+                <div className="bg-green-600/40 p-2 rounded-lg">
+                  <Layers className="h-6 w-6" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-bold">XII</p>
+                <p className="text-sm text-white/80">Tingkat Pelanggar Terbanyak</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="col-span-1 lg:col-span-2">
+          <Card className="rounded-xl overflow-hidden">
+            <CardHeader className="border-b">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <CardTitle className="text-lg sm:text-xl font-bold text-gray-800">
+                  Perbandingan Aktivitas Siswa
+                </CardTitle>
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full md:w-auto">
+                  <Select
+                    value={activityType}
+                    onValueChange={setActivityType}
+                  >
+                    <SelectTrigger className="border-green-500 focus:ring-green-400 min-w-32 rounded-lg">
+                      <SelectValue placeholder="Jenis Aktivitas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua</SelectItem>
+                      <SelectItem value="violations">Pelanggaran</SelectItem>
+                      <SelectItem value="achievements">Prestasi</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select
+                    value={timeRange}
+                    onValueChange={setTimeRange}
+                  >
+                    <SelectTrigger className="border-green-500 focus:ring-green-400 min-w-24 rounded-lg">
+                      <SelectValue placeholder="Rentang Waktu" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="weekly">Minggu</SelectItem>
+                      <SelectItem value="monthly">Bulan</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig}>
-                <BarChart accessibilityLayer data={chartData}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="day"
-                    tickLine={false}
-                    tickMargin={10}
-                    axisLine={false}
-                  />
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent indicator="dashed" />}
-                  />
-                  <Bar
-                    dataKey="violations"
-                    fill={chartConfig.violations.color}
-                    radius={4}
-                  />
-                  <Bar
-                    dataKey="achievments"
-                    fill={chartConfig.achievments.color}
-                    radius={4}
-                  />
-                </BarChart>
-              </ChartContainer>
-            </CardContent>
-            <CardFooter className="flex-row justify-center items-start gap-5 text-sm">
-              <div className="flex gap-2 font-medium leading-none">
-                <span className=" py-1 px-1.5 bg-[#14532d]"></span>
-                <p>Pelanggaran</p>
+            <CardContent className="pt-4 sm:pt-6">
+              <div className="w-full h-48 sm:h-64 md:h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart 
+                    data={chartData} 
+                    barGap={10}
+                    margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis 
+                      dataKey="day" 
+                      axisLine={false} 
+                      tickLine={false}
+                      tick={{ fontSize: currentBreakpoint === 'xs' ? 10 : 12 }}
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false}
+                      tick={{ fontSize: currentBreakpoint === 'xs' ? 10 : 12 }}
+                    />
+                    <Tooltip 
+                      content={<CustomTooltip />}
+                      cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
+                      wrapperStyle={{ outline: 'none' }}
+                    />
+                    <Bar 
+                      dataKey="violations" 
+                      name="Pelanggaran" 
+                      fill="#14532d" 
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar 
+                      dataKey="achievements" 
+                      name="Prestasi" 
+                      fill="#00BB1C" 
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-              <div className="flex gap-2 font-medium leading-none">
-                <span className="py-1 px-1.5 bg-[#00BB1C]"></span>
-                <p>Prestasi</p>
+            </CardContent>
+            <CardFooter className="flex justify-center gap-4 sm:gap-6 py-4 border-t">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 block bg-[#14532d] rounded"></span>
+                <span className="text-xs sm:text-sm">Pelanggaran</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 block bg-[#00BB1C] rounded"></span>
+                <span className="text-xs sm:text-sm">Prestasi</span>
               </div>
             </CardFooter>
           </Card>
         </div>
+
+        <div>
+          <Card className="rounded-xl overflow-hidden">
+            <CardHeader className="text-center bg-green-500 text-white p-4">
+              <CardTitle>Peringkat Pelanggaran</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 min-h-[300px] flex flex-col justify-between">
+              <div>
+                {leaderboardData.map((student, index) => (
+                  <div 
+                    key={index}
+                    className="flex items-center p-4 border-b hover:bg-green-50 transition-colors"
+                  >
+                    <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full mr-3 text-lg font-bold
+                      ${index === 0 ? "bg-yellow-100 text-yellow-600 ring-1 ring-yellow-200" : 
+                        index === 1 ? "bg-gray-100 text-gray-500 ring-1 ring-gray-200" : 
+                                      "bg-orange-100 text-orange-600 ring-1 ring-orange-200"}`}
+                    >
+                      {student.rank}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">{student.name}</p>
+                      <div className="flex items-center">
+                        <p className="text-sm text-gray-500">Total Poin:</p>
+                        <Badge variant="outline" className="ml-2 rounded-full">
+                          {student.points}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <Award className={`h-5 w-5 
+                        ${index === 0 ? "text-yellow-500" : 
+                          index === 1 ? "text-gray-500" : 
+                                        "text-orange-500"}`} 
+                      />
+                    </div>
+                  </div>
+                ))}
+                
+                {leaderboardData.length < 5 && (
+                  <div className="space-y-0">
+                    {Array.from({ length: 5 - leaderboardData.length }).map((_, i) => (
+                      <div 
+                        key={`placeholder-${i}`} 
+                        className="flex items-center p-4 border-b"
+                      >
+                        <div className="w-10 h-10 flex items-center justify-center rounded-full mr-3 bg-gray-100 text-gray-300 font-bold">
+                          {leaderboardData.length + i + 1}
+                        </div>
+                        <div className="flex-1">
+                          <Skeleton className="h-5 w-36 mb-2" />
+                          <Skeleton className="h-4 w-28" />
+                        </div>
+                        <div>
+                          <Skeleton className="w-5 h-5 rounded-full" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <Button variant="link" className="text-green-500 hover:text-green-600 p-4">
+                Lihat Semua Peringkat →
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      {/* Daftar Siswa yang Melanggar */}
-      <div className="grid grid-cols-[2fr_1fr] gap-6">
-        <Card className="bg-white mt-8">
-          <CardHeader>
-            <CardTitle className="text-xl">Daftar Siswa yang Melanggar hari ini</CardTitle>
-          </CardHeader>
-          <CardContent>
+      <div>
+        <Card className="rounded-xl overflow-hidden">
+          <div className="px-6 pt-4 pb-2">
+            <div className="flex flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-xl font-bold text-gray-900">
+                Daftar Siswa Melanggar Hari Ini
+              </CardTitle>
+              <div className="relative w-72">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  value={searchText}
+                  onChange={handleSearchChange}
+                  placeholder="Cari siswa..."
+                  className="pl-9 bg-white border-gray-200 w-full rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableCell className="text-center">No</TableCell>
-                  <TableCell className="text-center">NIS</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell className="text-center">Class</TableCell>
-                  <TableCell className="text-center">Violation Type</TableCell>
-                  <TableCell className="text-center">Violation Point</TableCell>
-                  <TableCell className="text-center">Total Point</TableCell>
+                <TableRow className="bg-gray-50 hover:bg-gray-50">
+                  <TableHead className="w-12 text-center px-6 font-medium text-black">No</TableHead>
+                  <TableHead className="text-center font-medium text-black">NIS</TableHead>
+                  <TableHead className="text-center font-medium text-black">Nama</TableHead>
+                  <TableHead className="text-center ffont-medium text-black">Kelas</TableHead>
+                  <TableHead className="text-center hidden sm:table-cell font-medium text-black">Jenis Pelanggaran</TableHead>
+                  <TableHead className="text-center font-medium text-black">Poin</TableHead>
+                  <TableHead className="text-center font-medium text-black">Total Poin</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell className="text-center">1</TableCell>
-                  <TableCell className="text-center">30688</TableCell>
-                  <TableCell>I Made Gerrald Wahyu Darmawan</TableCell>
-                  <TableCell className="text-center">XII RPL 3</TableCell>
-                  <TableCell className="text-center">Rambut Panjang</TableCell>
-                  <TableCell className="text-center">2</TableCell>
-                  <TableCell className="text-center">14</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-center">2</TableCell>
-                  <TableCell className="text-center">30890</TableCell>
-                  <TableCell>Putu Berliana Suardana Putri</TableCell>
-                  <TableCell className="text-center">XII MM 1</TableCell>
-                  <TableCell className="text-center">Mencuri hatiku</TableCell>
-                  <TableCell className="text-center">10</TableCell>
-                  <TableCell className="text-center">69</TableCell>
-                </TableRow>
+                {filteredViolationData.map((student) => (
+                  <TableRow 
+                    key={student.id} 
+                    className="border-b hover:bg-gray-50"
+                  >
+                    <TableCell className="text-center px-6 font-normal">{student.id}</TableCell>
+                    <TableCell className="text-center font-normal">{student.nis}</TableCell>
+                    <TableCell className="text-center font-normal">{student.name}</TableCell>
+                    <TableCell className="text-center font-normal">{student.class}</TableCell>
+                    <TableCell className="text-center hidden sm:table-cell font-normal">{student.violationType}</TableCell>
+                    <TableCell className="text-center font-normal">{student.violationPoint}</TableCell>
+                    <TableCell className="text-center font-normal">{student.totalPoint}</TableCell>
+                  </TableRow>
+                ))}
+                {filteredViolationData.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                      Tidak ada data yang sesuai dengan pencarian
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
-        {/* Leaderboard */}
-        <Card className="bg-white mt-8">
-          <CardHeader className="flex justify-center items-center text-xl rounded bg-[#00BB1C]">
-            <CardTitle>Leaderboard</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-5">
-            <ol className="space-y-10">
-              <li className="text-base">#1 I Made Gerrald Wahyu Darmawan - 69</li>
-              <li className="text-base">#2 Putu Berliana Suardana Putri - 50</li>
-              <li className="text-base">#3 Cristiyan Mikha Adi Putra - 48</li>
-            </ol>
-          </CardContent>
+          </div>
+          <div className="pl-6 pt-4 pb-4 flex justify-between items-center border-t">
+            <div className="text-sm text-gray-500">
+              Menampilkan {filteredViolationData.length} dari {violationData.length} siswa
+            </div>
+            <div className="pr-6 flex items-center space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-gray-700 rounded-lg"
+              >
+                Sebelumnya
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm"
+                className="bg-green-500 hover:bg-green-600 h-8 w-8 p-0 rounded-full"
+              >
+                1
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-gray-700 rounded-lg"
+              >
+                Selanjutnya
+              </Button>
+            </div>
+          </div>
         </Card>
       </div>
-    </>
+    </div>
   );
 };
 
