@@ -211,11 +211,12 @@ const ViewDashboard = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+    <div className="px-6 space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <h1 className="text-xl sm:text-2xl font-bold text-green-800">
-            Selamat Datang, {teacherName}
+          <h1 className="text-xl sm:text-2xl font-bold">
+            Hi🙌, <span className='text-green-500'>{teacherName}</span><br />
+            Selamat datang di website E-Saku Siswa😊
           </h1>
         </div>
       </div>

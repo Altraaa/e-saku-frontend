@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Home,
   Settings,
@@ -19,7 +19,7 @@ import ConfirmationModal from "../ui/confirmation";
 
 const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
   const location = useLocation();
-  const [activeItem, setActiveItem] = useState(location.pathname);
+  const activeItem = location.pathname;
   const { isOpen, toggleSidebar } = useSidebar();
 
   const { logout } = useLogout();
@@ -29,12 +29,6 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
     logout();
     setLogoutModalOpen(false);
   };
-
-  useEffect(() => {
-    if (activeItem !== location.pathname) {
-      setActiveItem(location.pathname);
-    }
-  }, [location.pathname]);
 
   const handleCloseSidebar = (e: React.MouseEvent) => {
     if (isMobile && isOpen) {
