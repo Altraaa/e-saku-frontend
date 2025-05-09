@@ -95,7 +95,6 @@ const ViewStudent = () => {
             <Card className="bg-white shadow-md py-8 flex flex-col items-center group-hover:shadow-lg hover:border-green-500 hover:border transition-all duration-200 relative rounded-lg">
               <div className="w-2 h-full absolute left-0 top-0 bg-green-500 rounded-l-lg"></div>
               <CardHeader className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center p-0">
-                {/* Empty grey circle - TKR text removed */}
               </CardHeader>
               <CardTitle className="mt-4 text-2xl font-semibold">
                 <span className="group-hover:text-green-500 transition-all duration-200">
