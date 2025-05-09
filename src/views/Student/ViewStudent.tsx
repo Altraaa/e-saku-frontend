@@ -1,18 +1,41 @@
 import { Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState, useEffect } from "react";
 import { useClassroomByTeacherId } from "@/config/Api/useClasroom";
 import { Link } from "react-router-dom";
 import { IClassroom } from "@/config/Models/Classroom";
 
 const ViewStudent = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [programFilter, setProgramFilter] = useState<string>("all");
+  const [availablePrograms, setAvailablePrograms] = useState<string[]>([]);
   const { data: classrooms, isLoading, error } = useClassroomByTeacherId();
 
-  // Filter kelas berdasarkan pencarian (simulasi)
-  const filteredClassrooms = classrooms?.filter((classroom: IClassroom) =>
-    classroom.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Extract unique program codes when classrooms data is loaded
+  useEffect(() => {
+    if (classrooms?.length) {
+      const programs = new Set<string>();
+      classrooms.forEach((classroom: IClassroom) => {
+        const code = getProgramCode(classroom.name);
+        if (code) programs.add(code);
+      });
+      setAvailablePrograms(Array.from(programs));
+    }
+  }, [classrooms]);
+
+  // Filter classrooms based on search term and program filter
+  const filteredClassrooms = classrooms?.filter((classroom: IClassroom) => {
+    const matchesSearch = classroom.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    
+    const matchesProgram = 
+      programFilter === "all" || 
+      getProgramCode(classroom.name) === programFilter;
+    
+    return matchesSearch && matchesProgram;
+  });
 
   const teacherName =
     classrooms?.[0]?.teacher?.name || "Teacher name not available";
@@ -24,24 +47,46 @@ const ViewStudent = () => {
           <h1 className="text-3xl font-bold text-green-500">{teacherName}</h1>
           <p className="text-xl ">Kelas yang diampu :</p>
         </div>
-        <div className="relative w-72">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            id="searchName"
-            placeholder="Search by students name"
-            className="pl-9 bg-white border border-gray-300 w-full rounded-lg h-10 text-sm outline-none placeholder:text-xs focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-colors duration-200"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full lg:w-auto">
+          <div className="w-full sm:w-48">
+            <Select
+              value={programFilter}
+              onValueChange={setProgramFilter}
+            >
+              <SelectTrigger className="border-green-500 focus:ring-green-400 rounded-lg h-10">
+                <SelectValue placeholder="Program Studi" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Program</SelectItem>
+                {availablePrograms.map((program) => (
+                  <SelectItem key={program} value={program}>
+                    {program} - {getProgramShortName(program)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              id="searchName"
+              placeholder="Search by students name"
+              className="pl-9 bg-white border border-gray-300 w-full rounded-lg h-10 text-sm outline-none placeholder:text-xs focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-colors duration-200"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
-      <div className="my-4 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-8 mt-10">
+      <div className="my-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-8 mt-10">
         {isLoading ? (
           <p>Loading...</p>
         ) : error ? (
           <p>Error loading data</p>
+        ) : filteredClassrooms?.length === 0 ? (
+          <p className="col-span-full text-center text-gray-500">No classes found matching your filters</p>
         ) : (
           filteredClassrooms?.map((classroom: IClassroom) => (
           <Link
@@ -81,7 +126,7 @@ const ViewStudent = () => {
   );
 };
 
-const getProgramCode = (className) => {
+const getProgramCode = (className: string): string => {
   const match = className.match(/\s([A-Z]{2,3})\s?\d/);
   if (match && match[1]) {
     return match[1];
@@ -89,15 +134,13 @@ const getProgramCode = (className) => {
   return "X";
 };
 
-const getProgramInitial = (className) => {
+const getProgramInitial = (className: string): string => {
   const code = getProgramCode(className);
   return code.charAt(0);
 };
 
-const getProgramFullName = (className) => {
-  const code = getProgramCode(className);
-  
-  const programNames = {
+const getProgramShortName = (code: string): string => {
+  const programNames: Record<string, string> = {
     'TKR': 'Teknik Kendaraan Ringan',
     'TKP': 'Teknik Konstruksi Properti',
     'RPL': 'Rekayasa Perangkat Lunak',
@@ -105,6 +148,11 @@ const getProgramFullName = (className) => {
   };
   
   return programNames[code] || 'Program Studi';
+};
+
+const getProgramFullName = (className: string): string => {
+  const code = getProgramCode(className);
+  return getProgramShortName(code);
 };
 
 export default ViewStudent;
