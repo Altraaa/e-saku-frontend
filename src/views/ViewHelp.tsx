@@ -35,21 +35,21 @@ const FAQItem = ({ question, answer, icon, category }: FAQItemProps) => {
   }, [isOpen]);
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden mb-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+    <div className="border border-gray-200 rounded-lg overflow-hidden mb-4 shadow-sm hover:shadow-md transition-shadow duration-300 bg-white">
       {category && (
-        <div className="bg-blue-50 px-4 py-1 text-xs font-medium text-blue-600">
+        <div className="bg-green-50 px-4 py-1 text-xs font-medium text-green-600">
           {category}
         </div>
       )}
       <button
         className={`w-full flex items-center p-4 cursor-pointer transition-colors duration-300 ${
-          isOpen ? "bg-blue-50" : "hover:bg-gray-50"
+          isOpen ? "bg-green-50" : "bg-white hover:bg-gray-50"
         }`}
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-controls={`faq-answer-${question.replace(/\s+/g, '-').toLowerCase()}`}
       >
-        <div className="flex items-center justify-center p-2 mr-4 rounded-full bg-blue-100 text-blue-600">
+        <div className="flex items-center justify-center p-2 mr-4 rounded-full bg-green-100 text-green-600">
           {icon || <HelpCircle size={20} />}
         </div>
         <h3 className="flex-1 font-medium text-gray-800 text-left">{question}</h3>
@@ -90,10 +90,10 @@ const PolicyItem = ({ title, content, icon }: PolicyItemProps) => {
   }, [isOpen]);
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden mb-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+    <div className="border border-gray-200 rounded-lg overflow-hidden mb-4 shadow-sm hover:shadow-md transition-shadow duration-300 bg-white">
       <button
         className={`w-full flex items-center p-4 cursor-pointer transition-colors duration-300 ${
-          isOpen ? "bg-green-50" : "hover:bg-gray-50"
+          isOpen ? "bg-green-50" : "bg-white hover:bg-gray-50"
         }`}
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
@@ -138,7 +138,7 @@ const ContactCard = ({ title, description, icon, actionText, actionUrl }: {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
       <div className="flex items-center mb-4">
-        <div className="p-2 rounded-full bg-purple-100 text-purple-600 mr-4">
+        <div className="p-2 rounded-full bg-green-100 text-green-600 mr-4">
           {icon}
         </div>
         <h3 className="font-medium text-lg">{title}</h3>
@@ -146,7 +146,7 @@ const ContactCard = ({ title, description, icon, actionText, actionUrl }: {
       <p className="text-gray-600 mb-4">{description}</p>
       <a 
         href={actionUrl}
-        className="inline-flex items-center text-purple-600 hover:text-purple-800 font-medium"
+        className="inline-flex items-center text-green-600 hover:text-green-800 font-medium"
       >
         {actionText} <ExternalLink size={16} className="ml-1" />
       </a>
@@ -229,7 +229,7 @@ const ViewHelpPreview = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-2">
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8 mb-8 shadow-sm">
+      <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-8 mb-8 shadow-sm">
         <h1 className="text-3xl font-bold mb-3 text-gray-800">Help Center</h1>
         <p className="text-gray-600 max-w-2xl mb-6">
           Find answers to common questions about E-Saku, learn about our privacy policies, 
@@ -243,7 +243,7 @@ const ViewHelpPreview = () => {
           <input
             type="text"
             placeholder="Search for answers..."
-            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -255,7 +255,7 @@ const ViewHelpPreview = () => {
           <button
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === "faq"
-                ? "border-blue-500 text-blue-600"
+                ? "border-green-500 text-green-600"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             }`}
             onClick={() => setActiveTab("faq")}
@@ -265,7 +265,7 @@ const ViewHelpPreview = () => {
           <button
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === "policy"
-                ? "border-blue-500 text-blue-600"
+                ? "border-green-500 text-green-600"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             }`}
             onClick={() => setActiveTab("policy")}
@@ -275,7 +275,7 @@ const ViewHelpPreview = () => {
           <button
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === "contact"
-                ? "border-blue-500 text-blue-600"
+                ? "border-green-500 text-green-600"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             }`}
             onClick={() => setActiveTab("contact")}

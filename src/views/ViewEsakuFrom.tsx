@@ -12,7 +12,9 @@ import {
   ArrowRight,
   RefreshCw,
   Info,
-  Send
+  Send,
+  Globe,
+  CalendarIcon
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -23,8 +25,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { id } from "date-fns/locale";
 
-// Import the validation types from existing Models directory
 import { 
   ESakuFormErrorState, 
   InputTypeOptions, 
@@ -32,8 +38,9 @@ import {
   ViolationTypeOptions, 
   AchievementTypeOptions} from "@/config/Models/FormTypes";
 
+type AchievementLevelOptions = "kota" | "provinsi" | "nasional" | "internasional" | "";
+
 const ESakuForm: React.FC = () => {
-  // Common styles for consistency
   const labelClass = "text-gray-700 font-medium flex items-center gap-2";
   const inputClass = "border-gray-300 focus:border-green-500 focus:ring-green-500 rounded-lg h-10";
   const errorClass = "text-red-500 text-xs mt-1";
@@ -44,47 +51,35 @@ const ESakuForm: React.FC = () => {
   const btnSecondaryClass = "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 flex items-center gap-1.5";
   const btnDarkClass = "bg-gray-900 hover:bg-gray-800 text-white flex items-center gap-1.5";
   
-  // Form state
   const [inputType, setInputType] = useState<InputTypeOptions>("violation");
   const [classType, setClassType] = useState<string>("");
   const [violationType, setViolationType] = useState<ViolationTypeOptions>("");
   const [achievementType, setAchievementType] = useState<AchievementTypeOptions>("");
+  const [achievementLevel, setAchievementLevel] = useState<AchievementLevelOptions>("");
   const [point, setPoint] = useState<string>("0");
   const [followUpType, setFollowUpType] = useState<FollowUpTypeOptions>("follow-up");
   const [customViolation, setCustomViolation] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [followUpDescription, setFollowUpDescription] = useState<string>("");
   const [studentName, setStudentName] = useState<string>("");
-  const [date, setDate] = useState<string>(() => {
-    // Set default date to today
-    const today = new Date();
-    return today.toISOString().split('T')[0]; // YYYY-MM-DD format
+  const [date, setDate] = useState<Date>(() => {
+    return new Date();
   });
   
-  // UI state
-  const [formStep, setFormStep] = useState<number>(0); // For mobile step-by-step wizard
+  const [formStep, setFormStep] = useState<number>(0);
   const [errors, setErrors] = useState<ESakuFormErrorState>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
+  const [isDateOpen, setIsDateOpen] = useState<boolean>(false);
   
-  // Refs
-  const dateInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
-  // Handle date picker click
-  const handleDateFieldClick = () => {
-    if (dateInputRef.current) {
-      dateInputRef.current.showPicker();
-    }
-  };
-
-  // Reset form
   const resetForm = () => {
-    // Reset all form fields
     setInputType("violation");
     setClassType("");
     setViolationType("");
     setAchievementType("");
+    setAchievementLevel("");
     setPoint("0");
     setFollowUpType("follow-up");
     setCustomViolation("");
@@ -92,24 +87,18 @@ const ESakuForm: React.FC = () => {
     setFollowUpDescription("");
     setStudentName("");
     
-    // Reset to today's date
-    const today = new Date();
-    setDate(today.toISOString().split('T')[0]);
+    setDate(new Date());
     
-    // Reset UI state
     setFormStep(0);
     setErrors({});
     
-    // Scroll to top of form
     if (formRef.current) {
       formRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
-  // Calculate points based on violation/achievement type
   useEffect(() => {
     if (inputType === "violation") {
-      // Points for violations
       switch (violationType) {
         case "rambut-panjang": setPoint("5"); break;
         case "terlambat": setPoint("2"); break;
@@ -118,52 +107,50 @@ const ESakuForm: React.FC = () => {
         default: setPoint("0");
       }
     } else {
-      // Points for achievements
-      switch (achievementType) {
-        case "akademik": setPoint("15"); break;
-        case "olahraga": setPoint("20"); break;
-        case "kesenian": setPoint("10"); break;
-        case "lainnya": setPoint("5"); break;
-        default: setPoint("0");
+      if (!achievementLevel) {
+        setPoint("0");
+        return;
       }
+      
+      const basePoints = 5;
+      
+      let multiplier = 1;
+      switch (achievementLevel) {
+        case "kota": multiplier = 1; break;
+        case "provinsi": multiplier = 2; break;
+        case "nasional": multiplier = 3; break;
+        case "internasional": multiplier = 4; break;
+        default: multiplier = 1;
+      }
+      
+      setPoint(Math.round(basePoints * multiplier).toString());
     }
-  }, [inputType, violationType, achievementType]);
+  }, [inputType, violationType, achievementLevel]);
 
-  // Format date to Indonesian format
-  const formatDate = (dateString: string): string => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric'
-    });
+  const formatDate = (date: Date): string => {
+    if (!date) return "";
+    return format(date, "d MMMM yyyy", { locale: id });
   };
 
-  // Form validation
   const validateForm = (): boolean => {
     const newErrors: ESakuFormErrorState = {};
     
-    // Step 1: Student Info
     if (!studentName.trim()) newErrors.studentName = "Nama siswa diperlukan";
     if (!classType) newErrors.classType = "Kelas harus dipilih";
     if (!date) newErrors.date = "Tanggal diperlukan";
     
-    // Step 2: Violation/Achievement Details
     if (inputType === "violation" && !violationType) {
       newErrors.violationType = "Jenis pelanggaran harus dipilih";
-    } else if (inputType === "achievement" && !achievementType) {
-      newErrors.achievementType = "Jenis prestasi harus dipilih";
+    } else if (inputType === "achievement" && !achievementLevel) {
+      newErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
     }
     
-    // Validate custom field when "lainnya" is selected
     if ((violationType === "lainnya" || achievementType === "lainnya") && !customViolation.trim()) {
       newErrors.customViolation = `Jenis ${inputType === "violation" ? "pelanggaran" : "prestasi"} lainnya diperlukan`;
     }
     
     if (!description.trim()) newErrors.description = "Deskripsi diperlukan";
     
-    // Step 3: Follow Up (only for violations)
     if (inputType === "violation" && !followUpDescription.trim()) {
       newErrors.followUpDescription = "Deskripsi tindak lanjut diperlukan";
     }
@@ -172,24 +159,20 @@ const ESakuForm: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Validate specific step for mobile wizard
   const validateStep = (step: number): boolean => {
     const newErrors: ESakuFormErrorState = {};
     
     if (step === 0) {
-      // Validate student info
       if (!studentName.trim()) newErrors.studentName = "Nama siswa diperlukan";
       if (!classType) newErrors.classType = "Kelas harus dipilih";
       if (!date) newErrors.date = "Tanggal diperlukan";
     } else if (step === 1) {
-      // Validate violation/achievement details
       if (inputType === "violation" && !violationType) {
         newErrors.violationType = "Jenis pelanggaran harus dipilih";
-      } else if (inputType === "achievement" && !achievementType) {
-        newErrors.achievementType = "Jenis prestasi harus dipilih";
+      } else if (inputType === "achievement" && !achievementLevel) {
+        newErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
       }
       
-      // Validate custom field when "lainnya" is selected
       if ((violationType === "lainnya" || achievementType === "lainnya") && !customViolation.trim()) {
         newErrors.customViolation = `Jenis ${inputType === "violation" ? "pelanggaran" : "prestasi"} lainnya diperlukan`;
       }
@@ -201,7 +184,6 @@ const ESakuForm: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Form submit handler
   const handleSubmit = (e?: FormEvent): void => {
     if (e) e.preventDefault();
     
@@ -210,15 +192,15 @@ const ESakuForm: React.FC = () => {
     if (isValid) {
       setIsSubmitting(true);
       
-      // Simulate API call
       setTimeout(() => {
         console.log("Form submitted:", {
           studentName,
           classType,
-          date,
+          date: format(date, "yyyy-MM-dd"),
           inputType,
           violationType: violationType === "lainnya" ? customViolation : violationType,
           achievementType: achievementType === "lainnya" ? customViolation : achievementType,
+          achievementLevel,
           point,
           description,
           followUpType,
@@ -228,10 +210,8 @@ const ESakuForm: React.FC = () => {
         setIsSubmitting(false);
         setShowSuccess(true);
         
-        // Scroll to top
         window.scrollTo({ top: 0, behavior: 'smooth' });
         
-        // Hide success message after 3 seconds and reset form
         setTimeout(() => {
           setShowSuccess(false);
           resetForm();
@@ -240,34 +220,28 @@ const ESakuForm: React.FC = () => {
     }
   };
 
-  // Handle next step in wizard
   const handleNextStep = (): void => {
     if (validateStep(formStep)) {
       setFormStep((prev) => Math.min(prev + 1, 2));
-      // Scroll to top of form on step change
       if (formRef.current) {
         formRef.current.scrollIntoView({ behavior: 'smooth' });
       }
     }
   };
 
-  // Handle previous step in wizard
   const handlePrevStep = (): void => {
     setFormStep((prev) => Math.max(prev - 1, 0));
-    // Scroll to top of form on step change
     if (formRef.current) {
       formRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
-  // Step titles for mobile view
   const stepTitles = [
     "Data Siswa",
     `Detail ${inputType === "violation" ? "Pelanggaran" : "Prestasi"}`,
     "Tindak Lanjut"
   ];
 
-  // Helper function to get human-readable violation type
   function getViolationLabel(type: ViolationTypeOptions): string {
     switch(type) {
       case "rambut-panjang": return "Rambut Panjang";
@@ -278,29 +252,27 @@ const ESakuForm: React.FC = () => {
     }
   }
 
-  // Helper function to get human-readable achievement type
-  function getAchievementLabel(type: AchievementTypeOptions): string {
-    switch(type) {
-      case "akademik": return "Akademik";
-      case "olahraga": return "Olahraga";
-      case "kesenian": return "Kesenian";
-      case "lainnya": return customViolation || "Lainnya";
+  function getAchievementLevelLabel(level: AchievementLevelOptions): string {
+    switch(level) {
+      case "kota": return "Se-Kota";
+      case "provinsi": return "Se-Provinsi";
+      case "nasional": return "Nasional";
+      case "internasional": return "Internasional";
       default: return "-";
     }
   }
 
-  // Update summary data for mobile preview
   const summaryData = {
     name: studentName || '-',
     class: classType || '-',
     type: inputType === "violation" ? "Pelanggaran" : "Prestasi",
     detail: inputType === "violation" 
       ? (violationType === "lainnya" ? customViolation : getViolationLabel(violationType)) 
-      : (achievementType === "lainnya" ? customViolation : getAchievementLabel(achievementType)),
+      : "Prestasi",
+    level: inputType === "achievement" && achievementLevel ? getAchievementLevelLabel(achievementLevel) : "-",
     point: inputType === "violation" ? `-${point}` : `+${point}`,
   };
 
-  // Check if mobile view is active
   const isMobileView = typeof window !== 'undefined' && window.innerWidth < 640;
 
   return (
@@ -314,7 +286,6 @@ const ESakuForm: React.FC = () => {
         </p>
       </div>
 
-      {/* Success message */}
       {showSuccess && (
         <Alert className="bg-green-50 border border-green-200 text-green-800">
           <CheckCircle className={greenIconClass} />
@@ -340,7 +311,6 @@ const ESakuForm: React.FC = () => {
 
         <CardContent className="p-6">
           <div className="space-y-6">
-            {/* Mobile view progress indicator */}
             {isMobileView && (
               <div className="mb-4">
                 <div className="flex justify-between mb-2">
@@ -367,7 +337,6 @@ const ESakuForm: React.FC = () => {
               </div>
             )}
 
-            {/* Step 1: Student Info */}
             {(!isMobileView || formStep === 0) && (
               <>
                 <div className="flex flex-col sm:flex-row gap-6">
@@ -414,34 +383,40 @@ const ESakuForm: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Date and Input Type Fields - Side by Side with 50/50 Split */}
                 <div className="flex flex-col sm:flex-row gap-6">
                   <div className="space-y-2 w-full sm:w-1/2">
                     <Label htmlFor="date" className={labelClass}>
                       <Calendar className={greenIconClass} />
                       Tanggal {inputType === "violation" ? "Pelanggaran" : "Prestasi"} <span className="text-red-500">*</span>
                     </Label>
-                    <div 
-                      className={`relative cursor-pointer rounded-lg border ${
-                        errors.date ? inputErrorClass : 'border-gray-300'
-                      } hover:border-green-500 focus-within:border-green-500 focus-within:ring-1 focus-within:ring-green-500 h-10`}
-                      onClick={handleDateFieldClick}
-                    >
-                      <div className="flex items-center h-full">
-                        <input
-                          ref={dateInputRef}
-                          id="date"
-                          type="date"
-                          value={date}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) => setDate(e.target.value)}
-                          className="w-full px-3 py-2 border-none focus:outline-none bg-transparent rounded-lg h-full"
+                    <Popover open={isDateOpen} onOpenChange={setIsDateOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !date && "text-muted-foreground",
+                            errors.date ? "border-red-500" : "",
+                            "h-10 px-3 py-2"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {date ? formatDate(date) : <span>Pilih tanggal</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={date}
+                          onSelect={(newDate) => {
+                            setDate(newDate || new Date());
+                            setIsDateOpen(false);
+                          }}
+                          locale={id}
+                          initialFocus
                         />
-                        <Calendar className={`${iconClass} text-gray-500 absolute right-3`} />
-                      </div>
-                    </div>
-                    {date && (
-                      <p className="text-xs text-gray-500 mt-1">Format: {formatDate(date)}</p>
-                    )}
+                      </PopoverContent>
+                    </Popover>
                     {errors.date && (
                       <p className={errorClass}>{errors.date}</p>
                     )}
@@ -461,14 +436,15 @@ const ESakuForm: React.FC = () => {
                       onValueChange={(value: string) => {
                         setInputType(value as InputTypeOptions);
                         
-                        // Reset type-specific fields when switching input type
                         if (value === "violation") {
                           setViolationType("");
                           setAchievementType("");
+                          setAchievementLevel("");
                           setCustomViolation("");
                         } else {
                           setViolationType("");
                           setAchievementType("");
+                          setAchievementLevel("");
                           setCustomViolation("");
                         }
                       }}
@@ -486,21 +462,19 @@ const ESakuForm: React.FC = () => {
               </>
             )}
 
-            {/* Step 2: Detail Violation/Achievement */}
             {(!isMobileView || formStep === 1) && (
               <>
                 <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row gap-6">
-                    <div className="space-y-2 flex-grow">
-                      <Label 
-                        htmlFor={inputType === "violation" ? "violationType" : "achievementType"} 
-                        className={labelClass}
-                      >
-                        <FileText className={greenIconClass} />
-                        {inputType === "violation" ? "Jenis Pelanggaran" : "Jenis Prestasi"} <span className="text-red-500">*</span>
-                      </Label>
-                      
-                      {inputType === "violation" ? (
+                  {inputType === "violation" && (
+                    <div className="flex flex-col sm:flex-row gap-6">
+                      <div className="space-y-2 flex-grow">
+                        <Label 
+                          htmlFor="violationType" 
+                          className={labelClass}
+                        >
+                          <FileText className={greenIconClass} />
+                          Jenis Pelanggaran <span className="text-red-500">*</span>
+                        </Label>
                         <Select 
                           value={violationType} 
                           onValueChange={(value: string) => {
@@ -522,89 +496,108 @@ const ESakuForm: React.FC = () => {
                             <SelectItem value="lainnya">Lainnya</SelectItem>
                           </SelectContent>
                         </Select>
-                      ) : (
-                        <Select 
-                          value={achievementType}
-                          onValueChange={(value: string) => {
-                            setAchievementType(value as AchievementTypeOptions);
-                            if (value !== "lainnya") {
-                              setCustomViolation("");
-                            }
-                          }}
-                        >
-                          <SelectTrigger 
-                            className={`${inputClass} ${errors.achievementType ? inputErrorClass : ''}`}
-                          >
-                            <SelectValue placeholder="Pilih Jenis Prestasi" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="akademik">Akademik</SelectItem>
-                            <SelectItem value="olahraga">Olahraga</SelectItem>
-                            <SelectItem value="kesenian">Kesenian</SelectItem>
-                            <SelectItem value="lainnya">Lainnya</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
+                        {errors.violationType && (
+                          <p className={errorClass}>{errors.violationType}</p>
+                        )}
+                      </div>
                       
-                      {errors.violationType && inputType === "violation" && (
-                        <p className={errorClass}>{errors.violationType}</p>
-                      )}
-                      
-                      {errors.achievementType && inputType === "achievement" && (
-                        <p className={errorClass}>{errors.achievementType}</p>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-2 w-48">
-                      <Label htmlFor="point" className={labelClass}>
-                        Poin
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <Info className={`${iconClass} text-gray-400 ml-1`} />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-xs">Poin dihitung otomatis berdasarkan jenis {inputType === "violation" ? "pelanggaran" : "prestasi"}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </Label>
-                      <div className="relative w-full">
-                        <div className="flex-1 h-10 px-3 py-2 border border-gray-300 bg-gray-50 text-gray-500 rounded-lg">
-                          Poin {inputType === "violation" ? "Pelanggaran" : "Prestasi"}
-                        </div>
-                        <div 
-                          className={`absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-2 py-0.5 text-xs font-medium ${
-                            inputType === "violation" 
-                              ? "bg-red-100 text-red-600" 
-                              : "bg-green-100 text-green-600"
-                          }`}
-                        >
-                          {inputType === "violation" ? "-" : "+"}{point}
+                      <div className="space-y-2 w-48">
+                        <Label htmlFor="point" className={labelClass}>
+                          Poin
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Info className={`${iconClass} text-gray-400 ml-1`} />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">Poin dihitung otomatis berdasarkan jenis pelanggaran</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </Label>
+                        <div className="relative w-full">
+                          <div className="flex-1 h-10 px-3 py-2 border border-gray-300 bg-gray-50 text-gray-500 rounded-lg">
+                            Poin Pelanggaran
+                          </div>
+                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-2 py-0.5 text-xs font-medium bg-red-100 text-red-600">
+                            -{point}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
+                  
+                  {inputType === "achievement" && (
+                    <div className="flex flex-col sm:flex-row gap-6">
+                      <div className="space-y-2 flex-grow">
+                        <Label 
+                          htmlFor="achievementLevel" 
+                          className={labelClass}
+                        >
+                          <Globe className={greenIconClass} />
+                          Tingkatan Prestasi <span className="text-red-500">*</span>
+                        </Label>
+                        <Select 
+                          value={achievementLevel} 
+                          onValueChange={(value: string) => setAchievementLevel(value as AchievementLevelOptions)}
+                        >
+                          <SelectTrigger 
+                            className={`${inputClass} ${errors.achievementLevel ? inputErrorClass : ''}`}
+                          >
+                            <SelectValue placeholder="Pilih Tingkatan Prestasi" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="kota">Se-Kota</SelectItem>
+                            <SelectItem value="provinsi">Se-Provinsi</SelectItem>
+                            <SelectItem value="nasional">Nasional</SelectItem>
+                            <SelectItem value="internasional">Internasional</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {errors.achievementLevel && (
+                          <p className={errorClass}>{errors.achievementLevel}</p>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-2 w-48">
+                        <Label htmlFor="point" className={labelClass}>
+                          Poin
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Info className={`${iconClass} text-gray-400 ml-1`} />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">Poin dihitung otomatis berdasarkan tingkatan prestasi</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </Label>
+                        <div className="relative w-full">
+                          <div className="flex-1 h-10 px-3 py-2 border border-gray-300 bg-gray-50 text-gray-500 rounded-lg">
+                            Poin Prestasi
+                          </div>
+                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-2 py-0.5 text-xs font-medium bg-green-100 text-green-600">
+                            +{point}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                  {/* Custom Type Input */}
-                  {((inputType === "violation" && violationType === "lainnya") || 
-                    (inputType === "achievement" && achievementType === "lainnya")) && (
+                  {(inputType === "violation" && violationType === "lainnya") && (
                     <div className="space-y-2">
                       <Label 
                         htmlFor="customViolation" 
                         className={labelClass}
                       >
-                        {inputType === "violation" ? "Pelanggaran Lainnya" : "Prestasi Lainnya"} <span className="text-red-500">*</span>
+                        Pelanggaran Lainnya <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="customViolation"
                         type="text"
                         value={customViolation}
                         onChange={(e: ChangeEvent<HTMLInputElement>) => setCustomViolation(e.target.value)}
-                        placeholder={inputType === "violation" 
-                          ? "Masukkan jenis pelanggaran lain" 
-                          : "Masukkan jenis prestasi lain"
-                        }
+                        placeholder="Masukkan jenis pelanggaran lain"
                         className={`${inputClass} ${errors.customViolation ? inputErrorClass : ''}`}
                       />
                       {errors.customViolation && (
@@ -633,7 +626,6 @@ const ESakuForm: React.FC = () => {
               </>
             )}
 
-            {/* Step 3: Follow Up Section */}
             {(!isMobileView || formStep === 2) && (
               <>
                 {inputType === "violation" ? (
@@ -691,10 +683,13 @@ const ESakuForm: React.FC = () => {
                       Prestasi telah tercatat di sistem dengan penambahan poin +{point}. 
                       Prestasi ini akan muncul di laporan bulanan dan rekap semester.
                     </p>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Globe className="h-4 w-4 text-green-600" />
+                      <span>Tingkatan: {getAchievementLevelLabel(achievementLevel) || "-"}</span>
+                    </div>
                   </div>
                 )}
 
-                {/* Mobile summary view */}
                 {isMobileView && (
                   <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <h4 className="font-semibold mb-3 text-gray-700 flex items-center gap-1.5">
@@ -718,10 +713,18 @@ const ESakuForm: React.FC = () => {
                           <span className="text-xs text-gray-500">Jenis</span>
                           <span className="font-medium">{summaryData.type}</span>
                         </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs text-gray-500">Detail</span>
-                          <span className="font-medium">{summaryData.detail || '-'}</span>
-                        </div>
+                        {inputType === "violation" && (
+                          <div className="flex flex-col">
+                            <span className="text-xs text-gray-500">Detail</span>
+                            <span className="font-medium">{summaryData.detail || '-'}</span>
+                          </div>
+                        )}
+                        {inputType === "achievement" && (
+                          <div className="flex flex-col">
+                            <span className="text-xs text-gray-500">Tingkatan</span>
+                            <span className="font-medium">{summaryData.level}</span>
+                          </div>
+                        )}
                       </div>
                       
                       <div className="flex flex-col">
@@ -736,7 +739,6 @@ const ESakuForm: React.FC = () => {
               </>
             )}
 
-            {/* Mobile navigation */}
             {isMobileView && (
               <div className="flex justify-between mt-6">
                 {formStep > 0 ? (
@@ -798,7 +800,6 @@ const ESakuForm: React.FC = () => {
           </div>
         </CardContent>
 
-        {/* Footer buttons - desktop only */}
         {!isMobileView && (
           <CardFooter className="flex justify-between gap-3 pb-6 px-6">
             <Button 
