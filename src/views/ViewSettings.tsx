@@ -1,8 +1,15 @@
 import { Card } from "@/components/ui/card"
 import { FormSelect } from "@/components/ui/form"
 import { MonitorCog, Moon, Sun } from "lucide-react"
+import { useState } from "react";
 
 const ViewSettings = () => {
+    const [activeButton, setActiveButton] = useState(0); // Untuk menyimpan tombol yang aktif
+    
+    const handleClick = (index:number) => {
+      setActiveButton(index); // Mengubah state aktif berdasarkan tombol yang dipilih
+    };
+
     return(
         <div>
             <h1 className="pl-2 text-2xl font-semibold">Settings</h1>
@@ -31,26 +38,44 @@ const ViewSettings = () => {
                         <p className="opacity-75 text-md">Atur tema aplikasi sesuai dengan preferensi visual Anda</p>
                     </div>
                     <div className="flex justify-end items-center gap-5 w-full">
-                        <button className="flex items-center justify-center py-4 px-4 gap-2 bg-[#00BB1C] bg-opacity-25 rounded-sm text-[#00BB1C] font-semibold">
-                            <MonitorCog/>
-                            <p>Default Sistem</p>
+                        <button
+                            onClick={() => handleClick(0)}
+                            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 
+                            ${activeButton === 0
+                                ? 'bg-blue-600 text-white shadow-xl transform scale-105'
+                                : 'bg-transparent text-gray-600 hover:bg-gray-300'
+                            }`}
+                        >
+                            <MonitorCog />
+                            <p className="text-sm">Default Sistem</p>
                         </button>
-                        <button className="flex items-center justify-center py-4 px-4 gap-2 text-gray-600 hover:text-[#00BB1C]">
-                            <Sun/>
-                            <p>Terang</p>
+
+                        <button
+                            onClick={() => handleClick(1)}
+                            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300
+                            ${activeButton === 1
+                                ? 'bg-yellow-500 text-white shadow-xl transform scale-105'
+                                : 'bg-transparent text-gray-600 hover:bg-gray-300'
+                            }`}
+                        >
+                            <Sun />
+                            <p className="text-sm">Terang</p>
                         </button>
-                        <button className="flex items-center justify-center py-4 px-4 gap-2 text-gray-600 hover:text-[#00BB1C]">
-                            <Moon/>
-                            <p>Gelap</p>
+
+                        <button
+                            onClick={() => handleClick(2)}
+                            className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 
+                            ${activeButton === 2
+                                ? 'bg-gray-800 text-white shadow-xl transform scale-105'
+                                : 'bg-transparent text-gray-600 hover:bg-gray-300'
+                            }`}
+                        >
+                            <Moon />
+                            <p className="text-sm">Gelap</p>
                         </button>
                     </div>
                 </Card>
             </div>
-            {/* <div className="flex justify-end px-2 pt-5">
-                <button className="bg-[#00BB1C] text-white font-semibold px-8 py-2 rounded-sm hover:bg-opacity-75">
-                    Save
-                </button>
-            </div> */}
         </div>
     )
 }
