@@ -12,7 +12,6 @@ const ViewStudent = () => {
   const [availablePrograms, setAvailablePrograms] = useState<string[]>([]);
   const { data: classrooms, isLoading, error } = useClassroomByTeacherId();
 
-  // Extract unique program codes when classrooms data is loaded
   useEffect(() => {
     if (classrooms?.length) {
       const programs = new Set<string>();
@@ -24,7 +23,6 @@ const ViewStudent = () => {
     }
   }, [classrooms]);
 
-  // Filter classrooms based on search term and program filter
   const filteredClassrooms = classrooms?.filter((classroom: IClassroom) => {
     const matchesSearch = classroom.name
       .toLowerCase()
