@@ -7,7 +7,9 @@ import {
   Search,
   Users, 
   AlertTriangle,
-  Award
+  Award,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { useTeacherById } from "@/config/Api/useTeacher";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -96,8 +98,6 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   return null;
 };
 
-
-
 const DashboardSkeleton = () => {
   return (
     <div className="p-6 space-y-6">
@@ -137,6 +137,11 @@ const ViewDashboard = () => {
   const [searchText, setSearchText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [currentBreakpoint, setCurrentBreakpoint] = useState<'xs' | 'sm' | 'md' | 'lg' | 'xl'>('md');
+  
+  // Pagination states
+  const [rowsPerPage, setRowsPerPage] = useState("10");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [displayedViolationData, setDisplayedViolationData] = useState(violationData);
   
   useEffect(() => {
     const handleResize = () => {
@@ -205,6 +210,27 @@ const ViewDashboard = () => {
       student.violationType.toLowerCase().includes(searchText.toLowerCase())
     );
   }, [searchText]);
+  
+  // Handle pagination
+  useEffect(() => {
+    // Calculate total pages
+    const totalPages = Math.ceil(filteredViolationData.length / parseInt(rowsPerPage));
+    
+    // Reset to page 1 if we're past the total pages
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+    
+    // Update displayed data
+    const startIndex = (currentPage - 1) * parseInt(rowsPerPage);
+    const endIndex = startIndex + parseInt(rowsPerPage);
+    setDisplayedViolationData(filteredViolationData.slice(startIndex, endIndex));
+  }, [filteredViolationData, currentPage, rowsPerPage]);
+  
+  const handleRowsPerPageChange = (value: string) => {
+    setRowsPerPage(value);
+    setCurrentPage(1); // Reset to first page when changing rows per page
+  };
 
   if (isLoading) {
     return <DashboardSkeleton />;
@@ -409,7 +435,7 @@ const ViewDashboard = () => {
                     <div className="flex-1">
                       <p className="font-medium text-gray-900">{student.name}</p>
                       <div className="flex items-center">
-                        <p className="text-sm text-gray-500">Total Poin:</p>
+                        <p className="text-sm text-gray-500">Poin Pelanggaran:</p>
                         <Badge variant="outline" className="ml-2 rounded-full">
                           {student.points}
                         </Badge>
@@ -458,7 +484,7 @@ const ViewDashboard = () => {
 
       <div>
         <Card className="rounded-xl overflow-hidden">
-          <div className="px-6 pt-4 pb-2">
+          <div className="px-6 pt-4 pb-4 border-b-2 border-green-500">
             <div className="flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-xl font-bold text-gray-900">
                 Daftar Siswa Melanggar Hari Ini
@@ -474,35 +500,35 @@ const ViewDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto pt-3">
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50 hover:bg-gray-50">
                   <TableHead className="w-12 text-center px-6 font-medium text-black">No</TableHead>
                   <TableHead className="text-center font-medium text-black">NIS</TableHead>
                   <TableHead className="text-center font-medium text-black">Nama</TableHead>
-                  <TableHead className="text-center ffont-medium text-black">Kelas</TableHead>
+                  <TableHead className="text-center font-medium text-black">Kelas</TableHead>
                   <TableHead className="text-center hidden sm:table-cell font-medium text-black">Jenis Pelanggaran</TableHead>
                   <TableHead className="text-center font-medium text-black">Poin</TableHead>
-                  <TableHead className="text-center font-medium text-black">Total Poin</TableHead>
+                  <TableHead className="text-center font-medium text-black">Total Poin Pelanggaran</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredViolationData.map((student) => (
+                {displayedViolationData.map((student) => (
                   <TableRow 
                     key={student.id} 
                     className="border-b hover:bg-gray-50"
                   >
                     <TableCell className="text-center px-6 font-normal">{student.id}</TableCell>
                     <TableCell className="text-center font-normal">{student.nis}</TableCell>
-                    <TableCell className="text-center font-normal">{student.name}</TableCell>
+                    <TableCell className="text-left font-normal">{student.name}</TableCell>
                     <TableCell className="text-center font-normal">{student.class}</TableCell>
                     <TableCell className="text-center hidden sm:table-cell font-normal">{student.violationType}</TableCell>
                     <TableCell className="text-center font-normal">{student.violationPoint}</TableCell>
                     <TableCell className="text-center font-normal">{student.totalPoint}</TableCell>
                   </TableRow>
                 ))}
-                {filteredViolationData.length === 0 && (
+                {displayedViolationData.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                       Tidak ada data yang sesuai dengan pencarian
@@ -512,31 +538,56 @@ const ViewDashboard = () => {
               </TableBody>
             </Table>
           </div>
+          
+          {/* Enhanced Pagination */}
           <div className="pl-6 pt-4 pb-4 flex justify-between items-center border-t">
-            <div className="text-sm text-gray-500">
-              Menampilkan {filteredViolationData.length} dari {violationData.length} siswa
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-500">
+                Menampilkan {displayedViolationData.length} dari {filteredViolationData.length} siswa
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Rows:</span>
+                <Select
+                  value={rowsPerPage}
+                  onValueChange={handleRowsPerPageChange}
+                >
+                  <SelectTrigger className="w-16 h-8 border-gray-200 focus:ring-green-400 rounded-lg">
+                    <SelectValue placeholder="10" />
+                  </SelectTrigger>
+                  <SelectContent className="w-16 min-w-[4rem]">
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="30">30</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+            
             <div className="pr-6 flex items-center space-x-2">
               <Button 
                 variant="outline" 
-                size="sm"
-                className="text-gray-700 rounded-lg"
+                size="icon"
+                className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
               >
-                Sebelumnya
+                <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button 
-                variant="default" 
-                size="sm"
-                className="bg-green-500 hover:bg-green-600 h-8 w-8 p-0 rounded-full"
-              >
-                1
-              </Button>
+              
+              <div className="text-sm text-gray-600">
+                Page {currentPage} of {Math.max(1, Math.ceil(filteredViolationData.length / parseInt(rowsPerPage)))}
+              </div>
+              
               <Button 
                 variant="outline" 
-                size="sm"
-                className="text-gray-700 rounded-lg"
+                size="icon"
+                className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredViolationData.length / parseInt(rowsPerPage))))}
+                disabled={currentPage >= Math.ceil(filteredViolationData.length / parseInt(rowsPerPage))}
               >
-                Selanjutnya
+                <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
