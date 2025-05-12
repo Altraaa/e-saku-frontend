@@ -1,5 +1,6 @@
 import { Form, FormInput } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
+import { ShieldCheck, User, Users } from "lucide-react";
 
 const ViewProfileStudent = () => {
     const handleSubmit = (e: React.FormEvent) => {
@@ -73,10 +74,11 @@ const ViewProfileStudent = () => {
                             </div>
                             <Card>
                                 <CardContent>
-                                    <div className="p-4 mt-5 flex flex-col gap-4 max-h-full overflow-y-auto">
-                                        <h1 className="text-3xl font-bold mb-1">
-                                            Personal Information
-                                        </h1>
+                                    <div className="py-4 flex flex-col gap-4 max-h-full overflow-y-auto">
+                                        <div className="flex justify-start items-center gap-3 border-b-2 border-green-500 pb-2">
+                                            <User/>
+                                            <h1 className="text-xl font-bold">Personal Information</h1>
+                                        </div>
                                         <FormInput
                                             id="studentname"
                                             label="Student Name"
@@ -190,12 +192,17 @@ const ViewProfileStudent = () => {
                                                 />
                                             </div>
                                         </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
 
-                                        <div className="h-[1px] bg-black w-full my-1"></div>
-
-                                        <h1 className="text-3xl font-bold mb-1">
-                                            Student's Parents
-                                        </h1>
+                            <Card>
+                                <CardContent>
+                                    <div className="py-4 flex flex-col gap-4 max-h-full overflow-y-auto">
+                                        <div className="flex justify-start items-center gap-3 border-b-2 border-green-500 pb-2">
+                                            <Users/>
+                                            <h1 className="text-xl font-bold">Student's Parent</h1>
+                                        </div>
                                         <div className="flex flex-col gap-3 ">
                                             <h2 className="text-lg font-medium">
                                                 Parents Name
@@ -246,12 +253,17 @@ const ViewProfileStudent = () => {
                                                 />
                                             </div>
                                         </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
 
-                                        <div className="h-[1px] bg-black w-full my-1"></div>
-
-                                        <h1 className="text-3xl font-bold mb-1">
-                                            Student's Guradian
-                                        </h1>
+                            <Card>
+                            <CardContent>
+                                    <div className="py-4 flex flex-col gap-4 max-h-full overflow-y-auto">
+                                        <div className="flex justify-start items-center gap-3 border-b-2 border-green-500 pb-2">
+                                            <ShieldCheck/>
+                                            <h1 className="text-xl font-bold">Student's Guardian</h1>
+                                        </div>
                                         <FormInput
                                             id="namestudentguardian"
                                             label="Name of Student Guardian"
@@ -265,8 +277,8 @@ const ViewProfileStudent = () => {
                                             placeholder=""
                                         />
                                     </div>
-                                </CardContent>
-                            </Card>
+                                </CardContent>  
+                            </Card>   
                         </Form>
                     </div>
                 </div>
