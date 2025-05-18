@@ -46,12 +46,17 @@ const violationData = [
 ];
 
 import { Separator } from "@/components/ui/separator";
-import {  Download, Search, SquarePen, Trash2 } from "lucide-react";
+import {  ChevronLeft, ChevronRight, Download, Search, SquarePen, Trash2 } from "lucide-react";
 import { DatePicker } from "@/components/shared/component/DatePicker";
-import { ChangeEvent, useCallback, useMemo, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 
 const ViewHistory = () => {
+  // Pagination states
+  const [rowsPerPage, setRowsPerPage] = useState("10");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [displayedViolationData, setDisplayedViolationData] = useState(violationData);
+
   const [searchText, setSearchText] = useState("");
 
   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -72,6 +77,26 @@ const ViewHistory = () => {
       student.violationType.toLowerCase().includes(searchText.toLowerCase())
     );
   }, [searchText]);
+
+  useEffect(() => {
+      // Calculate total pages
+      const totalPages = Math.ceil(filteredViolationData.length / parseInt(rowsPerPage));
+      
+      // Reset to page 1 if we're past the total pages
+      if (currentPage > totalPages && totalPages > 0) {
+        setCurrentPage(1);
+      }
+      
+      // Update displayed data
+      const startIndex = (currentPage - 1) * parseInt(rowsPerPage);
+      const endIndex = startIndex + parseInt(rowsPerPage);
+      setDisplayedViolationData(filteredViolationData.slice(startIndex, endIndex));
+    }, [filteredViolationData, currentPage, rowsPerPage]);
+    
+    const handleRowsPerPageChange = (value: string) => {
+      setRowsPerPage(value);
+      setCurrentPage(1); // Reset to first page when changing rows per page
+    };
 
   return (
     <>
@@ -111,7 +136,7 @@ const ViewHistory = () => {
           </div>
 
           <Button
-            variant="outline"
+            variant="default"
             className="hover:bg-[#009616] hover:text-white transition-all"
           ><Download/>
             Import Excel
@@ -124,7 +149,7 @@ const ViewHistory = () => {
       {/* Table Section */}
       <div>
         <Card className="rounded-xl overflow-hidden">
-          <div className="px-6 pt-4 pb-2">
+          <div className="px-6 pt-4 pb-4 border-b-2 border-green-500">
             <div className="flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-xl w-full font-bold text-gray-900">
                 Histori Pelanggaran
@@ -182,31 +207,55 @@ const ViewHistory = () => {
               </TableBody>
             </Table>
           </div>
+
           <div className="pl-6 pt-4 pb-4 flex justify-between items-center border-t">
-            <div className="text-sm text-gray-500">
-              Menampilkan <span className="text-green-500 font-medium">{filteredViolationData.length}</span> dari <span className="text-green-500 font-normal">{violationData.length}</span> siswa
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-500">
+                Menampilkan {displayedViolationData.length} dari {filteredViolationData.length} siswa
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Rows:</span>
+                <Select
+                  value={rowsPerPage}
+                  onValueChange={handleRowsPerPageChange}
+                >
+                  <SelectTrigger className="w-16 h-8 border-gray-200 focus:ring-green-400 rounded-lg">
+                    <SelectValue placeholder="10" />
+                  </SelectTrigger>
+                  <SelectContent className="w-16 min-w-[4rem]">
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="30">30</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+            
             <div className="pr-6 flex items-center space-x-2">
               <Button 
                 variant="outline" 
-                size="sm"
-                className="text-gray-700 rounded-lg"
+                size="icon"
+                className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
               >
-                Sebelumnya
+                <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button 
-                variant="default" 
-                size="sm"
-                className="bg-green-500 hover:bg-green-600 h-8 w-8 p-0 rounded-full"
-              >
-                1
-              </Button>
+              
+              <div className="text-sm text-gray-600">
+                Page {currentPage} of {Math.max(1, Math.ceil(filteredViolationData.length / parseInt(rowsPerPage)))}
+              </div>
+              
               <Button 
                 variant="outline" 
-                size="sm"
-                className="text-gray-700 rounded-lg"
+                size="icon"
+                className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredViolationData.length / parseInt(rowsPerPage))))}
+                disabled={currentPage >= Math.ceil(filteredViolationData.length / parseInt(rowsPerPage))}
               >
-                Selanjutnya
+                <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
