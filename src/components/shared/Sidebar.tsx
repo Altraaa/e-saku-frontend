@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
     Home,
+    DiamondMinusIcon,
     Settings,
     User,
     FileText,
@@ -44,12 +45,13 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
         }
     };
 
-    const platformItems = [
-        { label: "Dashboard", icon: Home, path: "/" },
-        { label: "Student", icon: Users, path: "/student" },
-        { label: "E-saku Form", icon: FileText, path: "/esakuform" },
-        { label: "History", icon: History, path: "/history" },
-    ];
+  const platformItems = [
+    { label: "Dashboard", icon: Home, path: "/" },
+    { label: "Student", icon: Users, path: "/student" },
+    { label: "E-saku Form", icon: FileText, path: "/esakuform" },
+    { label: "History", icon: History, path: "/history" },
+    { label: "Rules", icon: DiamondMinusIcon, path: "/rules" },
+  ];
 
     const accountItems = [
         { label: "Settings", icon: Settings, path: "/settings" },

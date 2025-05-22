@@ -25,8 +25,9 @@ import { SidebarProvider } from "./utils/context/sidebarContext";
 import MainLayout from "./components/layouts/MainLayout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ProtectedRoute } from "./config/Routes/ProtectedRoutes";
-// import Settings from "./pages/Settings";
 import TeacherProfile from "./pages/TeacherProfile";
+import Rules from "./pages/Rules";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const LayoutWrapper = () => {
   const location = useLocation();
@@ -42,7 +43,9 @@ const LayoutWrapper = () => {
     help: "Help",
     profile: "Profile",
     profileteacher: "Teacher Profile",
-    settings: "Settings"
+    settings: "Settings",
+    rules: "Rules Of Conduct",
+    privacypolicy: "Privacy Policy",
   };
 
   const title = pageTitles[path] || "Unknown Page";
@@ -84,7 +87,10 @@ export function AppContent() {
           <Route path="/help" element={<Help />} />
           <Route path="/profile" element={<ProfileStudent />} />
           <Route path="/profileteacher" element={<TeacherProfile />} />
-          {/* <Route path="/settings" element={<Settings/>} /> */}
+          <Route path="/settings" element={<Settings/>} />
+          <Route path="/rules" element={<Rules/>} />
+          <Route path="/privacypolicy" element={<PrivacyPolicy/>} />
+
         </Route>
       </Route>
     </Routes>

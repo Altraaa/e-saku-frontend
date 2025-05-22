@@ -137,8 +137,7 @@ const ViewDashboard = () => {
   const [searchText, setSearchText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [currentBreakpoint, setCurrentBreakpoint] = useState<'xs' | 'sm' | 'md' | 'lg' | 'xl'>('md');
-  
-  // Pagination states
+
   const [rowsPerPage, setRowsPerPage] = useState("10");
   const [currentPage, setCurrentPage] = useState(1);
   const [displayedViolationData, setDisplayedViolationData] = useState(violationData);
@@ -174,7 +173,7 @@ const ViewDashboard = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1000);
+    }, 500);
     
     return () => clearTimeout(timer);
   }, []);
@@ -211,17 +210,13 @@ const ViewDashboard = () => {
     );
   }, [searchText]);
   
-  // Handle pagination
   useEffect(() => {
-    // Calculate total pages
     const totalPages = Math.ceil(filteredViolationData.length / parseInt(rowsPerPage));
-    
-    // Reset to page 1 if we're past the total pages
+
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
     }
-    
-    // Update displayed data
+
     const startIndex = (currentPage - 1) * parseInt(rowsPerPage);
     const endIndex = startIndex + parseInt(rowsPerPage);
     setDisplayedViolationData(filteredViolationData.slice(startIndex, endIndex));
@@ -229,7 +224,7 @@ const ViewDashboard = () => {
   
   const handleRowsPerPageChange = (value: string) => {
     setRowsPerPage(value);
-    setCurrentPage(1); // Reset to first page when changing rows per page
+    setCurrentPage(1); 
   };
 
   if (isLoading) {

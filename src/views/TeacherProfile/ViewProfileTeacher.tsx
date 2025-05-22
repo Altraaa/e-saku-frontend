@@ -347,8 +347,18 @@ const ViewProfileTeacher = () => {
               <div className="space-y-4 sm:space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
-                    <label htmlFor="teacher-id" className="block text-sm font-medium text-black mb-1">ID</label>
-                    <div id="teacher-id" className="p-2 bg-gray-100 border border-gray-200 rounded-lg">{formData.id}</div>
+                    <label htmlFor="teacher-nip" className="block text-sm font-medium text-black mb-1">NIP</label>
+                    {isEditing ? (
+                      <input
+                        id="teacher-nip"
+                        type="number"
+                        value={formData.nip || ''}
+                        onChange={(e) => handleInputChange('nip', e.target.value ? Number(e.target.value) : null)}
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                      />
+                    ) : (
+                      <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">{formData.nip || "Tidak diatur"}</div>
+                    )}
                   </div>
                   
                   <div>
@@ -383,36 +393,19 @@ const ViewProfileTeacher = () => {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                  <div>
-                    <label htmlFor="teacher-nip" className="block text-sm font-medium text-black mb-1">NIP</label>
-                    {isEditing ? (
-                      <input
-                        id="teacher-nip"
-                        type="number"
-                        value={formData.nip || ''}
-                        onChange={(e) => handleInputChange('nip', e.target.value ? Number(e.target.value) : null)}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                      />
-                    ) : (
-                      <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">{formData.nip || "Tidak diatur"}</div>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="teacher-email" className="block text-sm font-medium text-black mb-1">Email</label>
-                    {isEditing ? (
-                      <input
-                        id="teacher-email"
-                        type="email"
-                        value={formData.email || ''}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                      />
-                    ) : (
-                      <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">{formData.email || "Tidak diatur"}</div>
-                    )}
-                  </div>
+                <div>
+                  <label htmlFor="teacher-email" className="block text-sm font-medium text-black mb-1">Email</label>
+                  {isEditing ? (
+                    <input
+                      id="teacher-email"
+                      type="email"
+                      value={formData.email || ''}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                    />
+                  ) : (
+                    <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">{formData.email || "Tidak diatur"}</div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
