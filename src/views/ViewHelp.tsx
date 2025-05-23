@@ -22,7 +22,6 @@ interface PolicyItemData extends PolicyItemProps {
   id: string;
 }
 
-// Enhanced accordion component with smooth animations and better accessibility
 const FAQItem = ({ question, answer, icon, category }: FAQItemProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -77,7 +76,6 @@ const FAQItem = ({ question, answer, icon, category }: FAQItemProps) => {
   );
 };
 
-// Enhanced policy component with better styling and accessibility
 const PolicyItem = ({ title, content, icon }: PolicyItemProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -127,7 +125,6 @@ const PolicyItem = ({ title, content, icon }: PolicyItemProps) => {
   );
 };
 
-// Added new contact card component
 const ContactCard = ({ title, description, icon, actionText, actionUrl }: {
   title: string;
   description: string;
@@ -157,9 +154,61 @@ const ContactCard = ({ title, description, icon, actionText, actionUrl }: {
 const ViewHelpPreview = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("faq");
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [indicatorStyle, setIndicatorStyle] = useState({
+    left: 0,
+    width: 0
+  });
   
-  // Enhanced data with IDs and categories
-      const faqItems: FAQItemData[] = [
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const tabRefs = {
+    faq: useRef<HTMLButtonElement>(null),
+    policy: useRef<HTMLButtonElement>(null),
+    contact: useRef<HTMLButtonElement>(null)
+  };
+
+  useEffect(() => {
+    const updateIndicator = () => {
+      const activeTabElement = tabRefs[activeTab as keyof typeof tabRefs].current;
+      
+      if (activeTabElement && tabsRef.current) {
+        const tabRect = activeTabElement.getBoundingClientRect();
+        const navRect = tabsRef.current.getBoundingClientRect();
+        
+        setIndicatorStyle({
+          left: tabRect.left - navRect.left,
+          width: tabRect.width
+        });
+      }
+    };
+
+    if (!isLoading) {
+      updateIndicator();
+    }
+
+    window.addEventListener('resize', updateIndicator);
+    return () => {
+      window.removeEventListener('resize', updateIndicator);
+    };
+  }, [activeTab, isLoading]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      setTimeout(() => {
+        updateIndicator();
+      }, 50);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
+
+  const faqItems: FAQItemData[] = [
     {
       id: "what-is-esaku",
       question: "What is E-Saku?",
@@ -221,11 +270,37 @@ const ViewHelpPreview = () => {
     }
   ];
 
-  // Filter FAQ items based on search term
   const filteredFaqItems = faqItems.filter(item => 
     item.question.toLowerCase().includes(searchTerm.toLowerCase()) || 
     item.answer.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <style jsx>{`
+          .clean-loader {
+            width: 58px;
+            height: 58px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            animation: cleanSpin 1s linear infinite;
+          }
+          
+          @keyframes cleanSpin {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
+        <div className="clean-loader"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-2">
@@ -250,44 +325,57 @@ const ViewHelpPreview = () => {
         </div>
       </div>
       
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="flex space-x-8">
-          <button
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === "faq"
-                ? "border-green-500 text-green-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            }`}
-            onClick={() => setActiveTab("faq")}
-          >
-            Frequently Asked Questions
-          </button>
-          <button
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === "policy"
-                ? "border-green-500 text-green-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            }`}
-            onClick={() => setActiveTab("policy")}
-          >
-            Privacy Policy
-          </button>
-          <button
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === "contact"
-                ? "border-green-500 text-green-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            }`}
-            onClick={() => setActiveTab("contact")}
-          >
-            Contact Support
-          </button>
-        </nav>
+      <div className="mb-6">
+        <div className="relative">
+          <nav className="flex border-b border-gray-200" ref={tabsRef}>
+            <button
+              ref={tabRefs.faq}
+              className={`py-4 px-6 font-medium text-sm ${
+                activeTab === "faq"
+                  ? "text-green-600"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+              onClick={() => handleTabChange("faq")}
+            >
+              Frequently Asked Questions
+            </button>
+            <button
+              ref={tabRefs.policy}
+              className={`py-4 px-6 font-medium text-sm ${
+                activeTab === "policy"
+                  ? "text-green-600"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+              onClick={() => handleTabChange("policy")}
+            >
+              Privacy Policy
+            </button>
+            <button
+              ref={tabRefs.contact}
+              className={`py-4 px-6 font-medium text-sm ${
+                activeTab === "contact"
+                  ? "text-green-600"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+              onClick={() => handleTabChange("contact")}
+            >
+              Contact Support
+            </button>
+            
+            <div 
+              className="absolute bottom-0 h-0.5 bg-green-500 transition-all duration-300 ease-in-out"
+              style={{ 
+                left: `${indicatorStyle.left}px`, 
+                width: `${indicatorStyle.width}px` 
+              }}
+            />
+          </nav>
+        </div>
       </div>
       
       <div className="min-h-[400px]">
         {activeTab === "faq" && (
-          <div>
+          <div className="animate-fadeIn">
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-1">Frequently Asked Questions</h2>
               <p className="text-gray-600">
@@ -326,7 +414,7 @@ const ViewHelpPreview = () => {
         )}
         
         {activeTab === "policy" && (
-          <div>
+          <div className="animate-fadeIn">
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-1">Privacy & Data Policy</h2>
               <p className="text-gray-600">
@@ -348,7 +436,7 @@ const ViewHelpPreview = () => {
         )}
         
         {activeTab === "contact" && (
-          <div>
+          <div className="animate-fadeIn">
             <div className="mb-6">
               <h2 className="text-xl font-semibold mb-1">Contact Support</h2>
               <p className="text-gray-600">

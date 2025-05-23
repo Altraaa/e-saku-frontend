@@ -4,7 +4,6 @@ import { Camera, X, Edit, Save, Lock, User, Clock, Eye, EyeOff } from "lucide-re
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTeacherById, useTeacherUpdate } from "@/config/Api/useTeacher";
 
-// Tipe data untuk guru
 interface ITeacher {
   id: number;
   teacher_code: string;
@@ -19,7 +18,6 @@ interface ITeacher {
 
 type InputValueType = string | number | null;
 
-// Fungsi untuk format tanggal
 const formatDate = (dateString: string): string => {
   if (!dateString) return "N/A";
   
@@ -214,16 +212,34 @@ const ViewProfileTeacher = () => {
       }
     });
   };
-
+  
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mb-4"></div>
-        <p className="text-black">Memuat data profil...</p>
+      <div className="flex items-center justify-center h-full">
+        <style jsx>{`
+          .clean-loader {
+            width: 58px;
+            height: 58px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            animation: cleanSpin 1s linear infinite;
+          }
+          
+          @keyframes cleanSpin {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
+        <div className="clean-loader"></div>
       </div>
     );
   }
-
+  
   if (!teacher || !formData) {
     return (
       <div className="flex flex-col items-center justify-center h-full">
@@ -347,8 +363,18 @@ const ViewProfileTeacher = () => {
               <div className="space-y-4 sm:space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
-                    <label htmlFor="teacher-id" className="block text-sm font-medium text-black mb-1">ID</label>
-                    <div id="teacher-id" className="p-2 bg-gray-100 border border-gray-200 rounded-lg">{formData.id}</div>
+                    <label htmlFor="teacher-nip" className="block text-sm font-medium text-black mb-1">NIP</label>
+                    {isEditing ? (
+                      <input
+                        id="teacher-nip"
+                        type="number"
+                        value={formData.nip || ''}
+                        onChange={(e) => handleInputChange('nip', e.target.value ? Number(e.target.value) : null)}
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                      />
+                    ) : (
+                      <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">{formData.nip || "Tidak diatur"}</div>
+                    )}
                   </div>
                   
                   <div>
@@ -383,36 +409,19 @@ const ViewProfileTeacher = () => {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                  <div>
-                    <label htmlFor="teacher-nip" className="block text-sm font-medium text-black mb-1">NIP</label>
-                    {isEditing ? (
-                      <input
-                        id="teacher-nip"
-                        type="number"
-                        value={formData.nip || ''}
-                        onChange={(e) => handleInputChange('nip', e.target.value ? Number(e.target.value) : null)}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                      />
-                    ) : (
-                      <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">{formData.nip || "Tidak diatur"}</div>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="teacher-email" className="block text-sm font-medium text-black mb-1">Email</label>
-                    {isEditing ? (
-                      <input
-                        id="teacher-email"
-                        type="email"
-                        value={formData.email || ''}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                      />
-                    ) : (
-                      <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">{formData.email || "Tidak diatur"}</div>
-                    )}
-                  </div>
+                <div>
+                  <label htmlFor="teacher-email" className="block text-sm font-medium text-black mb-1">Email</label>
+                  {isEditing ? (
+                    <input
+                      id="teacher-email"
+                      type="email"
+                      value={formData.email || ''}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                    />
+                  ) : (
+                    <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">{formData.email || "Tidak diatur"}</div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">

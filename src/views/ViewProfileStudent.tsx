@@ -1,12 +1,49 @@
 import { Form, FormInput } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShieldCheck, User, Users } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const ViewProfileStudent = () => {
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 1200);
+        return () => clearTimeout(timer);
+    }, []);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Logika untuk login di sini
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <style jsx>{`
+                    .clean-loader {
+                        width: 58px;
+                        height: 58px;
+                        border: 4px solid #e5e7eb;
+                        border-top: 4px solid #10b981;
+                        border-radius: 50%;
+                        animation: cleanSpin 1s linear infinite;
+                    }
+                    
+                    @keyframes cleanSpin {
+                        0% {
+                            transform: rotate(0deg);
+                        }
+                        100% {
+                            transform: rotate(360deg);
+                        }
+                    }
+                `}</style>
+                <div className="clean-loader"></div>
+            </div>
+        );
+    }
+
     return (
         <>
             <div className="m-1">

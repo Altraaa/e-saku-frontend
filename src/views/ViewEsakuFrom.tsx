@@ -40,6 +40,72 @@ import {
 
 type AchievementLevelOptions = "kota" | "provinsi" | "nasional" | "internasional" | "";
 
+const ESakuFormSkeleton = () => {
+  return (
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 animate-pulse">
+      <div>
+        <div className="h-8 w-64 bg-gray-200 rounded-md"></div>
+        <div className="h-4 w-72 bg-gray-200 rounded-md mt-2"></div>
+      </div>
+
+      <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md">
+        <div className="border-b bg-gray-200 p-4">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 bg-gray-300 rounded-md"></div>
+            <div className="h-6 w-40 bg-gray-300 rounded-md"></div>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row gap-6">
+              <div className="space-y-2 flex-1">
+                <div className="h-5 w-24 bg-gray-200 rounded-md"></div>
+                <div className="h-10 w-full bg-gray-200 rounded-md"></div>
+              </div>
+
+              <div className="space-y-2 flex-1">
+                <div className="h-5 w-24 bg-gray-200 rounded-md"></div>
+                <div className="h-10 w-full bg-gray-200 rounded-md"></div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-6">
+              <div className="space-y-2 flex-1">
+                <div className="h-5 w-32 bg-gray-200 rounded-md"></div>
+                <div className="h-10 w-full bg-gray-200 rounded-md"></div>
+              </div>
+
+              <div className="space-y-2 flex-1">
+                <div className="h-5 w-24 bg-gray-200 rounded-md"></div>
+                <div className="h-10 w-full bg-gray-200 rounded-md"></div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="h-5 w-32 bg-gray-200 rounded-md"></div>
+              <div className="h-32 w-full bg-gray-200 rounded-md"></div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="h-5 w-40 bg-gray-200 rounded-md"></div>
+              <div className="h-24 w-full bg-gray-200 rounded-md"></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-between gap-3 pb-6 px-6 border-t pt-4">
+          <div className="h-10 w-32 bg-gray-200 rounded-md"></div>
+          <div className="flex gap-3">
+            <div className="h-10 w-32 bg-gray-200 rounded-md"></div>
+            <div className="h-10 w-44 bg-gray-200 rounded-md"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ESakuForm: React.FC = () => {
   const labelClass = "text-gray-700 font-medium flex items-center gap-2";
   const inputClass = "border-gray-300 focus:border-green-500 focus:ring-green-500 rounded-lg h-10";
@@ -50,6 +116,8 @@ const ESakuForm: React.FC = () => {
   const btnPrimaryClass = "bg-green-600 hover:bg-green-700 text-white flex items-center gap-1.5";
   const btnSecondaryClass = "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 flex items-center gap-1.5";
   const btnDarkClass = "bg-gray-900 hover:bg-gray-800 text-white flex items-center gap-1.5";
+
+  const [isLoading, setIsLoading] = useState(true);
   
   const [inputType, setInputType] = useState<InputTypeOptions>("violation");
   const [classType, setClassType] = useState<string>("");
@@ -73,6 +141,14 @@ const ESakuForm: React.FC = () => {
   const [isDateOpen, setIsDateOpen] = useState<boolean>(false);
   
   const formRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500); 
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const resetForm = () => {
     setInputType("violation");
@@ -275,13 +351,20 @@ const ESakuForm: React.FC = () => {
 
   const isMobileView = typeof window !== 'undefined' && window.innerWidth < 640;
 
+  if (isLoading) {
+    return <ESakuFormSkeleton />;
+  }
+
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6" ref={formRef}>
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-green-800">
-          Form E-Saku Siswa
-        </h1>
-        <p className="text-gray-500 text-sm mt-1">
+      <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-sm">
+        <div className="flex items-center mb-2">
+          <div className="bg-green-600/40 p-2 rounded-lg mr-3">
+            <FileText className="h-6 w-6 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800">Form E-Saku Siswa</h1>
+        </div>
+        <p className="text-gray-600 max-w-3xl">
           Masukkan data pelanggaran atau prestasi siswa
         </p>
       </div>
@@ -341,23 +424,6 @@ const ESakuForm: React.FC = () => {
               <>
                 <div className="flex flex-col sm:flex-row gap-6">
                   <div className="space-y-2 flex-1">
-                    <Label htmlFor="studentName" className={labelClass}>
-                      <User className={greenIconClass} />
-                      Nama Siswa <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="studentName"
-                      value={studentName}
-                      onChange={(e: ChangeEvent<HTMLInputElement>) => setStudentName(e.target.value)}
-                      placeholder="Masukkan nama siswa"
-                      className={`${inputClass} ${errors.studentName ? inputErrorClass : ''}`}
-                    />
-                    {errors.studentName && (
-                      <p className={errorClass}>{errors.studentName}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 flex-1">
                     <Label htmlFor="class" className={labelClass}>
                       <School className={greenIconClass} />
                       Pilih Kelas <span className="text-red-500">*</span>
@@ -379,6 +445,23 @@ const ESakuForm: React.FC = () => {
                     </Select>
                     {errors.classType && (
                       <p className={errorClass}>{errors.classType}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 flex-1">
+                    <Label htmlFor="studentName" className={labelClass}>
+                      <User className={greenIconClass} />
+                      Nama Siswa <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="studentName"
+                      value={studentName}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setStudentName(e.target.value)}
+                      placeholder="Masukkan nama siswa"
+                      className={`${inputClass} ${errors.studentName ? inputErrorClass : ''}`}
+                    />
+                    {errors.studentName && (
+                      <p className={errorClass}>{errors.studentName}</p>
                     )}
                   </div>
                 </div>
