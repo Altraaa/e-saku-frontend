@@ -1,15 +1,50 @@
 import { Card } from "@/components/ui/card"
 import { FormSelect } from "@/components/ui/form"
 import { MonitorCog, Moon, Sun } from "lucide-react"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const ViewSettings = () => {
-    const [activeButton, setActiveButton] = useState(0); // Untuk menyimpan tombol yang aktif
+    const [activeButton, setActiveButton] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
     
-    const handleClick = (index:number) => {
-      setActiveButton(index); // Mengubah state aktif berdasarkan tombol yang dipilih
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    const handleClick = (index: number) => {
+        setActiveButton(index);
     };
 
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <style jsx>{`
+                    .clean-loader {
+                        width: 58px;
+                        height: 58px;
+                        border: 4px solid #e5e7eb;
+                        border-top: 4px solid #10b981;
+                        border-radius: 50%;
+                        animation: cleanSpin 1s linear infinite;
+                    }
+                    
+                    @keyframes cleanSpin {
+                        0% {
+                            transform: rotate(0deg);
+                        }
+                        100% {
+                            transform: rotate(360deg);
+                        }
+                    }
+                `}</style>
+                <div className="clean-loader"></div>
+            </div>
+        );
+    }
+    
     return(
         <div>
             <h1 className="pl-2 text-2xl font-semibold">Settings</h1>

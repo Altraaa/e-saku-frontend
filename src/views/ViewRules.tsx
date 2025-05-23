@@ -217,22 +217,24 @@ const ViewSchoolRules = () => {
   ];
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const initialTabElement = violationsTabRef.current;
-      
-      if (initialTabElement && tabsRef.current) {
-        const tabRect = initialTabElement.getBoundingClientRect();
-        const navRect = tabsRef.current.getBoundingClientRect();
+    if (!isLoading) {
+      const timer = setTimeout(() => {
+        const initialTabElement = violationsTabRef.current;
         
-        setIndicatorStyle({
-          left: tabRect.left - navRect.left,
-          width: tabRect.width
-        });
-      }
-    }, 50); 
-    
-    return () => clearTimeout(timer);
-  }, []); 
+        if (initialTabElement && tabsRef.current) {
+          const tabRect = initialTabElement.getBoundingClientRect();
+          const navRect = tabsRef.current.getBoundingClientRect();
+          
+          setIndicatorStyle({
+            left: tabRect.left - navRect.left,
+            width: tabRect.width
+          });
+        }
+      }, 50); 
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
 
   useEffect(() => {
     const updateIndicator = () => {
@@ -887,7 +889,7 @@ const ViewSchoolRules = () => {
                       <TableRow key={rule.id} className="border-b">
                         <TableCell className="text-left px-5 py-3 font-medium">{rule.achievement}</TableCell>
                         <TableCell className="text-center px-5 py-3">
-                          <Badge className="bg-emerald-50 text-emerald-800 border border-emerald-200">
+                          <Badge className="bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-50 hover:text-emerald-800">
                             {rule.level}
                           </Badge>
                         </TableCell>

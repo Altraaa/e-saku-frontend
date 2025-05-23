@@ -4,7 +4,6 @@ import { Camera, X, Edit, Save, Lock, User, Clock, Eye, EyeOff } from "lucide-re
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTeacherById, useTeacherUpdate } from "@/config/Api/useTeacher";
 
-// Tipe data untuk guru
 interface ITeacher {
   id: number;
   teacher_code: string;
@@ -19,7 +18,6 @@ interface ITeacher {
 
 type InputValueType = string | number | null;
 
-// Fungsi untuk format tanggal
 const formatDate = (dateString: string): string => {
   if (!dateString) return "N/A";
   
@@ -214,16 +212,34 @@ const ViewProfileTeacher = () => {
       }
     });
   };
-
+  
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mb-4"></div>
-        <p className="text-black">Memuat data profil...</p>
+      <div className="flex items-center justify-center h-full">
+        <style jsx>{`
+          .clean-loader {
+            width: 58px;
+            height: 58px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            animation: cleanSpin 1s linear infinite;
+          }
+          
+          @keyframes cleanSpin {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
+        <div className="clean-loader"></div>
       </div>
     );
   }
-
+  
   if (!teacher || !formData) {
     return (
       <div className="flex flex-col items-center justify-center h-full">

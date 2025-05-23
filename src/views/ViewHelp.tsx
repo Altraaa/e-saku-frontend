@@ -154,6 +154,7 @@ const ContactCard = ({ title, description, icon, actionText, actionUrl }: {
 const ViewHelpPreview = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("faq");
+  const [isLoading, setIsLoading] = useState(true);
 
   const [indicatorStyle, setIndicatorStyle] = useState({
     left: 0,
@@ -181,14 +182,27 @@ const ViewHelpPreview = () => {
         });
       }
     };
-    
-    updateIndicator();
+
+    if (!isLoading) {
+      updateIndicator();
+    }
 
     window.addEventListener('resize', updateIndicator);
     return () => {
       window.removeEventListener('resize', updateIndicator);
     };
-  }, [activeTab]);
+  }, [activeTab, isLoading]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      setTimeout(() => {
+        updateIndicator();
+      }, 50);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -256,11 +270,37 @@ const ViewHelpPreview = () => {
     }
   ];
 
-  // Filter FAQ items based on search term
   const filteredFaqItems = faqItems.filter(item => 
     item.question.toLowerCase().includes(searchTerm.toLowerCase()) || 
     item.answer.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <style jsx>{`
+          .clean-loader {
+            width: 58px;
+            height: 58px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            animation: cleanSpin 1s linear infinite;
+          }
+          
+          @keyframes cleanSpin {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
+        <div className="clean-loader"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-2">
@@ -322,7 +362,6 @@ const ViewHelpPreview = () => {
               Contact Support
             </button>
             
-            {/* Sliding indicator */}
             <div 
               className="absolute bottom-0 h-0.5 bg-green-500 transition-all duration-300 ease-in-out"
               style={{ 

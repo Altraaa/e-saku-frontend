@@ -19,7 +19,6 @@ import { useClassroomById } from "@/config/Api/useClasroom";
 import { useStudentDelete } from "@/config/Api/useStudent";
 import { useTeacherById } from "@/config/Api/useTeacher";
 
-// Definisi interface untuk data
 interface IStudent {
   id: number;
   nis: string;
@@ -27,10 +26,8 @@ interface IStudent {
   violation_points?: number;
   accomplishment_points?: number;
   point_total?: number;
-  // Tambahkan properti lain yang mungkin ada
 }
 
-// Komponen ClassHeader dengan tipe yang eksplisit
 interface ClassHeaderProps {
   className: string;
   teacherName: string;
@@ -40,25 +37,20 @@ const ClassHeader: React.FC<ClassHeaderProps> = ({ className, teacherName }) => 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
       <div className="px-6 py-5">
-        {/* Class name with accent styling */}
         <h1 className="text-3xl font-bold text-green-500">
           {className}
         </h1>
         
-        {/* Teacher info with improved typography */}
         <div className="mt-1 flex items-center">
           <span className="text-gray-600">Diampu oleh:</span>
           <span className="ml-2 font-semibold text-gray-700">{teacherName}</span>
         </div>
       </div>
-      
-      {/* Decorative accent bar */}
       <div className="h-1 bg-gradient-to-r from-green-400 to-green-500"></div>
     </div>
   );
 };
 
-// Komponen LoadingSpinner
 const LoadingSpinner: React.FC = () => {
   return (
     <div className="p-6 flex justify-center items-center h-64">
@@ -74,44 +66,62 @@ const ViewStudentByClass: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState<string>("10");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [displayedStudents, setDisplayedStudents] = useState<IStudent[]>([]);
-
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
   const { data: classroom, isLoading: classLoading } = useClassroomById(classId);
   const { data: students, isLoading: studentsLoading } = useStudentsByClassId(classId);
   const teacherId = classroom?.teacher_id ?? 0;
   const { data: teacher } = useTeacherById(teacherId);
   const deleteStudent = useStudentDelete();
-
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    const timeoutId = setTimeout(() => {
+
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    
+    const newTimeout = setTimeout(() => {
       setSearchText(value);
-      setCurrentPage(1); // Reset to first page when searching
+      setCurrentPage(1); 
     }, 300);
     
-    return () => clearTimeout(timeoutId);
-  }, []);
+    setSearchTimeout(newTimeout);
+  }, [searchTimeout]);
+
+  useEffect(() => {
+    return () => {
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+    };
+  }, [searchTimeout]);
 
   const filteredStudents = useMemo(() => {
-    if (!students) return [] as IStudent[];
+    if (!students || !Array.isArray(students)) return [] as IStudent[];
+    
+    if (searchText === "") return students;
     
     return students.filter((student: IStudent) => 
-      searchText === "" || 
-      student.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      student.nis.toLowerCase().includes(searchText.toLowerCase())
+      student.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+      student.nis?.toLowerCase().includes(searchText.toLowerCase())
     );
   }, [searchText, students]);
   
   useEffect(() => {
-    if (filteredStudents) {
-      const totalPages = Math.ceil(filteredStudents.length / parseInt(rowsPerPage));
+    if (filteredStudents && filteredStudents.length >= 0) {
+      const rowsPerPageNum = parseInt(rowsPerPage);
+      const totalPages = Math.ceil(filteredStudents.length / rowsPerPageNum);
 
       if (currentPage > totalPages && totalPages > 0) {
+        setCurrentPage(totalPages);
+      } else if (currentPage < 1) {
         setCurrentPage(1);
       }
 
-      const startIndex = (currentPage - 1) * parseInt(rowsPerPage);
-      const endIndex = startIndex + parseInt(rowsPerPage);
+      const startIndex = (currentPage - 1) * rowsPerPageNum;
+      const endIndex = startIndex + rowsPerPageNum;
       setDisplayedStudents(filteredStudents.slice(startIndex, endIndex));
+    } else {
+      setDisplayedStudents([]);
     }
   }, [filteredStudents, currentPage, rowsPerPage]);
   
@@ -120,9 +130,15 @@ const ViewStudentByClass: React.FC = () => {
     setCurrentPage(1); 
   };
 
-  const handleDelete = (studentId: number) => {
+  const handleDelete = async (studentId: number) => {
     if (window.confirm("Apakah Anda yakin ingin menghapus siswa ini?")) {
-      deleteStudent.mutate(studentId);
+      try {
+        await deleteStudent.mutateAsync(studentId);
+        console.log("Student deleted successfully");
+      } catch (error) {
+        console.error("Failed to delete student:", error);
+        alert("Gagal menghapus siswa. Silakan coba lagi.");
+      }
     }
   };
 
@@ -130,11 +146,20 @@ const ViewStudentByClass: React.FC = () => {
     return <LoadingSpinner />;
   }
 
+  if (!classroom) {
+    return (
+      <div className="px-6 py-8 text-center">
+        <p className="text-gray-500">Kelas tidak ditemukan</p>
+      </div>
+    );
+  }
+
   const teacherName = teacher?.name || "Nama guru tidak tersedia";
+  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / parseInt(rowsPerPage)));
+  const safePage = Math.min(Math.max(currentPage, 1), totalPages);
 
   return (
     <div className="px-6 space-y-4 sm:space-y-6">
-      {/* Header Kelas */}
       <ClassHeader 
         className={classroom?.name || ""} 
         teacherName={teacherName}
@@ -149,7 +174,7 @@ const ViewStudentByClass: React.FC = () => {
             <div className="relative w-72">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
-                value={searchText}
+                defaultValue={searchText}
                 onChange={handleSearchChange}
                 placeholder="Cari nama siswa atau NIS..."
                 className="pl-9 bg-white border-gray-200 w-full rounded-lg"
@@ -173,17 +198,17 @@ const ViewStudentByClass: React.FC = () => {
             <TableBody>
               {displayedStudents && displayedStudents.length > 0 ? (
                 displayedStudents.map((student, index) => {
-                  const actualIndex = ((currentPage - 1) * parseInt(rowsPerPage)) + index + 1;
+                  const actualIndex = ((safePage - 1) * parseInt(rowsPerPage)) + index + 1;
                   return (
                     <TableRow key={student.id} className="border-b hover:bg-gray-50">
                       <TableCell className="text-center px-6 font-normal">{actualIndex}</TableCell>
-                      <TableCell className="text-center font-normal">{student.nis}</TableCell>
+                      <TableCell className="text-center font-normal">{student.nis || 'N/A'}</TableCell>
                       <TableCell className="text-left font-normal">
                         <Link 
                           to={`/studentbio/${student.id}`} 
                           className="hover:text-green-500 transition-colors"
                         >
-                          {student.name}
+                          {student.name || 'Nama tidak tersedia'}
                         </Link>
                       </TableCell>
                       <TableCell className="text-center font-normal">
@@ -212,6 +237,7 @@ const ViewStudentByClass: React.FC = () => {
                           <button 
                             className="text-red-500 hover:text-red-600 transition-colors" 
                             onClick={() => handleDelete(student.id)}
+                            disabled={deleteStudent.isPending}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -223,7 +249,7 @@ const ViewStudentByClass: React.FC = () => {
               ) : (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                    Tidak ada data siswa yang sesuai dengan pencarian
+                    {searchText ? "Tidak ada data siswa yang sesuai dengan pencarian" : "Tidak ada data siswa"}
                   </TableCell>
                 </TableRow>
               )}
@@ -231,7 +257,6 @@ const ViewStudentByClass: React.FC = () => {
           </Table>
         </div>
         
-        {/* Pagination */}
         <div className="pl-6 pt-4 pb-4 flex justify-between items-center border-t">
           <div className="flex items-center space-x-4">
             <div className="text-sm text-gray-500">
@@ -263,21 +288,21 @@ const ViewStudentByClass: React.FC = () => {
               size="icon"
               className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
+              disabled={safePage === 1}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             
             <div className="text-sm text-gray-600">
-              Page {currentPage} of {Math.max(1, Math.ceil(filteredStudents.length / parseInt(rowsPerPage)))}
+              Page {safePage} of {totalPages}
             </div>
             
             <Button 
               variant="outline" 
               size="icon"
               className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredStudents.length / parseInt(rowsPerPage))))}
-              disabled={currentPage >= Math.ceil(filteredStudents.length / parseInt(rowsPerPage))}
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={safePage >= totalPages}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
