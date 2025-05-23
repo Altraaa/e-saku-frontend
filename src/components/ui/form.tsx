@@ -28,6 +28,7 @@ interface FormInputProps {
   disabled?: boolean;
   required?: boolean;
   error?: string;
+  className?: string;
 }
 
 interface FormTextareaProps {
@@ -80,7 +81,8 @@ export function FormInput({
   onDateChange,
   disabled,
   required = true,
-  error
+  error,
+  className,
 }: FormInputProps) {
   if (type === "date") {
     return (
@@ -127,6 +129,7 @@ export function FormInput({
         onChange={onChange}
         disabled={disabled}
         required={required}
+        className={className}
       />
       {error && <div className="text-red-500">{error}</div>}
     </div>

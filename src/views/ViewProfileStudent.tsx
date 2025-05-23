@@ -1,8 +1,11 @@
 import { Form, FormInput } from "@/components/ui/form";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldCheck, User, Users } from "lucide-react";
+import { useState } from "react";
 
 const ViewProfileStudent = () => {
+    const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         // Logika untuk login di sini
@@ -10,19 +13,32 @@ const ViewProfileStudent = () => {
     return (
         <>
             <div className="m-1">
-                <div className="w-full flex  px-8 mt-8">
+                <div className="w-full flex px-8 mt-8 gap-10 items-start">
                     <div className="w-[25%] max-w-[25%] ">
-                        <div className="text-3xl font-bold mb-5">
+                        <div className="text-4xl font-bold mb-6">
                             Biodata Siswa
                         </div>
                         <div className="flex flex-col gap-3 justify-center items-center">
-                            <div className="aspect-[3/4] w-full bg-gray-300 "></div>
                             <div className="flex w-full flex-col gap-3">
-                                <Form onSubmit={handleSubmit}>
-                                    <Card>
-                                        <CardContent>
+                                <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
+                                    <CardHeader className="bg-white flex justify-center items-center py-4 border-b-2 border-green-400 pb-2">
+                                        <CardTitle className="text-center text-xl font-bold text-black">Profil Siswa</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-4 sm:p-6 flex flex-col items-center">
+                                    <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full bg-gray-200 flex items-center justify-center mb-4 sm:mb-6 border-4 border-green-100 overflow-hidden">
+                                        {photoUrl ? (
+                                        <img 
+                                            src={photoUrl} 
+                                            alt="Teacher profile" 
+                                            className="w-full h-full object-cover"
+                                        />
+                                        ) : (
+                                        <User className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-gray-400" strokeWidth={1} />
+                                        )}
+                                    </div>
+                                    <Form onSubmit={handleSubmit}>
                                             <div className="mt-5 flex flex-col gap-4">
-                                                <div className="text-3xl font-bold mb-1">
+                                                <div className="text-2xl font-bold mb-1">
                                                     Account Infomation
                                                 </div>
                                                 <FormInput
@@ -48,21 +64,21 @@ const ViewProfileStudent = () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                        </CardContent>
-                                    </Card>
                                     <div className="w-full">
-                                        <button type="submit" className="w-full bg-blue-600 p-2 font-semibold text-white rounded-md hover:bg-blue-500 transition-all duration-200">
+                                        <button type="submit" className="w-full text-sm bg-blue-600 p-2 font-semibold text-white rounded-md hover:bg-blue-500 transition-all duration-200">
                                             Update Account Information
                                         </button>
                                     </div>
                                 </Form>
+                                    </CardContent>
+                                </Card>
                                 
                             </div>
                         </div>
                     </div>
-                    <div className="w-[75%] max-w-[75%] pl-10">
+                    <div className="w-[75%] max-w-[75%]">
                         <Form onSubmit={handleSubmit}>
-                            <div className="flex justify-end gap-3">
+                            <div className="flex justify-end gap-6">
                                 <div className="">
                                     <button
                                         type="submit"
@@ -75,7 +91,7 @@ const ViewProfileStudent = () => {
                             <Card>
                                 <CardContent>
                                     <div className="py-4 flex flex-col gap-4 max-h-full overflow-y-auto">
-                                        <div className="flex justify-start items-center gap-3 border-b-2 border-green-500 pb-2">
+                                        <div className="flex justify-start items-center gap-3 border-b-2 border-green-400 pb-2">
                                             <User/>
                                             <h1 className="text-xl font-bold">Personal Information</h1>
                                         </div>
