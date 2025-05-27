@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card"
 import { FormSelect } from "@/components/ui/form"
-import { MonitorCog, Moon, Sun } from "lucide-react"
+import { MonitorCog, Moon, Sun, Settings } from "lucide-react"
 import { useEffect, useState } from "react";
 
 const ViewSettings = () => {
@@ -20,34 +20,54 @@ const ViewSettings = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-full">
-                <style jsx>{`
-                    .clean-loader {
-                        width: 58px;
-                        height: 58px;
-                        border: 4px solid #e5e7eb;
-                        border-top: 4px solid #10b981;
-                        border-radius: 50%;
-                        animation: cleanSpin 1s linear infinite;
-                    }
-                    
-                    @keyframes cleanSpin {
-                        0% {
-                            transform: rotate(0deg);
+            <div className="flex flex-col">
+                <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-sm animate-pulse">
+                    <div className="flex items-center mb-2">
+                        <div className="bg-gray-200 p-2 rounded-lg mr-3 w-10 h-10"></div>
+                        <div className="w-32 h-8 bg-gray-200 rounded-md"></div>
+                    </div>
+                    <div className="w-80 h-4 bg-gray-200 rounded-md"></div>
+                </div>
+
+                <div className="flex items-center justify-center h-64">
+                    <style jsx>{`
+                        .clean-loader {
+                            width: 58px;
+                            height: 58px;
+                            border: 4px solid #e5e7eb;
+                            border-top: 4px solid #10b981;
+                            border-radius: 50%;
+                            animation: cleanSpin 1s linear infinite;
                         }
-                        100% {
-                            transform: rotate(360deg);
+                        
+                        @keyframes cleanSpin {
+                            0% {
+                                transform: rotate(0deg);
+                            }
+                            100% {
+                                transform: rotate(360deg);
+                            }
                         }
-                    }
-                `}</style>
-                <div className="clean-loader"></div>
+                    `}</style>
+                    <div className="clean-loader"></div>
+                </div>
             </div>
         );
     }
     
     return(
         <div>
-            <h1 className="pl-2 text-2xl font-semibold">Settings</h1>
+            <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-sm">
+                <div className="flex items-center mb-2">
+                    <div className="bg-green-600/40 p-2 rounded-lg mr-3">
+                        <Settings className="h-6 w-6 text-white" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-gray-800">Pengaturan</h1>
+                </div>
+                <p className="text-gray-600 max-w-3xl">
+                    Kelola pengaturan aplikasi sesuai preferensi Anda
+                </p>
+            </div>
 
             <div className="flex flex-col justify-between items-center px-2 pt-5 gap-5">
                 <Card className="flex items-center justify-between px-5 py-4 w-full">

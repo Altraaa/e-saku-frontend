@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -17,6 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+import { ChevronLeft, ChevronRight, Download, Search, SquarePen, Trash2, History } from "lucide-react";
+import { DatePicker } from "@/components/shared/component/DatePicker";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { Input } from "@/components/ui/input";
 
 const violationData = [
   {
@@ -45,28 +50,88 @@ const violationData = [
   }
 ];
 
-import { Separator } from "@/components/ui/separator";
-import {  ChevronLeft, ChevronRight, Download, Search, SquarePen, Trash2 } from "lucide-react";
-import { DatePicker } from "@/components/shared/component/DatePicker";
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { Input } from "@/components/ui/input";
+const HistorySkeleton = () => {
+  return (
+    <div className="animate-pulse">
+      <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-sm">
+        <div className="flex items-center mb-2">
+          <div className="bg-gray-200 p-2 rounded-lg mr-3 w-10 h-10"></div>
+          <div className="w-48 h-8 bg-gray-200 rounded-md"></div>
+        </div>
+        <div className="w-64 h-4 bg-gray-200 rounded-md"></div>
+      </div>
+
+      <div className="flex sm:flex-col sm:gap-y-3 lg:flex-row w-full justify-between items-center mb-6">
+        <div className="flex sm:w-full lg:w-full justify-between ml-2 mb-5 gap-3 items-center">
+          <div className="flex gap-5">
+            <div className="w-[180px] h-10 bg-gray-200 rounded-lg"></div>
+            <div className="w-[180px] h-10 bg-gray-200 rounded-lg"></div>
+            <div className="w-[180px] h-10 bg-gray-200 rounded-lg"></div>
+          </div>
+
+          <div className="w-36 h-10 bg-gray-200 rounded-lg"></div>
+        </div>
+      </div>
+
+      <Card className="rounded-xl overflow-hidden">
+        <div className="px-6 pt-4 pb-4 border-b-2 border-green-500">
+          <div className="flex flex-row items-center justify-between space-y-0">
+            <div className="w-48 h-8 bg-gray-200 rounded-md"></div>
+            <div className="w-72 h-10 bg-gray-200 rounded-lg"></div>
+          </div>
+        </div>
+        <div className="overflow-x-auto p-4">
+          <div className="h-10 w-full bg-gray-200 rounded-md mb-4"></div>
+          
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-16 w-full bg-gray-200 rounded-md mb-3"></div>
+          ))}
+        </div>
+        
+        <div className="px-6 py-4 flex justify-between items-center border-t">
+          <div className="flex items-center space-x-4">
+            <div className="w-40 h-6 bg-gray-200 rounded-md"></div>
+            <div className="flex items-center space-x-2">
+              <div className="w-16 h-8 bg-gray-200 rounded-lg"></div>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
+            <div className="w-32 h-6 bg-gray-200 rounded-md"></div>
+            <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+};
 
 const ViewHistory = () => {
-  // Pagination states
+  const [isLoading, setIsLoading] = useState(true);
+  
   const [rowsPerPage, setRowsPerPage] = useState("10");
   const [currentPage, setCurrentPage] = useState(1);
   const [displayedViolationData, setDisplayedViolationData] = useState(violationData);
 
   const [searchText, setSearchText] = useState("");
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      const timeoutId = setTimeout(() => {
-        setSearchText(value);
-      }, 300);
-      
-      return () => clearTimeout(timeoutId);
-    }, []); 
+    const value = e.target.value;
+    const timeoutId = setTimeout(() => {
+      setSearchText(value);
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
+  }, []); 
 
   const filteredViolationData = useMemo(() => {
     return violationData.filter(student => 
@@ -79,60 +144,71 @@ const ViewHistory = () => {
   }, [searchText]);
 
   useEffect(() => {
-      // Calculate total pages
-      const totalPages = Math.ceil(filteredViolationData.length / parseInt(rowsPerPage));
-      
-      // Reset to page 1 if we're past the total pages
-      if (currentPage > totalPages && totalPages > 0) {
-        setCurrentPage(1);
-      }
-      
-      // Update displayed data
-      const startIndex = (currentPage - 1) * parseInt(rowsPerPage);
-      const endIndex = startIndex + parseInt(rowsPerPage);
-      setDisplayedViolationData(filteredViolationData.slice(startIndex, endIndex));
-    }, [filteredViolationData, currentPage, rowsPerPage]);
+    const totalPages = Math.ceil(filteredViolationData.length / parseInt(rowsPerPage));
     
-    const handleRowsPerPageChange = (value: string) => {
-      setRowsPerPage(value);
-      setCurrentPage(1); // Reset to first page when changing rows per page
-    };
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+    
+    const startIndex = (currentPage - 1) * parseInt(rowsPerPage);
+    const endIndex = startIndex + parseInt(rowsPerPage);
+    setDisplayedViolationData(filteredViolationData.slice(startIndex, endIndex));
+  }, [filteredViolationData, currentPage, rowsPerPage]);
+    
+  const handleRowsPerPageChange = (value: string) => {
+    setRowsPerPage(value);
+    setCurrentPage(1);
+  };
+
+  if (isLoading) {
+    return <HistorySkeleton />;
+  }
 
   return (
     <>
-      {/* <h1 className="text-lg font-semibold mb-2 ml-2">Urut Berdasarkan</h1> */}
-      {/* Filter Section */}
+      <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-sm">
+        <div className="flex items-center mb-2">
+          <div className="bg-green-600/40 p-2 rounded-lg mr-3">
+            <History className="h-6 w-6 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800">Histori</h1>
+        </div>
+        <p className="text-gray-600 max-w-3xl">
+          Lihat dan kelola riwayat pelanggaran siswa
+        </p>
+      </div>
+
       <div className="flex sm:flex-col sm:gap-y-3 lg:flex-row w-full justify-between items-center">
         <div className="flex sm:w-full lg:w-full justify-between ml-2 mb-5 gap-3 items-center">
           <div className="flex gap-5">
-          <Select>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Urut Berdasarkan" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>All Class</SelectLabel>
-                <SelectItem value="terbaru">Terbaru</SelectItem>
-                <SelectItem value="terlama">Terlama</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+            <Select>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Urut Berdasarkan" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>All Class</SelectLabel>
+                  <SelectItem value="terbaru">Terbaru</SelectItem>
+                  <SelectItem value="terlama">Terlama</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           
-          <Select>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Class" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>All Class</SelectLabel>
-                <SelectItem value="xiirpl3">XII RPL 3</SelectItem>
-                <SelectItem value="xiirpl2">XII RPL 2</SelectItem>
-                <SelectItem value="xiirpl1">XII RPL 1</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+            <Select>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Class" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>All Class</SelectLabel>
+                  <SelectItem value="xiirpl3">XII RPL 3</SelectItem>
+                  <SelectItem value="xiirpl2">XII RPL 2</SelectItem>
+                  <SelectItem value="xiirpl1">XII RPL 1</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           
-          <DatePicker/>
+            <DatePicker/>
           </div>
 
           <Button
@@ -144,18 +220,14 @@ const ViewHistory = () => {
         </div>
       </div>
 
-      {/* <Separator className="mt-5 mb-5" /> */}
-
-      {/* Table Section */}
       <div>
         <Card className="rounded-xl overflow-hidden">
           <div className="px-6 pt-4 pb-4 border-b-2 border-green-500">
             <div className="flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-xl w-full font-bold text-gray-900">
-                Histori Pelanggaran
+                Data Pelanggaran
               </CardTitle>
               <div className="relative w-72">
-
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   value={searchText}
@@ -173,7 +245,7 @@ const ViewHistory = () => {
                   <TableHead className="w-12 text-center px-6 font-medium text-black">No</TableHead>
                   <TableHead className="text-center font-medium text-black">NIS</TableHead>
                   <TableHead className="text-center font-medium text-black">Nama</TableHead>
-                  <TableHead className="text-center ffont-medium text-black">Kelas</TableHead>
+                  <TableHead className="text-center font-medium text-black">Kelas</TableHead>
                   <TableHead className="text-center hidden sm:table-cell font-medium text-black">Jenis Pelanggaran</TableHead>
                   <TableHead className="text-center font-medium text-black">Tanggal dan Waktu</TableHead>
                   <TableHead className="text-center font-medium text-black">Aksi</TableHead>
