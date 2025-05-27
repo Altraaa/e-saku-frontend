@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { ChevronLeft, ChevronRight, Download, Search, SquarePen, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Search, SquarePen, Trash2, History } from "lucide-react";
 import { DatePicker } from "@/components/shared/component/DatePicker";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -53,6 +53,14 @@ const violationData = [
 const HistorySkeleton = () => {
   return (
     <div className="animate-pulse">
+      <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-sm">
+        <div className="flex items-center mb-2">
+          <div className="bg-gray-200 p-2 rounded-lg mr-3 w-10 h-10"></div>
+          <div className="w-48 h-8 bg-gray-200 rounded-md"></div>
+        </div>
+        <div className="w-64 h-4 bg-gray-200 rounded-md"></div>
+      </div>
+
       <div className="flex sm:flex-col sm:gap-y-3 lg:flex-row w-full justify-between items-center mb-6">
         <div className="flex sm:w-full lg:w-full justify-between ml-2 mb-5 gap-3 items-center">
           <div className="flex gap-5">
@@ -136,15 +144,12 @@ const ViewHistory = () => {
   }, [searchText]);
 
   useEffect(() => {
-    // Calculate total pages
     const totalPages = Math.ceil(filteredViolationData.length / parseInt(rowsPerPage));
     
-    // Reset to page 1 if we're past the total pages
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
     }
     
-    // Update displayed data
     const startIndex = (currentPage - 1) * parseInt(rowsPerPage);
     const endIndex = startIndex + parseInt(rowsPerPage);
     setDisplayedViolationData(filteredViolationData.slice(startIndex, endIndex));
@@ -161,6 +166,18 @@ const ViewHistory = () => {
 
   return (
     <>
+      <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-sm">
+        <div className="flex items-center mb-2">
+          <div className="bg-green-600/40 p-2 rounded-lg mr-3">
+            <History className="h-6 w-6 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800">Histori</h1>
+        </div>
+        <p className="text-gray-600 max-w-3xl">
+          Lihat dan kelola riwayat pelanggaran siswa
+        </p>
+      </div>
+
       <div className="flex sm:flex-col sm:gap-y-3 lg:flex-row w-full justify-between items-center">
         <div className="flex sm:w-full lg:w-full justify-between ml-2 mb-5 gap-3 items-center">
           <div className="flex gap-5">
@@ -208,7 +225,7 @@ const ViewHistory = () => {
           <div className="px-6 pt-4 pb-4 border-b-2 border-green-500">
             <div className="flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-xl w-full font-bold text-gray-900">
-                Histori Pelanggaran
+                Data Pelanggaran
               </CardTitle>
               <div className="relative w-72">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -228,7 +245,7 @@ const ViewHistory = () => {
                   <TableHead className="w-12 text-center px-6 font-medium text-black">No</TableHead>
                   <TableHead className="text-center font-medium text-black">NIS</TableHead>
                   <TableHead className="text-center font-medium text-black">Nama</TableHead>
-                  <TableHead className="text-center ffont-medium text-black">Kelas</TableHead>
+                  <TableHead className="text-center font-medium text-black">Kelas</TableHead>
                   <TableHead className="text-center hidden sm:table-cell font-medium text-black">Jenis Pelanggaran</TableHead>
                   <TableHead className="text-center font-medium text-black">Tanggal dan Waktu</TableHead>
                   <TableHead className="text-center font-medium text-black">Aksi</TableHead>
