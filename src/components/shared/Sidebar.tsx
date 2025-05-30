@@ -22,10 +22,13 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const activeItem = location.pathname;
-    const { isOpen, toggleSidebar } = useSidebar();
+    const { isOpen, toggleSidebar, closeSidebar } = useSidebar();
 
     const { logout, isSuccess } = useLogout();
     const [isLogoutModalOpen, setLogoutModalOpen] = useState(false);
+    const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+
+    const isMobileScreen = windowWidth < 768;
 
     const confirmLogout = () => {
         logout();
@@ -38,20 +41,37 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
         }
     }, [isSuccess, navigate]);
 
+    useEffect(() => {
+        const handleResize = () => {
+            setWindowWidth(window.innerWidth);
+        };
+
+        window.addEventListener('resize', handleResize);
+        handleResize();
+        
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const handleCloseSidebar = (e: React.MouseEvent) => {
-        if (isMobile && isOpen) {
+        if ((isMobile || isMobileScreen) && isOpen) {
             e.stopPropagation();
             toggleSidebar();
         }
     };
 
-  const platformItems = [
-    { label: "Dashboard", icon: Home, path: "/" },
-    { label: "Student", icon: Users, path: "/student" },
-    { label: "E-saku Form", icon: FileText, path: "/esakuform" },
-    { label: "History", icon: History, path: "/history" },
-    { label: "Rules", icon: DiamondMinusIcon, path: "/rules" },
-  ];
+    const handleMenuItemClick = () => {
+        if (isMobile || isMobileScreen) {
+            closeSidebar();
+        }
+    };
+
+    const platformItems = [
+        { label: "Dashboard", icon: Home, path: "/" },
+        { label: "Student", icon: Users, path: "/student" },
+        { label: "E-saku Form", icon: FileText, path: "/esakuform" },
+        { label: "History", icon: History, path: "/history" },
+        { label: "Rules", icon: DiamondMinusIcon, path: "/rules" },
+    ];
 
     const accountItems = [
         { label: "Settings", icon: Settings, path: "/settings" },
@@ -77,13 +97,13 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
                 <img
                     src={skensalogo}
                     alt="Logo"
-                    className="w-10 h-10 rounded-md"
+                    className="w-10 h-10 rounded-md flex-shrink-0"
                 />
-                <div>
-                    <div className="text-md font-bold text-gray-800">
+                <div className="min-w-0 flex-1">
+                    <div className="text-md font-bold text-gray-800 truncate">
                         E-Saku Siswa
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500 truncate">
                         SMK Negeri 1 Denpasar
                     </div>
                 </div>
@@ -98,6 +118,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
                         <li key={index}>
                             <Link
                                 to={item.path}
+                                onClick={handleMenuItemClick}
                                 className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
                                     activeItem === item.path
                                         ? "bg-green-100 text-green-600 font-medium"
@@ -105,13 +126,13 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
                                 }`}
                             >
                                 <item.icon
-                                    className={`w-5 h-5 ${
+                                    className={`w-5 h-5 flex-shrink-0 ${
                                         activeItem === item.path
                                             ? "text-green-600"
                                             : "text-gray-500"
                                     }`}
                                 />
-                                <span>{item.label}</span>
+                                <span className="truncate">{item.label}</span>
                             </Link>
                         </li>
                     ))}
@@ -125,6 +146,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
                         <li key={index}>
                             <Link
                                 to={item.path}
+                                onClick={handleMenuItemClick}
                                 className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
                                     activeItem === item.path
                                         ? "bg-green-100 text-green-600 font-medium"
@@ -132,13 +154,13 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
                                 }`}
                             >
                                 <item.icon
-                                    className={`w-5 h-5 ${
+                                    className={`w-5 h-5 flex-shrink-0 ${
                                         activeItem === item.path
                                             ? "text-green-600"
                                             : "text-gray-500"
                                     }`}
                                 />
-                                <span>{item.label}</span>
+                                <span className="truncate">{item.label}</span>
                             </Link>
                         </li>
                     ))}
@@ -149,8 +171,8 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
                     onClick={() => setLogoutModalOpen(true)}
                     className="cursor-pointer flex items-center space-x-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-100 transition-all duration-200"
                 >
-                    <LogOut className="w-5 h-5 text-red-600" />
-                    <span>Logout</span>
+                    <LogOut className="w-5 h-5 text-red-600 flex-shrink-0" />
+                    <span className="truncate">Logout</span>
                 </div>
             </div>
         </motion.div>
@@ -158,12 +180,13 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
 
     return (
         <>
-            {isMobile && isOpen && (
+            {(isMobile || isMobileScreen) && isOpen && (
                 <div
                     className="fixed inset-0 bg-black bg-opacity-50 z-40"
                     onClick={handleCloseSidebar}
                 />
             )}
+            
             <ConfirmationModal
                 isOpen={isLogoutModalOpen}
                 onClose={() => setLogoutModalOpen(false)}
@@ -173,9 +196,12 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
                 confirmText="Yes"
                 type="logout"
             />
-            {isMobile ? (
+            
+            {(isMobile || isMobileScreen) ? (
                 <Sheet open={isOpen} onOpenChange={toggleSidebar}>
-                    <SheetContent>{SidebarContent}</SheetContent>
+                    <SheetContent side="left" className="p-0 w-64">
+                        {SidebarContent}
+                    </SheetContent>
                 </Sheet>
             ) : (
                 <AnimatePresence>{isOpen && SidebarContent}</AnimatePresence>
