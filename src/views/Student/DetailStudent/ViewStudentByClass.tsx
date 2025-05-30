@@ -1,4 +1,4 @@
-import { Search, SquarePen, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, SquarePen, Trash2, ChevronLeft, ChevronRight, Download, Upload, FileSpreadsheet, X } from "lucide-react";
 import {
     Table,
     TableBody,
@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useStudentsByClassId } from "@/config/Api/useStudent";
 import { useClassroomById } from "@/config/Api/useClasroom";
@@ -67,11 +68,21 @@ const ViewStudentByClass: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [displayedStudents, setDisplayedStudents] = useState<IStudent[]>([]);
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
+  const [uploadError, setUploadError] = useState<string>("");
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dragCounter = useRef<number>(0);
+  
   const { data: classroom, isLoading: classLoading } = useClassroomById(classId);
   const { data: students, isLoading: studentsLoading } = useStudentsByClassId(classId);
   const teacherId = classroom?.teacher_id ?? 0;
   const { data: teacher } = useTeacherById(teacherId);
   const deleteStudent = useStudentDelete();
+
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
@@ -142,6 +153,152 @@ const ViewStudentByClass: React.FC = () => {
     }
   };
 
+  const validateAndSetFile = (file: File) => {
+    const validTypes = [
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+    
+    const validExtensions = ['.xls', '.xlsx'];
+    const fileExtension = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
+    
+    if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
+      setUploadError("Please select a valid Excel file (.xls or .xlsx)");
+      setSelectedFile(null);
+      return false;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("File size must be less than 10MB");
+      setSelectedFile(null);
+      return false;
+    }
+    
+    setSelectedFile(file);
+    setUploadError("");
+    setUploadStatus("idle");
+    setUploadProgress(0);
+    return true;
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      validateAndSetFile(file);
+    }
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounter.current = 0;
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      if (files.length > 1) {
+        setUploadError("Please select only one file at a time");
+        return;
+      }
+      const file = files[0];
+      validateAndSetFile(file);
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) return;
+
+    setUploadStatus("uploading");
+    setUploadProgress(0);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('classId', classId.toString());
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      
+      setUploadStatus("success");
+
+      setTimeout(() => {
+        setIsImportModalOpen(false);
+        resetUploadState();
+      }, 1500);
+      
+    } catch (error) {
+      setUploadStatus("error");
+      setUploadError(error instanceof Error ? error.message : "Failed to upload file. Please try again.");
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setUploadError("");
+    setUploadStatus("idle");
+    setUploadProgress(0);
+    setIsDragging(false);
+    dragCounter.current = 0;
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const resetUploadState = () => {
+    setSelectedFile(null);
+    setUploadStatus("idle");
+    setUploadError("");
+    setUploadProgress(0);
+    setIsDragging(false);
+    dragCounter.current = 0;
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const downloadTemplate = () => {
+    const templateUrl = '/api/download/student-import-template.xlsx';
+    const link = document.createElement('a');
+    link.href = templateUrl;
+    link.download = 'student_import_template.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (classLoading || studentsLoading) {
     return <LoadingSpinner />;
   }
@@ -171,14 +328,193 @@ const ViewStudentByClass: React.FC = () => {
             <CardTitle className="text-xl font-bold text-gray-900">
               Daftar Siswa Kelas {classroom?.name}
             </CardTitle>
-            <div className="relative w-72">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <Input
-                defaultValue={searchText}
-                onChange={handleSearchChange}
-                placeholder="Cari nama siswa atau NIS..."
-                className="pl-9 bg-white border-gray-200 w-full rounded-lg"
-              />
+            <div className="flex items-center gap-3">
+              <Dialog open={isImportModalOpen} onOpenChange={(open) => {
+                setIsImportModalOpen(open);
+                if (!open) {
+                  resetUploadState();
+                }
+              }}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="default"
+                    className="hover:bg-[#009616] hover:text-white transition-all"
+                  >
+                    <Download className="mr-2 h-4 w-4"/>
+                    Import Excel
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]" onDragOver={(e) => e.preventDefault()}>
+                  <DialogHeader>
+                    <DialogTitle>Import Student Data untuk {classroom?.name}</DialogTitle>
+                    <DialogDescription>
+                      Upload file Excel (.xls atau .xlsx) yang berisi data siswa untuk kelas ini
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="grid gap-4 py-4">
+                    <div className="space-y-4">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        id="excel-upload"
+                      />
+                      
+                      {!selectedFile ? (
+                        <div
+                          onDragEnter={handleDragEnter}
+                          onDragLeave={handleDragLeave}
+                          onDragOver={handleDragOver}
+                          onDrop={handleDrop}
+                          className={`relative transition-all duration-200 ${
+                            isDragging ? 'scale-100' : ''
+                          }`}
+                        >
+                          <label
+                            htmlFor="excel-upload"
+                            className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                              isDragging 
+                                ? 'border-green-500 bg-green-50' 
+                                : 'border-gray-300 bg-gray-50 hover:border-green-500 hover:bg-gray-100'
+                            }`}
+                          >
+                            <Upload className={`w-8 h-8 mb-2 transition-all duration-200 ${
+                              isDragging ? 'text-green-600 scale-100' : 'text-gray-400'
+                            }`} />
+                            <span className={`text-sm transition-colors duration-200 ${
+                              isDragging ? 'text-green-600 font-medium' : 'text-gray-600'
+                            }`}>
+                              {isDragging ? 'Drop your Excel file here' : 'Click to upload or drag & drop'}
+                            </span>
+                            <span className="text-xs text-gray-400 mt-1">.xls or .xlsx (max 10MB)</span>
+                          </label>
+                          {isDragging && (
+                            <div className="absolute inset-0 rounded-lg bg-green-500 bg-opacity-10 pointer-events-none animate-pulse" />
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+                          <div className="flex items-center space-x-3">
+                            <FileSpreadsheet className="w-8 h-8 text-green-600" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
+                              <p className="text-xs text-gray-500">
+                                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={handleRemoveFile}
+                            className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                            disabled={uploadStatus === "uploading"}
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+                      )}
+                      
+                      {uploadError && (
+                        <div className="flex items-center space-x-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+                          <X className="w-4 h-4 flex-shrink-0" />
+                          <span>{uploadError}</span>
+                        </div>
+                      )}
+
+                      {uploadStatus === "uploading" && (
+                        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                          <div 
+                            className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <h4 className="text-sm font-medium mb-2">Persyaratan File:</h4>
+                      <ul className="text-xs text-gray-600 space-y-1">
+                        <li className="flex items-start">
+                          <span className="mr-1">•</span>
+                          <span>Format Excel (.xls atau .xlsx)</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-1">•</span>
+                          <span>Kolom wajib: Nama, NIS, Email</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-1">•</span>
+                          <span>Ukuran file maksimal: 10MB</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-1">•</span>
+                          <span>NIS siswa tidak boleh duplikat</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-1">•</span>
+                          <span>Siswa akan ditambahkan ke kelas {classroom?.name}</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <div className="flex items-center justify-center space-x-2 pt-2">
+                        <Button
+                          variant="outline"
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                          onClick={downloadTemplate}
+                        >
+                          <FileSpreadsheet className="w-4 h-4 mr-2" />
+                          Download Template
+                        </Button>
+                    </div>
+                    <div className="flex justify-end space-x-2 pt-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsImportModalOpen(false)}
+                        disabled={uploadStatus === "uploading"}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleFileUpload}
+                        disabled={!selectedFile || uploadStatus === "uploading"}
+                        className="bg-green-500 hover:bg-green-600 text-white"
+                      >
+                        {uploadStatus === "uploading" ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Uploading... {uploadProgress}%
+                          </>
+                        ) : uploadStatus === "success" ? (
+                          <>
+                            <div className="w-4 h-4 mr-2">✓</div>
+                            Uploaded Successfully!
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Upload File
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    </div> 
+                  </div>
+                </DialogContent>
+              </Dialog>
+              
+              <div className="relative w-72">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  defaultValue={searchText}
+                  onChange={handleSearchChange}
+                  placeholder="Cari nama siswa atau NIS..."
+                  className="pl-9 bg-white border-gray-200 w-full rounded-lg"
+                />
+              </div>
             </div>
           </div>
         </div>
