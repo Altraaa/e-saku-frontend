@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MoveLeft, SaveAll } from "lucide-react";
+import { MoveLeft, SaveAll, User } from "lucide-react";
 import {
   Form,
   FormInput,
@@ -11,6 +11,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useStudentById, useStudentUpdate } from "@/config/Api/useStudent";
 import { IStudent } from "@/config/Models/Student";
 import ConfirmationModal from "@/components/ui/confirmation";
+import { Card, CardContent } from "@/components/ui/card";
 
 const ViewEditStudentBio = () => {
   const { id } = useParams();
@@ -209,7 +210,7 @@ const confirmEdit = () => {
                 </div>
               </div>
             </div>
-            <div className="w-[75%] max-w-[75%] pl-10">
+            <div className="flex flex-col w-[75%] max-w-[75%] pl-10 gap-6">
               <div className="flex justify-end gap-3">
                 <div className="w-32 flex">
                   <FormButton
@@ -217,194 +218,213 @@ const confirmEdit = () => {
                     type="button"
                     onClick={handleSaveClick}
                   >
-                    {updateMutation.isPending ? "Saving..." : "Save"}{" "}
                     <SaveAll className="w-7" />
+                    {updateMutation.isPending ? "Saving..." : "Save"}{" "}
                   </FormButton>
                 </div>
               </div>
-              <div className="shadow-md border p-8 mt-5 flex flex-col gap-4 max-h-full overflow-y-auto">
-                <h1 className="text-3xl font-bold mb-1">
-                  Personal Information
-                </h1>
-                <FormInput
-                  id="name"
-                  label="Student Name"
-                  type="text"
-                  value={formData.name}
-                  onChange={handleChange}
-                  error={errors.name}
-                />
-                <div className="flex gap-12">
-                  <FormInput
-                    id="nisn"
-                    label="NISN"
-                    type="text"
-                    value={formData.nisn}
-                    onChange={handleChange}
-                    error={errors.nisn}
-                  />
-                  <FormInput
-                    id="nis"
-                    label="NIS"
-                    type="text"
-                    value={formData.nis}
-                    onChange={handleChange}
-                    error={errors.nis}
-                  />
-                </div>
-                <div className="flex gap-12">
-                  <FormInput
-                    id="place_of_birth"
-                    label="Place of Birth"
-                    type="text"
-                    value={formData.place_of_birth}
-                    onChange={handleChange}
-                    error={errors.place_of_birth}
-                  />
-                  <FormInput
-                    id="birth_date"
-                    label="Date of Birth"
-                    type="date"
-                    value={formData.birth_date}
-                    onChange={(e) => handleChange(e)}
-                    error={errors.birth_date}
-                  />
-                </div>
-                <div className="flex gap-12">
-                  <FormSelect
-                    id="gender"
-                    label="Gender"
-                    placeholder="Select Gender"
-                    value={formData.gender}
-                    options={[
-                      { value: "L", label: "Laki-laki" },
-                      { value: "P", label: "Perempuan" },
-                    ]}
-                    onChange={(value) => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        gender: value,
-                      }));
-                    }}
-                    error={errors.gender}
-                  />
-                  <FormInput
-                    id="religion"
-                    label="Religion"
-                    type="text"
-                    value={formData.religion}
-                    onChange={handleChange}
-                    error={errors.religion}
-                  />
-                </div>
-                <FormTextarea
-                  id="address"
-                  label="Address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  error={errors.address}
-                />
-                <div className="flex gap-12">
-                  <FormInput
-                    id="sub_district"
-                    label="Sub District"
-                    type="text"
-                    value={formData.sub_district}
-                    onChange={handleChange}
-                    error={errors.sub_district}
-                  />
-                  <FormInput
-                    id="district"
-                    label="District"
-                    type="text"
-                    value={formData.district}
-                    onChange={handleChange}
-                    error={errors.district}
-                  />
-                </div>
-                <div className="flex gap-12">
-                  <FormInput
-                    id="height"
-                    label="Height (cm)"
-                    type="text"
-                    value={formData.height}
-                    onChange={handleChange}
-                    error={errors.height}
-                  />
-                  <FormInput
-                    id="weight"
-                    label="Weight (kg)"
-                    type="text"
-                    value={formData.weight}
-                    onChange={handleChange}
-                    error={errors.weight}
-                  />
-                </div>
-                <FormInput
-                  id="phone_number"
-                  label="Phone Number"
-                  type="text"
-                  value={formData.phone_number}
-                  onChange={handleChange}
-                  error={errors.phone_number}
-                />
+              <Card>
+                  <CardContent>
+                    <div className="py-4 flex flex-col gap-4 max-h-full overflow-y-auto">
+                        <div className="flex justify-start items-center gap-3 border-b-2 border-green-500 pb-2">
+                            <User/>
+                            <h1 className="text-xl font-bold">Personal Information</h1>
+                        </div>
+                        <FormInput
+                          id="name"
+                          label="Student Name"
+                          type="text"
+                          value={formData.name}
+                          onChange={handleChange}
+                          error={errors.name}
+                        />
+                      <div className="flex gap-12">
+                        <FormInput
+                          id="nisn"
+                          label="NISN"
+                          type="text"
+                          value={formData.nisn}
+                          onChange={handleChange}
+                          error={errors.nisn}
+                        />
+                        <FormInput
+                          id="nis"
+                          label="NIS"
+                          type="text"
+                          value={formData.nis}
+                          onChange={handleChange}
+                          error={errors.nis}
+                        />
+                      </div>
+                      <div className="flex gap-12">
+                        <FormInput
+                          id="place_of_birth"
+                          label="Place of Birth"
+                          type="text"
+                          value={formData.place_of_birth}
+                          onChange={handleChange}
+                          error={errors.place_of_birth}
+                        />
+                        <FormInput
+                          id="birth_date"
+                          label="Date of Birth"
+                          type="date"
+                          value={formData.birth_date}
+                          onChange={(e) => handleChange(e)}
+                          error={errors.birth_date}
+                        />
+                      </div>
+                      <div className="flex gap-12">
+                        <FormSelect
+                          id="gender"
+                          label="Gender"
+                          placeholder="Select Gender"
+                          value={formData.gender}
+                          options={[
+                            { value: "L", label: "Laki-laki" },
+                            { value: "P", label: "Perempuan" },
+                          ]}
+                          onChange={(value) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              gender: value,
+                            }));
+                          }}
+                          error={errors.gender}
+                        />
+                        <FormInput
+                          id="religion"
+                          label="Religion"
+                          type="text"
+                          value={formData.religion}
+                          onChange={handleChange}
+                          error={errors.religion}
+                        />
+                      </div>
+                      <FormTextarea
+                        id="address"
+                        label="Address"
+                        value={formData.address}
+                        onChange={handleChange}
+                        error={errors.address}
+                      />
+                      <div className="flex gap-12">
+                        <FormInput
+                          id="sub_district"
+                          label="Sub District"
+                          type="text"
+                          value={formData.sub_district}
+                          onChange={handleChange}
+                          error={errors.sub_district}
+                        />
+                        <FormInput
+                          id="district"
+                          label="District"
+                          type="text"
+                          value={formData.district}
+                          onChange={handleChange}
+                          error={errors.district}
+                        />
+                      </div>
+                      <div className="flex gap-12">
+                        <FormInput
+                          id="height"
+                          label="Height (cm)"
+                          type="text"
+                          value={formData.height}
+                          onChange={handleChange}
+                          error={errors.height}
+                        />
+                        <FormInput
+                          id="weight"
+                          label="Weight (kg)"
+                          type="text"
+                          value={formData.weight}
+                          onChange={handleChange}
+                          error={errors.weight}
+                        />
+                      </div>
+                      <FormInput
+                        id="phone_number"
+                        label="Phone Number"
+                        type="text"
+                        value={formData.phone_number}
+                        onChange={handleChange}
+                        error={errors.phone_number}
+                      />
+                    </div>
+                  </CardContent>
+              </Card>
 
-                <div className="h-[1px] bg-black w-full my-1"></div>
+              <Card>
+                  <CardContent>
+                    <div className="py-4 flex flex-col gap-4 max-h-full overflow-y-auto">
+                        <div className="flex justify-start items-center gap-3 border-b-2 border-green-500 pb-2">
+                            <User/>
+                            <h1 className="text-xl font-bold">Student's Parent</h1>
+                        </div>
+                        <FormInput
+                          id="father_name"
+                          label="Father's Name"
+                          type="text"
+                          value={formData.father_name}
+                          onChange={handleChange}
+                          error={errors.father_name}
+                        />
+                        <FormInput
+                          id="father_job"
+                          label="Father's Job"
+                          type="text"
+                          value={formData.father_job}
+                          onChange={handleChange}
+                          error={errors.father_job}
+                        />
+                        <FormInput
+                          id="mother_name"
+                          label="Mother's Name"
+                          type="text"
+                          value={formData.mother_name}
+                          onChange={handleChange}
+                          error={errors.mother_name}
+                        />
+                        <FormInput
+                          id="mother_job"
+                          label="Mother's Job"
+                          type="text"
+                          value={formData.mother_job}
+                          onChange={handleChange}
+                          error={errors.mother_job}
+                        />
+                    </div>
+                  </CardContent>
+              </Card>
 
-                <h1 className="text-3xl font-bold mb-1">Student's Parents</h1>
-                <FormInput
-                  id="father_name"
-                  label="Father's Name"
-                  type="text"
-                  value={formData.father_name}
-                  onChange={handleChange}
-                  error={errors.father_name}
-                />
-                <FormInput
-                  id="father_job"
-                  label="Father's Job"
-                  type="text"
-                  value={formData.father_job}
-                  onChange={handleChange}
-                  error={errors.father_job}
-                />
-                <FormInput
-                  id="mother_name"
-                  label="Mother's Name"
-                  type="text"
-                  value={formData.mother_name}
-                  onChange={handleChange}
-                  error={errors.mother_name}
-                />
-                <FormInput
-                  id="mother_job"
-                  label="Mother's Job"
-                  type="text"
-                  value={formData.mother_job}
-                  onChange={handleChange}
-                  error={errors.mother_job}
-                />
-
-                <div className="h-[1px] bg-black w-full my-1"></div>
-
-                <h1 className="text-3xl font-bold mb-1">Student's Guardian</h1>
-                <FormInput
-                  id="guardian_name"
-                  label="Guardian's Name"
-                  type="text"
-                  value={formData.guardian_name}
-                  onChange={handleChange}
-                  required={false}
-                />
-                <FormInput
-                  id="guardian_job"
-                  label="Guardian's Job"
-                  type="text"
-                  value={formData.guardian_job}
-                  onChange={handleChange}
-                  required={false}
-                />
-              </div>
+              <Card>
+                  <CardContent>
+                    <div className="py-4 flex flex-col gap-4 max-h-full overflow-y-auto">
+                        <div className="flex justify-start items-center gap-3 border-b-2 border-green-500 pb-2">
+                            <User/>
+                            <h1 className="text-xl font-bold">Student's Guardian</h1>
+                        </div>
+                        <FormInput
+                          id="guardian_name"
+                          label="Guardian's Name"
+                          type="text"
+                          value={formData.guardian_name}
+                          onChange={handleChange}
+                          required={false}
+                        />
+                        <FormInput
+                          id="guardian_job"
+                          label="Guardian's Job"
+                          type="text"
+                          value={formData.guardian_job}
+                          onChange={handleChange}
+                          required={false}
+                        />
+                    </div>
+                  </CardContent>
+              </Card>
             </div>
           </div>
         </Form>
