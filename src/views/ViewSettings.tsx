@@ -20,37 +20,8 @@ const ViewSettings = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col">
-                <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-sm animate-pulse">
-                    <div className="flex items-center mb-2">
-                        <div className="bg-gray-200 p-2 rounded-lg mr-3 w-10 h-10"></div>
-                        <div className="w-32 h-8 bg-gray-200 rounded-md"></div>
-                    </div>
-                    <div className="w-80 h-4 bg-gray-200 rounded-md"></div>
-                </div>
-
-                <div className="flex items-center justify-center h-64">
-                    <style jsx>{`
-                        .clean-loader {
-                            width: 58px;
-                            height: 58px;
-                            border: 4px solid #e5e7eb;
-                            border-top: 4px solid #10b981;
-                            border-radius: 50%;
-                            animation: cleanSpin 1s linear infinite;
-                        }
-                        
-                        @keyframes cleanSpin {
-                            0% {
-                                transform: rotate(0deg);
-                            }
-                            100% {
-                                transform: rotate(360deg);
-                            }
-                        }
-                    `}</style>
-                    <div className="clean-loader"></div>
-                </div>
+            <div className="flex items-center justify-center h-full">
+                <div className="w-14 h-14 border-4 border-gray-300 border-t-emerald-500 rounded-full animate-spin"></div>
             </div>
         );
     }
