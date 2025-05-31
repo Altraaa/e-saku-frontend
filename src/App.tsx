@@ -27,7 +27,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ProtectedRoute } from "./config/Routes/ProtectedRoutes";
 import TeacherProfile from "./pages/TeacherProfile";
 import Rules from "./pages/Rules";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
+// import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const LayoutWrapper = () => {
   const location = useLocation();
@@ -72,7 +72,7 @@ export function AppContent() {
           <Route path="/student" element={<Student />} />
           <Route path="/esakuform" element={<ESakuForm />} />
           <Route path="/history" element={<History />} />
-          <Route path="/class/:id" element={<StudentByClass />} />
+          <Route path="student/class/:id" element={<StudentByClass />} />
           <Route path="/studentbio/:id" element={<StudentBio />} />
           <Route path="/studentbio/edit/:id" element={<EditStudentBio />} />
           <Route
@@ -89,7 +89,7 @@ export function AppContent() {
           <Route path="/profileteacher" element={<TeacherProfile />} />
           <Route path="/settings" element={<Settings/>} />
           <Route path="/rules" element={<Rules/>} />
-          <Route path="/privacypolicy" element={<PrivacyPolicy/>} />
+          {/* <Route path="/privacypolicy" element={<PrivacyPolicy/>} /> */}
 
         </Route>
       </Route>
