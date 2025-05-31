@@ -11,7 +11,7 @@ export const useStudent = () => {
 };
 
 //fetch student by id
-export const useStudentById = (id: number) => {
+export const useStudentById = (id: string) => {
   return useQuery<IStudent>({
     queryKey: ["student", id],
     queryFn: () => ApiStudents.getById(id),

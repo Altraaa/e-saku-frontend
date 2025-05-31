@@ -15,7 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const ViewEditStudentBio = () => {
   const { id } = useParams();
-  const studentId = parseInt(id || "0");
+  const studentId = id ?? "";
   const navigate = useNavigate();
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});

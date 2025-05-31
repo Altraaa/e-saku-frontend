@@ -367,7 +367,7 @@ const ViewStudent = () => {
           filteredClassrooms?.map((classroom: IClassroom) => (
           <Link
             key={classroom.id}
-            to={`/class/${classroom.id}`}
+            to={`/student/class/${classroom.id}`}
             className="group"
           >
             <Card className="bg-white shadow-md py-8 flex flex-col items-center group-hover:shadow-lg hover:border-green-500 hover:border transition-all duration-200 relative rounded-lg">

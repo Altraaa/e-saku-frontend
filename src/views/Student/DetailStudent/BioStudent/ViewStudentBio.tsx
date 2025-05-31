@@ -1,13 +1,17 @@
 import { MoveLeft, Edit, User, Users, ShieldCheck } from "lucide-react";
-import { Form, FormInput, FormTextarea } from "@/components/ui/form";
+import { Form, FormInput } from "@/components/ui/form";
 import { useParams, Link } from "react-router-dom";
 import { useStudentById } from "@/config/Api/useStudent";
 import { Card, CardContent } from "@/components/ui/card";
 
 const ViewStudentBio = () => {
   const { id } = useParams();
-  const studentId = parseInt(id || "0");
+  const studentId = id ?? "";
   const { data: student, isLoading } = useStudentById(studentId);
+
+  if (!id) {
+    return <div className="p-6 text-red-500">Invalid student ID</div>;
+  }
 
   if (isLoading) {
     return <div className="p-6">Loading...</div>;
@@ -20,7 +24,7 @@ const ViewStudentBio = () => {
   return (
     <>
       <div className="m-1">
-        <Link to={`/class/${student.class_id}`}>
+        <Link to={`/student/class/${student.class_id}`}>
           <div className="flex gap-2">
             <MoveLeft />
             <h1>Back</h1>

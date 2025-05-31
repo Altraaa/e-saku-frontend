@@ -1,4 +1,3 @@
-
 export interface IStudent {
   id: number;
   name: string;
@@ -26,4 +25,6 @@ export interface IStudent {
   created_at: string;
   updated_at: string;
   class_id: number;
+  violations_sum_points: number;
+  accomplishments_sum_points: number;
 }
