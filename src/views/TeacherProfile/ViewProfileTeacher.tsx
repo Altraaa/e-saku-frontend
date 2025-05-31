@@ -216,26 +216,7 @@ const ViewProfileTeacher = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <style jsx>{`
-          .clean-loader {
-            width: 58px;
-            height: 58px;
-            border: 4px solid #e5e7eb;
-            border-top: 4px solid #10b981;
-            border-radius: 50%;
-            animation: cleanSpin 1s linear infinite;
-          }
-          
-          @keyframes cleanSpin {
-            0% {
-              transform: rotate(0deg);
-            }
-            100% {
-              transform: rotate(360deg);
-            }
-          }
-        `}</style>
-        <div className="clean-loader"></div>
+        <div className="w-14 h-14 border-4 border-gray-300 border-t-emerald-500 rounded-full animate-spin"></div>
       </div>
     );
   }
