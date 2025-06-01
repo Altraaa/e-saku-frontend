@@ -1,24 +1,48 @@
-import { Search, SquarePen, Trash2, ChevronLeft, ChevronRight, Download, Upload, FileSpreadsheet, X } from "lucide-react";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Search,
+  SquarePen,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Upload,
+  FileSpreadsheet,
+  X,
+} from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useStudentsByClassId } from "@/config/Api/useStudent";
 import { useClassroomById } from "@/config/Api/useClasroom";
 import { useStudentDelete } from "@/config/Api/useStudent";
 import { useTeacherById } from "@/config/Api/useTeacher";
+import axios from "axios";
 
 interface IStudent {
   id: number;
@@ -34,17 +58,20 @@ interface ClassHeaderProps {
   teacherName: string;
 }
 
-const ClassHeader: React.FC<ClassHeaderProps> = ({ className, teacherName }) => {
+const ClassHeader: React.FC<ClassHeaderProps> = ({
+  className,
+  teacherName,
+}) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
       <div className="px-6 py-5">
-        <h1 className="text-3xl font-bold text-green-500">
-          {className}
-        </h1>
-        
+        <h1 className="text-3xl font-bold text-green-500">{className}</h1>
+
         <div className="mt-1 flex items-center">
           <span className="text-gray-600">Diampu oleh:</span>
-          <span className="ml-2 font-semibold text-gray-700">{teacherName}</span>
+          <span className="ml-2 font-semibold text-gray-700">
+            {teacherName}
+          </span>
         </div>
       </div>
       <div className="h-1 bg-gradient-to-r from-green-400 to-green-500"></div>
@@ -67,36 +94,46 @@ const ViewStudentByClass: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState<string>("10");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [displayedStudents, setDisplayedStudents] = useState<IStudent[]>([]);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
+    null
+  );
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
+  const [uploadStatus, setUploadStatus] = useState<
+    "idle" | "uploading" | "success" | "error"
+  >("idle");
   const [uploadError, setUploadError] = useState<string>("");
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef<number>(0);
-  
-  const { data: classroom, isLoading: classLoading } = useClassroomById(classId);
-  const { data: students, isLoading: studentsLoading } = useStudentsByClassId(classId);
+
+  const { data: classroom, isLoading: classLoading } =
+    useClassroomById(classId);
+  const { data: students, isLoading: studentsLoading } =
+    useStudentsByClassId(classId);
   const teacherId = classroom?.teacher_id ?? 0;
   const { data: teacher } = useTeacherById(teacherId);
   const deleteStudent = useStudentDelete();
+  const token = localStorage.getItem("token");
 
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
 
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
-    }
-    
-    const newTimeout = setTimeout(() => {
-      setSearchText(value);
-      setCurrentPage(1); 
-    }, 300);
-    
-    setSearchTimeout(newTimeout);
-  }, [searchTimeout]);
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+
+      const newTimeout = setTimeout(() => {
+        setSearchText(value);
+        setCurrentPage(1);
+      }, 300);
+
+      setSearchTimeout(newTimeout);
+    },
+    [searchTimeout]
+  );
 
   useEffect(() => {
     return () => {
@@ -108,15 +145,16 @@ const ViewStudentByClass: React.FC = () => {
 
   const filteredStudents = useMemo(() => {
     if (!students || !Array.isArray(students)) return [] as IStudent[];
-    
+
     if (searchText === "") return students;
-    
-    return students.filter((student: IStudent) => 
-      student.name?.toLowerCase().includes(searchText.toLowerCase()) ||
-      student.nis?.toLowerCase().includes(searchText.toLowerCase())
+
+    return students.filter(
+      (student: IStudent) =>
+        student.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+        student.nis?.toLowerCase().includes(searchText.toLowerCase())
     );
   }, [searchText, students]);
-  
+
   useEffect(() => {
     if (filteredStudents && filteredStudents.length >= 0) {
       const rowsPerPageNum = parseInt(rowsPerPage);
@@ -135,10 +173,10 @@ const ViewStudentByClass: React.FC = () => {
       setDisplayedStudents([]);
     }
   }, [filteredStudents, currentPage, rowsPerPage]);
-  
+
   const handleRowsPerPageChange = (value: string) => {
     setRowsPerPage(value);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   const handleDelete = async (studentId: number) => {
@@ -155,14 +193,19 @@ const ViewStudentByClass: React.FC = () => {
 
   const validateAndSetFile = (file: File) => {
     const validTypes = [
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     ];
-    
-    const validExtensions = ['.xls', '.xlsx'];
-    const fileExtension = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
-    
-    if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
+
+    const validExtensions = [".xls", ".xlsx"];
+    const fileExtension = file.name
+      .toLowerCase()
+      .slice(file.name.lastIndexOf("."));
+
+    if (
+      !validTypes.includes(file.type) &&
+      !validExtensions.includes(fileExtension)
+    ) {
       setUploadError("Please select a valid Excel file (.xls or .xlsx)");
       setSelectedFile(null);
       return false;
@@ -173,7 +216,7 @@ const ViewStudentByClass: React.FC = () => {
       setSelectedFile(null);
       return false;
     }
-    
+
     setSelectedFile(file);
     setUploadError("");
     setUploadStatus("idle");
@@ -233,35 +276,51 @@ const ViewStudentByClass: React.FC = () => {
 
     setUploadStatus("uploading");
     setUploadProgress(0);
-    
+
     try {
       const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('classId', classId.toString());
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 200);
+      formData.append("file", selectedFile);
+      formData.append("classId", classId.toString());
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      clearInterval(progressInterval);
+      const response = await axios.post(
+        "https://saku.dev.smkn1denpasar.sch.id/api/import/students",
+        formData,
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percent = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+              setUploadProgress(percent > 90 ? 90 : percent);
+            }
+          },
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error("Failed to upload file. Please try again.");
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       setUploadProgress(100);
-      
       setUploadStatus("success");
 
       setTimeout(() => {
         setIsImportModalOpen(false);
         resetUploadState();
       }, 1500);
-      
     } catch (error) {
       setUploadStatus("error");
-      setUploadError(error instanceof Error ? error.message : "Failed to upload file. Please try again.");
+      setUploadError(
+        error instanceof Error
+          ? error.message
+          : "Failed to upload file. Please try again."
+      );
     }
   };
 
@@ -290,10 +349,10 @@ const ViewStudentByClass: React.FC = () => {
   };
 
   const downloadTemplate = () => {
-    const templateUrl = '/api/download/student-import-template.xlsx';
-    const link = document.createElement('a');
+    const templateUrl = "/api/download/student-import-template.xlsx";
+    const link = document.createElement("a");
     link.href = templateUrl;
-    link.download = 'student_import_template.xlsx';
+    link.download = "student_import_template.xlsx";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -312,13 +371,16 @@ const ViewStudentByClass: React.FC = () => {
   }
 
   const teacherName = teacher?.name || "Nama guru tidak tersedia";
-  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / parseInt(rowsPerPage)));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredStudents.length / parseInt(rowsPerPage))
+  );
   const safePage = Math.min(Math.max(currentPage, 1), totalPages);
 
   return (
     <div className="px-6 space-y-4 sm:space-y-6">
-      <ClassHeader 
-        className={classroom?.name || ""} 
+      <ClassHeader
+        className={classroom?.name || ""}
         teacherName={teacherName}
       />
 
@@ -329,29 +391,38 @@ const ViewStudentByClass: React.FC = () => {
               Daftar Siswa Kelas {classroom?.name}
             </CardTitle>
             <div className="flex items-center gap-3">
-              <Dialog open={isImportModalOpen} onOpenChange={(open) => {
-                setIsImportModalOpen(open);
-                if (!open) {
-                  resetUploadState();
-                }
-              }}>
+              <Dialog
+                open={isImportModalOpen}
+                onOpenChange={(open) => {
+                  setIsImportModalOpen(open);
+                  if (!open) {
+                    resetUploadState();
+                  }
+                }}
+              >
                 <DialogTrigger asChild>
                   <Button
                     variant="default"
                     className="hover:bg-[#009616] hover:text-white transition-all"
                   >
-                    <Download className="mr-2 h-4 w-4"/>
+                    <Download className="mr-2 h-4 w-4" />
                     Import Excel
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]" onDragOver={(e) => e.preventDefault()}>
+                <DialogContent
+                  className="sm:max-w-[500px]"
+                  onDragOver={(e) => e.preventDefault()}
+                >
                   <DialogHeader>
-                    <DialogTitle>Import Student Data untuk {classroom?.name}</DialogTitle>
+                    <DialogTitle>
+                      Import Student Data untuk {classroom?.name}
+                    </DialogTitle>
                     <DialogDescription>
-                      Upload file Excel (.xls atau .xlsx) yang berisi data siswa untuk kelas ini
+                      Upload file Excel (.xls atau .xlsx) yang berisi data siswa
+                      untuk kelas ini
                     </DialogDescription>
                   </DialogHeader>
-                  
+
                   <div className="grid gap-4 py-4">
                     <div className="space-y-4">
                       <input
@@ -362,7 +433,7 @@ const ViewStudentByClass: React.FC = () => {
                         className="hidden"
                         id="excel-upload"
                       />
-                      
+
                       {!selectedFile ? (
                         <div
                           onDragEnter={handleDragEnter}
@@ -370,26 +441,38 @@ const ViewStudentByClass: React.FC = () => {
                           onDragOver={handleDragOver}
                           onDrop={handleDrop}
                           className={`relative transition-all duration-200 ${
-                            isDragging ? 'scale-100' : ''
+                            isDragging ? "scale-100" : ""
                           }`}
                         >
                           <label
                             htmlFor="excel-upload"
                             className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
-                              isDragging 
-                                ? 'border-green-500 bg-green-50' 
-                                : 'border-gray-300 bg-gray-50 hover:border-green-500 hover:bg-gray-100'
+                              isDragging
+                                ? "border-green-500 bg-green-50"
+                                : "border-gray-300 bg-gray-50 hover:border-green-500 hover:bg-gray-100"
                             }`}
                           >
-                            <Upload className={`w-8 h-8 mb-2 transition-all duration-200 ${
-                              isDragging ? 'text-green-600 scale-100' : 'text-gray-400'
-                            }`} />
-                            <span className={`text-sm transition-colors duration-200 ${
-                              isDragging ? 'text-green-600 font-medium' : 'text-gray-600'
-                            }`}>
-                              {isDragging ? 'Drop your Excel file here' : 'Click to upload or drag & drop'}
+                            <Upload
+                              className={`w-8 h-8 mb-2 transition-all duration-200 ${
+                                isDragging
+                                  ? "text-green-600 scale-100"
+                                  : "text-gray-400"
+                              }`}
+                            />
+                            <span
+                              className={`text-sm transition-colors duration-200 ${
+                                isDragging
+                                  ? "text-green-600 font-medium"
+                                  : "text-gray-600"
+                              }`}
+                            >
+                              {isDragging
+                                ? "Drop your Excel file here"
+                                : "Click to upload or drag & drop"}
                             </span>
-                            <span className="text-xs text-gray-400 mt-1">.xls or .xlsx (max 10MB)</span>
+                            <span className="text-xs text-gray-400 mt-1">
+                              .xls or .xlsx (max 10MB)
+                            </span>
                           </label>
                           {isDragging && (
                             <div className="absolute inset-0 rounded-lg bg-green-500 bg-opacity-10 pointer-events-none animate-pulse" />
@@ -400,9 +483,12 @@ const ViewStudentByClass: React.FC = () => {
                           <div className="flex items-center space-x-3">
                             <FileSpreadsheet className="w-8 h-8 text-green-600" />
                             <div>
-                              <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
+                              <p className="text-sm font-medium text-gray-900">
+                                {selectedFile.name}
+                              </p>
                               <p className="text-xs text-gray-500">
-                                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                                {(selectedFile.size / 1024 / 1024).toFixed(2)}{" "}
+                                MB
                               </p>
                             </div>
                           </div>
@@ -415,7 +501,7 @@ const ViewStudentByClass: React.FC = () => {
                           </button>
                         </div>
                       )}
-                      
+
                       {uploadError && (
                         <div className="flex items-center space-x-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
                           <X className="w-4 h-4 flex-shrink-0" />
@@ -425,7 +511,7 @@ const ViewStudentByClass: React.FC = () => {
 
                       {uploadStatus === "uploading" && (
                         <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                          <div 
+                          <div
                             className="bg-green-500 h-2 rounded-full transition-all duration-300"
                             style={{ width: `${uploadProgress}%` }}
                           />
@@ -434,7 +520,9 @@ const ViewStudentByClass: React.FC = () => {
                     </div>
 
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      <h4 className="text-sm font-medium mb-2">Persyaratan File:</h4>
+                      <h4 className="text-sm font-medium mb-2">
+                        Persyaratan File:
+                      </h4>
                       <ul className="text-xs text-gray-600 space-y-1">
                         <li className="flex items-start">
                           <span className="mr-1">•</span>
@@ -454,7 +542,9 @@ const ViewStudentByClass: React.FC = () => {
                         </li>
                         <li className="flex items-start">
                           <span className="mr-1">•</span>
-                          <span>Siswa akan ditambahkan ke kelas {classroom?.name}</span>
+                          <span>
+                            Siswa akan ditambahkan ke kelas {classroom?.name}
+                          </span>
                         </li>
                       </ul>
                     </div>
@@ -469,43 +559,45 @@ const ViewStudentByClass: React.FC = () => {
                           <FileSpreadsheet className="w-4 h-4 mr-2" />
                           Download Template
                         </Button>
+                      </div>
+                      <div className="flex justify-end space-x-2 pt-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsImportModalOpen(false)}
+                          disabled={uploadStatus === "uploading"}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleFileUpload}
+                          disabled={
+                            !selectedFile || uploadStatus === "uploading"
+                          }
+                          className="bg-green-500 hover:bg-green-600 text-white"
+                        >
+                          {uploadStatus === "uploading" ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Uploading... {uploadProgress}%
+                            </>
+                          ) : uploadStatus === "success" ? (
+                            <>
+                              <div className="w-4 h-4 mr-2">✓</div>
+                              Uploaded Successfully!
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4 mr-2" />
+                              Upload File
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex justify-end space-x-2 pt-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => setIsImportModalOpen(false)}
-                        disabled={uploadStatus === "uploading"}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={handleFileUpload}
-                        disabled={!selectedFile || uploadStatus === "uploading"}
-                        className="bg-green-500 hover:bg-green-600 text-white"
-                      >
-                        {uploadStatus === "uploading" ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Uploading... {uploadProgress}%
-                          </>
-                        ) : uploadStatus === "success" ? (
-                          <>
-                            <div className="w-4 h-4 mr-2">✓</div>
-                            Uploaded Successfully!
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="w-4 h-4 mr-2" />
-                            Upload File
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                    </div> 
                   </div>
                 </DialogContent>
               </Dialog>
-              
+
               <div className="relative w-72">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
@@ -522,56 +614,87 @@ const ViewStudentByClass: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50 hover:bg-gray-50">
-                <TableHead className="w-12 text-center px-6 font-medium text-black">No</TableHead>
-                <TableHead className="text-center font-medium text-black">NIS</TableHead>
-                <TableHead className="text-left font-medium text-black">Nama</TableHead>
-                <TableHead className="text-center font-medium text-black">Poin Pelanggaran</TableHead>
-                <TableHead className="text-center font-medium text-black">Poin Prestasi</TableHead>
-                <TableHead className="text-center font-medium text-black">Total Poin</TableHead>
-                <TableHead className="text-center font-medium text-black">Aksi</TableHead>
+                <TableHead className="w-12 text-center px-6 font-medium text-black">
+                  No
+                </TableHead>
+                <TableHead className="text-center font-medium text-black">
+                  NIS
+                </TableHead>
+                <TableHead className="text-left font-medium text-black">
+                  Nama
+                </TableHead>
+                <TableHead className="text-center font-medium text-black">
+                  Poin Pelanggaran
+                </TableHead>
+                <TableHead className="text-center font-medium text-black">
+                  Poin Prestasi
+                </TableHead>
+                <TableHead className="text-center font-medium text-black">
+                  Total Poin
+                </TableHead>
+                <TableHead className="text-center font-medium text-black">
+                  Aksi
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {displayedStudents && displayedStudents.length > 0 ? (
                 displayedStudents.map((student, index) => {
-                  const actualIndex = ((safePage - 1) * parseInt(rowsPerPage)) + index + 1;
+                  const actualIndex =
+                    (safePage - 1) * parseInt(rowsPerPage) + index + 1;
                   return (
-                    <TableRow key={student.id} className="border-b hover:bg-gray-50">
-                      <TableCell className="text-center px-6 font-normal">{actualIndex}</TableCell>
-                      <TableCell className="text-center font-normal">{student.nis || 'N/A'}</TableCell>
+                    <TableRow
+                      key={student.id}
+                      className="border-b hover:bg-gray-50"
+                    >
+                      <TableCell className="text-center px-6 font-normal">
+                        {actualIndex}
+                      </TableCell>
+                      <TableCell className="text-center font-normal">
+                        {student.nis || "N/A"}
+                      </TableCell>
                       <TableCell className="text-left font-normal">
-                        <Link 
-                          to={`/studentbio/${student.id}`} 
+                        <Link
+                          to={`/studentbio/${student.id}`}
                           className="hover:text-green-500 transition-colors"
                         >
-                          {student.name || 'Nama tidak tersedia'}
+                          {student.name || "Nama tidak tersedia"}
                         </Link>
                       </TableCell>
                       <TableCell className="text-center font-normal">
-                        <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-red-50 text-red-600 border-red-200"
+                        >
                           {student.violation_points || 0}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center font-normal">
-                        <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-green-50 text-green-600 border-green-200"
+                        >
                           {student.accomplishment_points || 0}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center font-normal">
-                        <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-blue-50 text-blue-600 border-blue-200"
+                        >
                           {student.point_total || 0}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center font-normal">
                         <div className="flex justify-center gap-3 items-center">
-                          <Link 
-                            to={`/studentbio/edit/${student.id}`} 
+                          <Link
+                            to={`/studentbio/edit/${student.id}`}
                             className="text-blue-500 hover:text-blue-600 transition-colors"
                           >
                             <SquarePen className="h-4 w-4" />
                           </Link>
-                          <button 
-                            className="text-red-500 hover:text-red-600 transition-colors" 
+                          <button
+                            className="text-red-500 hover:text-red-600 transition-colors"
                             onClick={() => handleDelete(student.id)}
                             disabled={deleteStudent.isPending}
                           >
@@ -584,19 +707,25 @@ const ViewStudentByClass: React.FC = () => {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                    {searchText ? "Tidak ada data siswa yang sesuai dengan pencarian" : "Tidak ada data siswa"}
+                  <TableCell
+                    colSpan={7}
+                    className="text-center py-8 text-gray-500"
+                  >
+                    {searchText
+                      ? "Tidak ada data siswa yang sesuai dengan pencarian"
+                      : "Tidak ada data siswa"}
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </div>
-        
+
         <div className="pl-6 pt-4 pb-4 flex justify-between items-center border-t">
           <div className="flex items-center space-x-4">
             <div className="text-sm text-gray-500">
-              Menampilkan {displayedStudents.length} dari {filteredStudents.length} siswa
+              Menampilkan {displayedStudents.length} dari{" "}
+              {filteredStudents.length} siswa
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-600">Rows:</span>
@@ -617,27 +746,29 @@ const ViewStudentByClass: React.FC = () => {
               </Select>
             </div>
           </div>
-          
+
           <div className="pr-6 flex items-center space-x-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="icon"
               className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={safePage === 1}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            
+
             <div className="text-sm text-gray-600">
               Page {safePage} of {totalPages}
             </div>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               size="icon"
               className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
               disabled={safePage >= totalPages}
             >
               <ChevronRight className="h-4 w-4" />
