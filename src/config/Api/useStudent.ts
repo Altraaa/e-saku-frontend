@@ -10,7 +10,7 @@ export const useStudent = () => {
   });
 };
 
-//fetch student by id
+// Fetch student by id
 export const useStudentById = (id: string) => {
   return useQuery<IStudent>({
     queryKey: ["student", id],
@@ -19,6 +19,7 @@ export const useStudentById = (id: string) => {
   });
 };
 
+// Fetch students by class id
 export const useStudentsByClassId = (class_id: number) => {
   return useQuery<IStudent[]>({
     queryKey: ["students", "class", class_id],
@@ -27,12 +28,12 @@ export const useStudentsByClassId = (class_id: number) => {
   });
 };
 
-//create student
+// Create student
 export const useStudentCreate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ApiStudents.create,
+    mutationFn: (data: IStudent) => ApiStudents.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
     },
@@ -42,7 +43,7 @@ export const useStudentCreate = () => {
   });
 };
 
-//upadate student
+// Update student
 export const useStudentUpdate = () => {
   const queryClient = useQueryClient();
 
@@ -51,15 +52,15 @@ export const useStudentUpdate = () => {
       ApiStudents.update(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
-      queryClient.invalidateQueries({ queryKey: ["student", id] });
+      queryClient.invalidateQueries({ queryKey: ["student", id.toString()] });
     },
     onError: (error) => {
-      console.error("Error updated student:", error);
+      console.error("Error updating student:", error);
     },
   });
 };
 
-//delete student
+// Delete student
 export const useStudentDelete = () => {
   const queryClient = useQueryClient();
 

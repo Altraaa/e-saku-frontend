@@ -1,3 +1,6 @@
+import { IClassroom } from "./Classroom";
+import { IMajor } from "./Major";
+
 export interface IStudent {
   id: number;
   name: string;
@@ -27,4 +30,6 @@ export interface IStudent {
   class_id: number;
   violations_sum_points: number;
   accomplishments_sum_points: number;
+  classroom?: IClassroom[];
+  major?: IMajor[];
 }

@@ -4,7 +4,7 @@ import { ApiRequest } from "./Api.service";
 export const ApiStudents = {
   getAll: () => ApiRequest({ url: "/students", method: "GET" }),
   getById: (id: string) =>
-    ApiRequest({ url: `/students/${id}`, method: "GET" }),
+    ApiRequest({ url: `/studentsId/${id}`, method: "GET" }),
   getByClassId: (class_id: number) =>
     ApiRequest({ url: `/students/class/${class_id}`, method: "GET" }),
   create: (data: IStudent) =>
