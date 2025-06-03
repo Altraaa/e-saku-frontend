@@ -18,6 +18,6 @@ export interface ErrorState {
   export type InputTypeOptions = "violation" | "achievement";
   export type FollowUpTypeOptions = "follow-up" | "meeting" | "warning";
   export type ViolationTypeOptions = "rambut-panjang" | "terlambat" | "tidak-seragam" | "lainnya" | "";
-  export type AchievementTypeOptions = "akademik" | "olahraga" | "kesenian" | "non-akademik" |"lainnya" | "";
+  export type AchievementTypeOptions = "akademik" | "olahraga" | "kesenian" | "lainnya" | "";
   
   export type FormValidator = (value: string) => string | undefined;

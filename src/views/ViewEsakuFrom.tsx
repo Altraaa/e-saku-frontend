@@ -207,6 +207,7 @@ const ESakuForm: React.FC = () => {
     setViolationType("");
     setAchievementType("");
     setAchievementLevel("");
+    setSelectedRule(null);
     setPoint("0");
     setFollowUpType("follow-up");
     setCustomViolation("");
@@ -408,8 +409,6 @@ const ESakuForm: React.FC = () => {
     switch (type) {
       case "akademik":
         return "Akademik";
-      case "non-akademik":
-        return "Non Akademik";
       case "olahraga":
         return "Olahraga";
       case "kesenian":
