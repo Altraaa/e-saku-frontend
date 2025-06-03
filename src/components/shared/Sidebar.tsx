@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import skensalogo from "@/assets/skensa.png";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useSidebar } from "@/utils/context/sidebarContext";
 import { Sheet, SheetContent } from "../ui/sheet";
 import { useLogout } from "@/config/Api/useAuth";
@@ -20,11 +20,10 @@ import ConfirmationModal from "../ui/confirmation";
 
 const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
     const location = useLocation();
-    const navigate = useNavigate();
     const activeItem = location.pathname;
     const { isOpen, toggleSidebar, closeSidebar } = useSidebar();
 
-    const { logout, isSuccess } = useLogout();
+    const { mutate: logout } = useLogout();
     const [isLogoutModalOpen, setLogoutModalOpen] = useState(false);
     const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
 
@@ -34,12 +33,6 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
         logout();
         setLogoutModalOpen(false);
     };
-
-    useEffect(() => {
-        if (isSuccess) {
-            navigate("/login");
-        }
-    }, [isSuccess, navigate]);
 
     useEffect(() => {
         const handleResize = () => {
