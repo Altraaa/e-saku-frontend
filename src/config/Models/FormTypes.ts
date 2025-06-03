@@ -16,7 +16,7 @@ export interface ErrorState {
   }
 
   export type InputTypeOptions = "violation" | "achievement";
-  export type FollowUpTypeOptions = "follow-up" | "meeting" | "warning";
+  export type FollowUpTypeOptions = "follow-up" | "meeting" | "warning" | "other";
   export type ViolationTypeOptions = "rambut-panjang" | "terlambat" | "tidak-seragam" | "lainnya" | "";
   export type AchievementTypeOptions = "akademik" | "olahraga" | "kesenian" | "lainnya" | "";
   
