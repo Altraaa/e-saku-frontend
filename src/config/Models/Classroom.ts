@@ -8,7 +8,7 @@ export interface IClassroom {
   teacher_id: number;
   total_student: number;
   major_id: number;
-  teacher?: ITeacher[];
+  teacher?: ITeacher;
   students?: IStudent[];
   major?: IMajor[];
   created_at: string;
