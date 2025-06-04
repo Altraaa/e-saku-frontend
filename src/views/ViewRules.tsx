@@ -369,7 +369,7 @@ const ViewSchoolRules = () => {
 
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
-      <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-sm">
+      <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-md">
         <div className="flex items-center mb-2">
           <div className="bg-green-600/40 p-2 rounded-lg mr-3">
             <Book className="h-6 w-6 text-white" />

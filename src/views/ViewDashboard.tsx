@@ -1,18 +1,26 @@
 import { useState, useEffect, useCallback, useMemo, ChangeEvent } from 'react';
-import { 
-  ArrowDown, 
-  ArrowUp, 
-  Layers, 
-  School, 
+import {
+  ArrowDown,
+  ArrowUp,
+  Layers,
+  School,
   Search,
-  Users, 
+  Users,
   AlertTriangle,
   Award,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import { useTeacherById } from "@/config/Api/useTeacher";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -38,7 +46,7 @@ const violationData = [
     class: "XII RPL 3",
     violationType: "Rambut Panjang",
     violationPoint: 2,
-    totalPoint: 14
+    totalPoint: 14,
   },
   {
     id: 2,
@@ -47,7 +55,7 @@ const violationData = [
     class: "XII MM 1",
     violationType: "Mencuri hatiku",
     violationPoint: 10,
-    totalPoint: 69
+    totalPoint: 69,
   },
   {
     id: 3,
@@ -56,14 +64,14 @@ const violationData = [
     class: "XII RPL 3",
     violationType: "Suka sama Shandy",
     violationPoint: 10,
-    totalPoint: 20
-  }
+    totalPoint: 20,
+  },
 ];
 
 const leaderboardData = [
   { rank: 1, name: "Tomas Ibrahim", points: 60 },
   { rank: 2, name: "I Wayan Purnayasa", points: 50 },
-  { rank: 3, name: "Cristiyan Mikha Adi Putra", points: 48 }
+  { rank: 3, name: "Cristiyan Mikha Adi Putra", points: 48 },
 ];
 
 interface PayloadItem {
@@ -102,8 +110,7 @@ const DashboardSkeleton = () => {
   return (
     <div className="p-6 space-y-6">
       <Skeleton className="h-8 w-64" />
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[...Array(4)].map((_, i) => (
           <Card key={i} className="rounded-xl overflow-hidden">
             <CardHeader className="p-4">
@@ -119,7 +126,6 @@ const DashboardSkeleton = () => {
           </Card>
         ))}
       </div>
-      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="col-span-1 lg:col-span-2">
           <Skeleton className="h-80 w-full rounded-xl" />
@@ -137,11 +143,10 @@ const ViewDashboard = () => {
   const [searchText, setSearchText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [currentBreakpoint, setCurrentBreakpoint] = useState<'xs' | 'sm' | 'md' | 'lg' | 'xl'>('md');
-
   const [rowsPerPage, setRowsPerPage] = useState("10");
   const [currentPage, setCurrentPage] = useState(1);
   const [displayedViolationData, setDisplayedViolationData] = useState(violationData);
-  
+
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
@@ -156,28 +161,23 @@ const ViewDashboard = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  
+
   const teacherId = localStorage.getItem('teacher_id');
-  
-  const { 
-    data: teacher, 
-    isLoading: teacherLoading,
-  } = useTeacherById(teacherId ? Number(teacherId) : 0);
-  
+  const { data: teacher, isLoading: teacherLoading } = useTeacherById(teacherId ? Number(teacherId) : 0);
+
   useEffect(() => {
     if (teacher) {
       setTeacherName(teacher.name);
     }
   }, [teacher]);
-  
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 500);
-    
     return () => clearTimeout(timer);
   }, []);
-  
+
   useEffect(() => {
     if (!teacher && !teacherLoading) {
       try {
@@ -190,26 +190,25 @@ const ViewDashboard = () => {
       }
     }
   }, [teacher, teacherLoading]);
-  
+
   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const timeoutId = setTimeout(() => {
       setSearchText(value);
     }, 300);
-    
     return () => clearTimeout(timeoutId);
   }, []);
-  
+
   const filteredViolationData = useMemo(() => {
-    return violationData.filter(student => 
-      searchText === "" || 
+    return violationData.filter(student =>
+      searchText === "" ||
       student.name.toLowerCase().includes(searchText.toLowerCase()) ||
       student.nis.includes(searchText) ||
       student.class.toLowerCase().includes(searchText.toLowerCase()) ||
       student.violationType.toLowerCase().includes(searchText.toLowerCase())
     );
   }, [searchText]);
-  
+
   useEffect(() => {
     const totalPages = Math.ceil(filteredViolationData.length / parseInt(rowsPerPage));
 
@@ -221,7 +220,7 @@ const ViewDashboard = () => {
     const endIndex = startIndex + parseInt(rowsPerPage);
     setDisplayedViolationData(filteredViolationData.slice(startIndex, endIndex));
   }, [filteredViolationData, currentPage, rowsPerPage]);
-  
+
   const handleRowsPerPageChange = (value: string) => {
     setRowsPerPage(value);
     setCurrentPage(1); 
@@ -234,15 +233,13 @@ const ViewDashboard = () => {
   return (
     <div className="px-6 space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <h1 className="text-xl sm:text-2xl font-bold">
-            Hi🙌, <span className='text-green-500'>{teacherName}</span><br />
-            Selamat datang di website E-Saku Siswa😊
-          </h1>
-        </div>
+        <h1 className="text-xl sm:text-2xl font-bold">
+          Hi🙌, <span className='text-green-500'>{teacherName}</span><br />
+          Selamat datang di website E-Saku Siswa😊
+        </h1>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="rounded-xl overflow-hidden">
           <CardContent className="p-0">
             <div className="bg-green-500 p-5 text-white">
@@ -262,7 +259,7 @@ const ViewDashboard = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="rounded-xl overflow-hidden">
           <CardContent className="p-0">
             <div className="bg-green-500 p-5 text-white">
@@ -282,7 +279,7 @@ const ViewDashboard = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="rounded-xl overflow-hidden">
           <CardContent className="p-0">
             <div className="bg-green-500 p-5 text-white">
@@ -316,7 +313,7 @@ const ViewDashboard = () => {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="col-span-1 lg:col-span-2">
           <Card className="rounded-xl overflow-hidden">
             <CardHeader className="border-b">
@@ -325,10 +322,7 @@ const ViewDashboard = () => {
                   Perbandingan Aktivitas Siswa
                 </CardTitle>
                 <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full md:w-auto">
-                  <Select
-                    value={activityType}
-                    onValueChange={setActivityType}
-                  >
+                  <Select value={activityType} onValueChange={setActivityType}>
                     <SelectTrigger className="border-green-500 focus:ring-green-400 min-w-32 rounded-lg">
                       <SelectValue placeholder="Jenis Aktivitas" />
                     </SelectTrigger>
@@ -338,11 +332,8 @@ const ViewDashboard = () => {
                       <SelectItem value="achievements">Prestasi</SelectItem>
                     </SelectContent>
                   </Select>
-                  
-                  <Select
-                    value={timeRange}
-                    onValueChange={setTimeRange}
-                  >
+
+                  <Select value={timeRange} onValueChange={setTimeRange}>
                     <SelectTrigger className="border-green-500 focus:ring-green-400 min-w-24 rounded-lg">
                       <SelectValue placeholder="Rentang Waktu" />
                     </SelectTrigger>
@@ -357,40 +348,22 @@ const ViewDashboard = () => {
             <CardContent className="pt-4 sm:pt-6">
               <div className="w-full h-48 sm:h-64 md:h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart 
-                    data={chartData} 
-                    barGap={10}
-                    margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
-                  >
+                  <BarChart data={chartData} barGap={10} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis 
-                      dataKey="day" 
-                      axisLine={false} 
+                    <XAxis
+                      dataKey="day"
+                      axisLine={false}
                       tickLine={false}
                       tick={{ fontSize: currentBreakpoint === 'xs' ? 10 : 12 }}
                     />
-                    <YAxis 
-                      axisLine={false} 
+                    <YAxis
+                      axisLine={false}
                       tickLine={false}
                       tick={{ fontSize: currentBreakpoint === 'xs' ? 10 : 12 }}
                     />
-                    <Tooltip 
-                      content={<CustomTooltip />}
-                      cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
-                      wrapperStyle={{ outline: 'none' }}
-                    />
-                    <Bar 
-                      dataKey="violations" 
-                      name="Pelanggaran" 
-                      fill="#14532d" 
-                      radius={[4, 4, 0, 0]}
-                    />
-                    <Bar 
-                      dataKey="achievements" 
-                      name="Prestasi" 
-                      fill="#00BB1C" 
-                      radius={[4, 4, 0, 0]}
-                    />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} wrapperStyle={{ outline: 'none' }} />
+                    <Bar dataKey="violations" name="Pelanggaran" fill="#14532d" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="achievements" name="Prestasi" fill="#00BB1C" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -416,14 +389,18 @@ const ViewDashboard = () => {
             <CardContent className="p-0 min-h-[300px] flex flex-col justify-between">
               <div>
                 {leaderboardData.map((student, index) => (
-                  <div 
+                  <div
                     key={index}
                     className="flex items-center p-4 border-b hover:bg-green-50 transition-colors"
                   >
-                    <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full mr-3 text-lg font-bold
-                      ${index === 0 ? "bg-yellow-100 text-yellow-600 ring-1 ring-yellow-200" : 
-                        index === 1 ? "bg-gray-100 text-gray-500 ring-1 ring-gray-200" : 
-                                      "bg-orange-100 text-orange-600 ring-1 ring-orange-200"}`}
+                    <div
+                      className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full mr-3 text-lg font-bold ${
+                        index === 0
+                          ? "bg-yellow-100 text-yellow-600 ring-1 ring-yellow-200"
+                          : index === 1
+                          ? "bg-gray-100 text-gray-500 ring-1 ring-gray-200"
+                          : "bg-orange-100 text-orange-600 ring-1 ring-orange-200"
+                      }`}
                     >
                       {student.rank}
                     </div>
@@ -437,20 +414,24 @@ const ViewDashboard = () => {
                       </div>
                     </div>
                     <div className="flex-shrink-0">
-                      <Award className={`h-5 w-5 
-                        ${index === 0 ? "text-yellow-500" : 
-                          index === 1 ? "text-gray-500" : 
-                                        "text-orange-500"}`} 
+                      <Award
+                        className={`h-5 w-5 ${
+                          index === 0
+                            ? "text-yellow-500"
+                            : index === 1
+                            ? "text-gray-500"
+                            : "text-orange-500"
+                        }`}
                       />
                     </div>
                   </div>
                 ))}
-                
+
                 {leaderboardData.length < 5 && (
                   <div className="space-y-0">
                     {Array.from({ length: 5 - leaderboardData.length }).map((_, i) => (
-                      <div 
-                        key={`placeholder-${i}`} 
+                      <div
+                        key={`placeholder-${i}`}
                         className="flex items-center p-4 border-b"
                       >
                         <div className="w-10 h-10 flex items-center justify-center rounded-full mr-3 bg-gray-100 text-gray-300 font-bold">
@@ -468,7 +449,7 @@ const ViewDashboard = () => {
                   </div>
                 )}
               </div>
-              
+
               <Button variant="link" className="text-green-500 hover:text-green-600 p-4">
                 Lihat Semua Peringkat →
               </Button>
@@ -510,10 +491,7 @@ const ViewDashboard = () => {
               </TableHeader>
               <TableBody>
                 {displayedViolationData.map((student) => (
-                  <TableRow 
-                    key={student.id} 
-                    className="border-b hover:bg-gray-50"
-                  >
+                  <TableRow key={student.id} className="border-b hover:bg-gray-50">
                     <TableCell className="text-center px-6 font-normal">{student.id}</TableCell>
                     <TableCell className="text-center font-normal">{student.nis}</TableCell>
                     <TableCell className="text-left font-normal">{student.name}</TableCell>
@@ -533,8 +511,7 @@ const ViewDashboard = () => {
               </TableBody>
             </Table>
           </div>
-          
-          {/* Enhanced Pagination */}
+
           <div className="pl-6 pt-4 pb-4 flex justify-between items-center border-t">
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-500">
@@ -559,27 +536,27 @@ const ViewDashboard = () => {
                 </Select>
               </div>
             </div>
-            
+
             <div className="pr-6 flex items-center space-x-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="icon"
                 className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              
+
               <div className="text-sm text-gray-600">
                 Page {currentPage} of {Math.max(1, Math.ceil(filteredViolationData.length / parseInt(rowsPerPage)))}
               </div>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 size="icon"
                 className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredViolationData.length / parseInt(rowsPerPage))))}
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, Math.ceil(filteredViolationData.length / parseInt(rowsPerPage))))}
                 disabled={currentPage >= Math.ceil(filteredViolationData.length / parseInt(rowsPerPage))}
               >
                 <ChevronRight className="h-4 w-4" />

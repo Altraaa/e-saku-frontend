@@ -91,49 +91,40 @@ const ViewStudentByClass: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const classId = parseInt(id || "0");
   const [searchText, setSearchText] = useState<string>("");
-  const [rowsPerPage, setRowsPerPage] = useState<string>("10");
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [displayedStudents, setDisplayedStudents] = useState<IStudent[]>([]);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
-    null
-  );
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadStatus, setUploadStatus] = useState<
-    "idle" | "uploading" | "success" | "error"
-  >("idle");
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
   const [uploadError, setUploadError] = useState<string>("");
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef<number>(0);
 
-  const { data: classroom, isLoading: classLoading } =
-    useClassroomById(classId);
-  const { data: students, isLoading: studentsLoading } =
-    useStudentsByClassId(classId);
+  const { data: classroom, isLoading: classLoading } = useClassroomById(classId);
+  const { data: students, isLoading: studentsLoading } = useStudentsByClassId(classId);
   const teacherId = classroom?.teacher_id ?? 0;
   const { data: teacher } = useTeacherById(teacherId);
   const deleteStudent = useStudentDelete();
   const token = localStorage.getItem("token");
 
-  const handleSearchChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
 
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
-      }
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
 
-      const newTimeout = setTimeout(() => {
-        setSearchText(value);
-        setCurrentPage(1);
-      }, 300);
+    const newTimeout = setTimeout(() => {
+      setSearchText(value);
+      setCurrentPage(1);
+    }, 300);
 
-      setSearchTimeout(newTimeout);
-    },
-    [searchTimeout]
-  );
+    setSearchTimeout(newTimeout);
+  }, [searchTimeout]);
 
   useEffect(() => {
     return () => {
@@ -157,8 +148,7 @@ const ViewStudentByClass: React.FC = () => {
 
   useEffect(() => {
     if (filteredStudents && filteredStudents.length >= 0) {
-      const rowsPerPageNum = parseInt(rowsPerPage);
-      const totalPages = Math.ceil(filteredStudents.length / rowsPerPageNum);
+      const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
 
       if (currentPage > totalPages && totalPages > 0) {
         setCurrentPage(totalPages);
@@ -166,8 +156,8 @@ const ViewStudentByClass: React.FC = () => {
         setCurrentPage(1);
       }
 
-      const startIndex = (currentPage - 1) * rowsPerPageNum;
-      const endIndex = startIndex + rowsPerPageNum;
+      const startIndex = (currentPage - 1) * rowsPerPage;
+      const endIndex = startIndex + rowsPerPage;
       setDisplayedStudents(filteredStudents.slice(startIndex, endIndex));
     } else {
       setDisplayedStudents([]);
@@ -175,7 +165,7 @@ const ViewStudentByClass: React.FC = () => {
   }, [filteredStudents, currentPage, rowsPerPage]);
 
   const handleRowsPerPageChange = (value: string) => {
-    setRowsPerPage(value);
+    setRowsPerPage(parseInt(value));
     setCurrentPage(1);
   };
 
@@ -373,7 +363,7 @@ const ViewStudentByClass: React.FC = () => {
   const teacherName = teacher?.name || "Nama guru tidak tersedia";
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredStudents.length / parseInt(rowsPerPage))
+    Math.ceil(filteredStudents.length / rowsPerPage)
   );
   const safePage = Math.min(Math.max(currentPage, 1), totalPages);
 
@@ -555,6 +545,7 @@ const ViewStudentByClass: React.FC = () => {
                           variant="outline"
                           className="text-green-600 hover:text-green-700 hover:bg-green-50"
                           onClick={downloadTemplate}
+                          disabled={uploadStatus === "uploading"}
                         >
                           <FileSpreadsheet className="w-4 h-4 mr-2" />
                           Download Template
@@ -570,9 +561,7 @@ const ViewStudentByClass: React.FC = () => {
                         </Button>
                         <Button
                           onClick={handleFileUpload}
-                          disabled={
-                            !selectedFile || uploadStatus === "uploading"
-                          }
+                          disabled={!selectedFile || uploadStatus === "uploading"}
                           className="bg-green-500 hover:bg-green-600 text-white"
                         >
                           {uploadStatus === "uploading" ? (
@@ -640,8 +629,7 @@ const ViewStudentByClass: React.FC = () => {
             <TableBody>
               {displayedStudents && displayedStudents.length > 0 ? (
                 displayedStudents.map((student, index) => {
-                  const actualIndex =
-                    (safePage - 1) * parseInt(rowsPerPage) + index + 1;
+                  const actualIndex = (safePage - 1) * rowsPerPage + index + 1;
                   return (
                     <TableRow
                       key={student.id}
@@ -730,7 +718,7 @@ const ViewStudentByClass: React.FC = () => {
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-600">Rows:</span>
               <Select
-                value={rowsPerPage}
+                value={String(rowsPerPage)}
                 onValueChange={handleRowsPerPageChange}
               >
                 <SelectTrigger className="w-16 h-8 border-gray-200 focus:ring-green-400 rounded-lg">
