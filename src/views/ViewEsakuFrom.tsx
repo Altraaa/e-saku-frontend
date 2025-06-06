@@ -55,8 +55,7 @@ import {
   AchievementLevelOptions,
 } from "@/config/Models/FormTypes";
 import {
-  useClassroom,
-  useClassroomByTeacherId,
+  useClassroom
 } from "@/config/Api/useClasroom";
 import { IClassroom } from "@/config/Models/Classroom";
 import { useStudentsByClassId } from "@/config/Api/useStudent";
@@ -108,7 +107,7 @@ const ESakuForm: React.FC = () => {
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
 
   const { data: rulesData } = useRules();
-  const { data: classrooms } = useClassroomByTeacherId();
+  const { data: classrooms } = useClassroom();
   const { data: students = [] } = useStudentsByClassId(selectedClassId ?? 0);
   const { mutate: createViolation } = useViolationCreate();
   const { mutate: createAccomplishment } = useAccomplishmentCreate();
