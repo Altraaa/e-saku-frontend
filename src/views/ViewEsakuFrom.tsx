@@ -80,7 +80,7 @@ type AchievementLevelOptions =
 
 const ESakuFormSkeleton = () => {
   return (
-    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 animate-pulse">
+    <div className="space-y-4 sm:space-y-6 animate-pulse">
       <div>
         <div className="h-8 w-64 bg-gray-200 rounded-md"></div>
         <div className="h-4 w-72 bg-gray-200 rounded-md mt-2"></div>
@@ -479,7 +479,7 @@ const ESakuForm: React.FC = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6" ref={formRef}>
+    <div className="space-y-4 sm:space-y-6" ref={formRef}>
       <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-sm">
         <div className="flex items-center mb-2">
           <div className="bg-green-600/40 p-2 rounded-lg mr-3">

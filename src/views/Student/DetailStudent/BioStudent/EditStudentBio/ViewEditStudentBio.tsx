@@ -187,8 +187,8 @@ const confirmEdit = () => {
           </div>
         </Link>
         <Form onSubmit={(e) => handleSubmit(e)}>
-          <div className="text-3xl font-bold mt-8 px-8">Edit Biodata Siswa</div>
-          <div className="w-full flex px-8">
+          <div className="text-3xl font-bold mt-8">Edit Biodata Siswa</div>
+          <div className="w-full flex">
             <div className="w-[25%] max-w-[25%]">
               <div className="flex flex-col gap-3 justify-center items-center">
                 {formData.profile_image ? (
