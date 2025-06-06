@@ -18,21 +18,18 @@ export const useLogin = () => {
   });
 };
 
-
 export const useLogout = () => {
-    const mutation = useMutation({
-        mutationFn: ApiAuth.logout,
-        onSuccess: () => {
-            localStorage.removeItem("token");
-            localStorage.removeItem("teacher_id");
-        },
-        onError: (error) => {
-            console.error("Logout failed:", error);
-        },
-    });
+  const navigate = useNavigate();
 
-    return {
-        logout: mutation.mutate,
-        isSuccess: mutation.isSuccess,
-    };
+  return useMutation({
+    mutationFn: ApiAuth.logout,
+    onSuccess: () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("teacher_id");
+      navigate("/login"); 
+    },
+    onError: (error) => {
+      console.error("Logout failed:", error);
+    },
+  });
 };
