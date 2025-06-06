@@ -54,9 +54,7 @@ import {
   AchievementTypeOptions,
   AchievementLevelOptions,
 } from "@/config/Models/FormTypes";
-import {
-  useClassroom
-} from "@/config/Api/useClasroom";
+import { useClassroom } from "@/config/Api/useClasroom";
 import { IClassroom } from "@/config/Models/Classroom";
 import { useStudentsByClassId } from "@/config/Api/useStudent";
 import { useRules } from "@/config/Api/useRules";
@@ -110,6 +108,9 @@ const ESakuForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
+  const [isClassTaughtByTeacher, setIsClassTaughtByTeacher] = useState<
+    boolean | null
+  >(null);
 
   const { data: rulesData } = useRules();
   const { data: classrooms } = useClassroom();
@@ -129,15 +130,18 @@ const ESakuForm: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const dynamicFieldChecks: Partial<Record<keyof ESakuFormErrorState, boolean>> = {
+    const dynamicFieldChecks: Partial<
+      Record<keyof ESakuFormErrorState, boolean>
+    > = {
       studentName: !!studentName.trim(),
       classType: !!classType,
       date: !!date,
       violationType: inputType === "violation" ? !!violationType : true,
-      achievementTypeOptions: inputType === "achievement" ? !!achievementTypeOptions : true,
+      achievementTypeOptions:
+        inputType === "achievement" ? !!achievementTypeOptions : true,
       achievementLevel: inputType === "achievement" ? !!achievementLevel : true,
       customViolation:
-        (violationType === "lainnya" || achievementTypeOptions === "lainnya")
+        violationType === "lainnya" || achievementTypeOptions === "lainnya"
           ? !!customViolation.trim()
           : true,
       description: !!description.trim(),
@@ -146,11 +150,11 @@ const ESakuForm: React.FC = () => {
           ? !isNaN(parseInt(point)) && parseInt(point) > 0
           : true,
     };
-  
+
     const fieldsToClear = Object.entries(dynamicFieldChecks).filter(
       ([key, isValid]) => isValid && errors[key as keyof ESakuFormErrorState]
     );
-  
+
     if (fieldsToClear.length > 0) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -171,9 +175,8 @@ const ESakuForm: React.FC = () => {
     description,
     point,
     inputType,
-    errors
+    errors,
   ]);
-  
 
   const resetForm = () => {
     setInputType("violation");
@@ -471,16 +474,19 @@ const ESakuForm: React.FC = () => {
       if (!date) reportErrors.date = "Tanggal diperlukan";
       if (!description.trim())
         reportErrors.description = "Deskripsi diperlukan";
-      if (!violationType) reportErrors.violationType = "Pelanggaran harus dipilih";
-      if (!achievementTypeOptions) reportErrors.achievementTypeOptions = "Tipe prestasi harus dipilih";
-      if (!achievementLevel) reportErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
-        if (!point.trim()) {
-          reportErrors.point = "Poin prestasi diperlukan";
-        } else if (isNaN(parseInt(point))) {
-          reportErrors.point = "Poin harus berupa angka";
-        } else if (parseInt(point) <= 0) {
-          reportErrors.point = "Poin harus lebih besar dari 0";
-        }
+      if (!violationType)
+        reportErrors.violationType = "Pelanggaran harus dipilih";
+      if (!achievementTypeOptions)
+        reportErrors.achievementTypeOptions = "Tipe prestasi harus dipilih";
+      if (!achievementLevel)
+        reportErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
+      if (!point.trim()) {
+        reportErrors.point = "Poin prestasi diperlukan";
+      } else if (isNaN(parseInt(point))) {
+        reportErrors.point = "Poin harus berupa angka";
+      } else if (parseInt(point) <= 0) {
+        reportErrors.point = "Poin harus lebih besar dari 0";
+      }
 
       setErrors(reportErrors);
 
@@ -507,7 +513,6 @@ const ESakuForm: React.FC = () => {
       handleSubmit();
     }
   };
-
 
   return (
     <div className="space-y-4 sm:space-y-6" ref={formRef}>
@@ -603,7 +608,12 @@ const ESakuForm: React.FC = () => {
                           );
                           setSelectedClassId(selectedClass?.id || null);
                           setStudentName("");
-                          console.log(selectedClass);
+
+                          if (selectedClass?.teacher_id === teacherId) {
+                            setIsClassTaughtByTeacher(true);
+                          } else {
+                            setIsClassTaughtByTeacher(false);
+                          }
                         }}
                       >
                         <SelectTrigger
@@ -838,7 +848,9 @@ const ESakuForm: React.FC = () => {
                           >
                             <SelectTrigger
                               className={`${inputClass} ${
-                                errors.achievementTypeOptions ? inputErrorClass : ""
+                                errors.achievementTypeOptions
+                                  ? inputErrorClass
+                                  : ""
                               }`}
                             >
                               <SelectValue placeholder="Pilih Jenis Prestasi" />
@@ -1169,7 +1181,7 @@ const ESakuForm: React.FC = () => {
                 type="button"
                 className={btnDarkClass}
                 onClick={() => handleOpenConfirm("report")}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isClassTaughtByTeacher !== false}
               >
                 <Send className="h-4 w-4" />
                 Kirim sebagai Laporan
@@ -1180,6 +1192,7 @@ const ESakuForm: React.FC = () => {
                 onClick={() => handleOpenConfirm("save")}
                 icon={<CheckCircle className="h-4 w-4" />}
                 className={btnPrimaryClass}
+                disabled={isClassTaughtByTeacher !== true}
               >
                 Simpan
               </LoadingSpinnerButton>
