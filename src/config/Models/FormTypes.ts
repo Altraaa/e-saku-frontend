@@ -13,13 +13,14 @@ export interface ESakuFormErrorState extends StudentFormErrorState {
   achievementType?: string;
   description?: string;
   followUpDescription?: string;
+  customAchievement?: string;
 }
 
 export type InputTypeOptions = "violation" | "achievement";
 export type FollowUpTypeOptions =
-  | "follow-up"
-  | "meeting"
-  | "warning"
+  | "tidak-perlu"
+  | "pemanggilan"
+  | "peringatan"
   | "lainnya";
 export type ViolationTypeOptions =
   | "rambut-panjang"
