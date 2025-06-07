@@ -54,9 +54,7 @@ import {
   AchievementTypeOptions,
   AchievementLevelOptions,
 } from "@/config/Models/FormTypes";
-import {
-  useClassroom
-} from "@/config/Api/useClasroom";
+import { useClassroom } from "@/config/Api/useClasroom";
 import { IClassroom } from "@/config/Models/Classroom";
 import { useStudentsByClassId } from "@/config/Api/useStudent";
 import { useRules } from "@/config/Api/useRules";
@@ -69,6 +67,7 @@ import LoadingSpinnerButton from "@/components/shared/component/LoadingSpinnerBu
 import { useViolationCreate } from "@/config/Api/useViolation";
 import { useAccomplishmentCreate } from "@/config/Api/useAccomplishments";
 import { useReportCreate } from "@/config/Api/useTeacherReport";
+import ConfirmationModal from "@/components/ui/confirmation";
 
 const ESakuForm: React.FC = () => {
   const teacherId = Number(localStorage.getItem("teacher_id"));
@@ -76,16 +75,16 @@ const ESakuForm: React.FC = () => {
     "border-gray-300 focus:border-green-500 focus:ring-green-500 rounded-lg h-10";
   const inputErrorClass = "border-red-500";
   const btnPrimaryClass =
-    "bg-green-600 hover:bg-green-700 text-white flex items-center gap-1.5";
+    "bg-green-600 hover:bg-green-700 text-white cursor-pointer flex items-center gap-1.5";
   const btnSecondaryClass =
     "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 flex items-center gap-1.5";
   const btnDarkClass =
-    "bg-gray-900 hover:bg-gray-800 text-white flex items-center gap-1.5";
+    "bg-gray-900 hover:bg-gray-800 cursor-pointer text-white flex items-center gap-1.5";
   const [isLoading, setIsLoading] = useState(true);
   const [inputType, setInputType] = useState<InputTypeOptions>("violation");
   const [classType, setClassType] = useState<string>("");
   const [violationType, setViolationType] = useState<ViolationTypeOptions>("");
-  const [achievementType, setAchievementType] =
+  const [achievementTypeOptions, setAchievementTypeOptions] =
     useState<AchievementTypeOptions>("");
   const [achievementLevel, setAchievementLevel] =
     useState<AchievementLevelOptions>("");
@@ -99,12 +98,19 @@ const ESakuForm: React.FC = () => {
   });
   const [selectedRule, setSelectedRule] = useState<IRules | null>(null);
   const [selectedRuleId, setSelectedRuleId] = useState<string>("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [confirmType, setConfirmType] = useState<"report" | "save" | null>(
+    null
+  );
   const [point, setPoint] = useState<string>("0");
   const [formStep, setFormStep] = useState<number>(0);
   const [errors, setErrors] = useState<ESakuFormErrorState>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
+  const [isClassTaughtByTeacher, setIsClassTaughtByTeacher] = useState<
+    boolean | null
+  >(null);
 
   const { data: rulesData } = useRules();
   const { data: classrooms } = useClassroom();
@@ -123,11 +129,60 @@ const ESakuForm: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    const dynamicFieldChecks: Partial<
+      Record<keyof ESakuFormErrorState, boolean>
+    > = {
+      studentName: !!studentName.trim(),
+      classType: !!classType,
+      date: !!date,
+      violationType: inputType === "violation" ? !!violationType : true,
+      achievementTypeOptions:
+        inputType === "achievement" ? !!achievementTypeOptions : true,
+      achievementLevel: inputType === "achievement" ? !!achievementLevel : true,
+      customViolation:
+        violationType === "lainnya" || achievementTypeOptions === "lainnya"
+          ? !!customViolation.trim()
+          : true,
+      description: !!description.trim(),
+      point:
+        inputType === "achievement"
+          ? !isNaN(parseInt(point)) && parseInt(point) > 0
+          : true,
+    };
+
+    const fieldsToClear = Object.entries(dynamicFieldChecks).filter(
+      ([key, isValid]) => isValid && errors[key as keyof ESakuFormErrorState]
+    );
+
+    if (fieldsToClear.length > 0) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        for (const [key] of fieldsToClear) {
+          delete newErrors[key as keyof ESakuFormErrorState];
+        }
+        return newErrors;
+      });
+    }
+  }, [
+    studentName,
+    classType,
+    date,
+    violationType,
+    achievementTypeOptions,
+    achievementLevel,
+    customViolation,
+    description,
+    point,
+    inputType,
+    errors,
+  ]);
+
   const resetForm = () => {
     setInputType("violation");
     setClassType("");
     setViolationType("");
-    setAchievementType("");
+    setAchievementTypeOptions("");
     setAchievementLevel("");
     setSelectedRule(null);
     setPoint("0");
@@ -155,10 +210,12 @@ const ESakuForm: React.FC = () => {
       newErrors.violationType = "Jenis pelanggaran harus dipilih";
     } else if (inputType === "achievement" && !achievementLevel) {
       newErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
+    } else if (inputType === "achievement" && !achievementTypeOptions) {
+      newErrors.achievementTypeOptions = "Jenis prestasi harus dipilih";
     }
 
     if (
-      (violationType === "lainnya" || achievementType === "lainnya") &&
+      (violationType === "lainnya" || achievementTypeOptions === "lainnya") &&
       !customViolation.trim()
     ) {
       newErrors.customViolation = `Jenis ${
@@ -193,16 +250,16 @@ const ESakuForm: React.FC = () => {
       if (inputType === "violation" && !violationType) {
         newErrors.violationType = "Jenis pelanggaran harus dipilih";
       } else if (inputType === "achievement") {
+        if (!achievementTypeOptions) {
+          newErrors.achievementTypeOptions = "Jenis prestasi harus dipilih";
+        }
         if (!achievementLevel) {
           newErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
-        }
-        if (!achievementType) {
-          newErrors.achievementType = "Jenis prestasi harus dipilih";
         }
       }
 
       if (
-        (violationType === "lainnya" || achievementType === "lainnya") &&
+        (violationType === "lainnya" || achievementTypeOptions === "lainnya") &&
         !customViolation.trim()
       ) {
         newErrors.customViolation = `Jenis ${
@@ -407,6 +464,56 @@ const ESakuForm: React.FC = () => {
     }
   };
 
+  const handleOpenConfirm = (type: "report" | "save") => {
+    // Validasi khusus untuk laporan
+    if (type === "report") {
+      const reportErrors: ESakuFormErrorState = {};
+      if (!studentName.trim())
+        reportErrors.studentName = "Nama siswa diperlukan";
+      if (!classType) reportErrors.classType = "Kelas harus dipilih";
+      if (!date) reportErrors.date = "Tanggal diperlukan";
+      if (!description.trim())
+        reportErrors.description = "Deskripsi diperlukan";
+      if (!violationType)
+        reportErrors.violationType = "Pelanggaran harus dipilih";
+      if (!achievementTypeOptions)
+        reportErrors.achievementTypeOptions = "Tipe prestasi harus dipilih";
+      if (!achievementLevel)
+        reportErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
+      if (!point.trim()) {
+        reportErrors.point = "Poin prestasi diperlukan";
+      } else if (isNaN(parseInt(point))) {
+        reportErrors.point = "Poin harus berupa angka";
+      } else if (parseInt(point) <= 0) {
+        reportErrors.point = "Poin harus lebih besar dari 0";
+      }
+
+      setErrors(reportErrors);
+
+      if (Object.keys(reportErrors).length === 0) {
+        setConfirmType(type);
+        setIsModalOpen(true);
+      }
+      return;
+    }
+
+    // Validasi untuk simpan data
+    const isValid = validateForm();
+    if (isValid) {
+      setConfirmType(type);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleConfirm = () => {
+    setIsModalOpen(false);
+    if (confirmType === "report") {
+      handleSendAsReport();
+    } else if (confirmType === "save") {
+      handleSubmit();
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6" ref={formRef}>
       <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-sm">
@@ -501,7 +608,12 @@ const ESakuForm: React.FC = () => {
                           );
                           setSelectedClassId(selectedClass?.id || null);
                           setStudentName("");
-                          console.log(selectedClass);
+
+                          if (selectedClass?.teacher_id === teacherId) {
+                            setIsClassTaughtByTeacher(true);
+                          } else {
+                            setIsClassTaughtByTeacher(false);
+                          }
                         }}
                       >
                         <SelectTrigger
@@ -618,7 +730,7 @@ const ESakuForm: React.FC = () => {
                             value === "achievement"
                           ) {
                             setViolationType("");
-                            setAchievementType("");
+                            setAchievementTypeOptions("");
                             setAchievementLevel("");
                             setCustomViolation("");
                           }
@@ -723,20 +835,22 @@ const ESakuForm: React.FC = () => {
                         <FormFieldGroup
                           label="Jenis Prestasi"
                           icon={<Award className="h-4 w-4 text-green-600" />}
-                          error={errors.achievementType}
+                          error={errors.achievementTypeOptions}
                           required
                         >
                           <Select
-                            value={achievementType}
+                            value={achievementTypeOptions}
                             onValueChange={(value: string) =>
-                              setAchievementType(
+                              setAchievementTypeOptions(
                                 value as AchievementTypeOptions
                               )
                             }
                           >
                             <SelectTrigger
                               className={`${inputClass} ${
-                                errors.achievementType ? inputErrorClass : ""
+                                errors.achievementTypeOptions
+                                  ? inputErrorClass
+                                  : ""
                               }`}
                             >
                               <SelectValue placeholder="Pilih Jenis Prestasi" />
@@ -754,7 +868,7 @@ const ESakuForm: React.FC = () => {
                         </FormFieldGroup>
                       </div>
 
-                      {achievementType === "lainnya" && (
+                      {achievementTypeOptions === "lainnya" && (
                         <div className="space-y-2">
                           <FormFieldGroup
                             label="Prestasi Lainnya"
@@ -1063,28 +1177,44 @@ const ESakuForm: React.FC = () => {
             </Button>
 
             <div className="flex gap-3">
-              <LoadingSpinnerButton
-                isLoading={isSubmitting}
-                onClick={handleSubmit}
-                icon={<CheckCircle className="h-4 w-4" />}
-                className={btnPrimaryClass}
-              >
-                Simpan
-              </LoadingSpinnerButton>
-
               <Button
                 type="button"
                 className={btnDarkClass}
-                onClick={handleSendAsReport}
-                disabled={isSubmitting}
+                onClick={() => handleOpenConfirm("report")}
+                disabled={isSubmitting || isClassTaughtByTeacher !== false}
               >
-                <Send className="h-4 w-4 " />
+                <Send className="h-4 w-4" />
                 Kirim sebagai Laporan
               </Button>
+
+              <LoadingSpinnerButton
+                isLoading={isSubmitting}
+                onClick={() => handleOpenConfirm("save")}
+                icon={<CheckCircle className="h-4 w-4" />}
+                className={btnPrimaryClass}
+                disabled={isClassTaughtByTeacher !== true}
+              >
+                Simpan
+              </LoadingSpinnerButton>
             </div>
           </CardFooter>
         )}
       </Card>
+
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirm}
+        title={confirmType === "report" ? "Kirim Laporan?" : "Simpan Data?"}
+        description={
+          confirmType === "report"
+            ? "Apakah anda yakin ingin mengirim sebagai laporan?"
+            : "Apakah anda yakin ingin menyimpan data ini?"
+        }
+        confirmText={confirmType === "report" ? "Kirim" : "Simpan"}
+        cancelText="Batal"
+        type={confirmType === "report" ? "update" : "add"}
+      />
     </div>
   );
 };

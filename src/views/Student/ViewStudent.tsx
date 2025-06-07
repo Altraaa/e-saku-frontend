@@ -17,56 +17,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
-import { useClassroomByTeacherId } from "@/config/Api/useClasroom";
+import {
+  useClassroomByTeacherId,
+  useClassroomCreate,
+} from "@/config/Api/useClasroom";
 import { useMajors } from "@/config/Api/useMajor";
 import { Link } from "react-router-dom";
 import { IClassroom } from "@/config/Models/Classroom";
 import { IMajor } from "@/config/Models/Major";
-
-
-const StudentSkeleton = () => {
-  return (
-    <div className="space-y-8">
-      <div className="flex flex-col items-start gap-2 lg:flex-row lg:justify-between lg:items-center">
-        <div>
-          <div className="h-8 w-56 bg-gray-200 rounded-md animate-pulse mb-2"></div>
-          <div className="h-6 w-32 bg-gray-200 rounded-md animate-pulse"></div>
-        </div>
-        <div className="flex flex-col sm:flex-row items-center gap-2 w-full lg:w-auto">
-          <div className="w-full sm:w-32">
-            <div className="h-10 w-full bg-gray-200 rounded-lg animate-pulse"></div>
-          </div>
-          <div className="relative w-full sm:w-48">
-            <div className="h-10 w-full bg-gray-200 rounded-lg animate-pulse"></div>
-          </div>
-          <div className="relative w-full sm:w-72">
-            <div className="h-10 w-full bg-gray-200 rounded-lg animate-pulse"></div>
-          </div>
-        </div>
-      </div>
-
-      <div className="my-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-8 mt-10">
-        {[...Array(8)].map((_, i) => (
-          <div
-            key={i}
-            className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse"
-          >
-            <div className="w-2 h-full absolute left-0 top-0 bg-green-100 rounded-l-lg"></div>
-            <div className="py-8 flex flex-col items-center">
-              <div className="w-24 h-24 rounded-full bg-gray-200"></div>
-              <div className="mt-4 h-6 w-32 bg-gray-200 rounded-md"></div>
-              <div className="mt-2 h-4 w-16 bg-gray-200 rounded-md"></div>
-              <div className="mt-2 flex items-center px-4">
-                <div className="w-6 h-6 rounded-full bg-gray-200 mr-2"></div>
-                <div className="h-4 w-32 bg-gray-200 rounded-md"></div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+import StudentSkeleton from "@/components/shared/component/StudentSekeleton";
 
 const ViewStudent = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -94,10 +53,13 @@ const ViewStudent = () => {
     classrooms?.[0]?.teacher?.name || "Teacher name not available";
   const teacherId = classrooms?.[0]?.teacher?.id || 0;
 
+  const { mutate: createClassroom } = useClassroomCreate();
+
   const [newClass, setNewClass] = useState({
     name: "",
-    description: "",
     teacherId: 0,
+    totalStudent: 0,
+    majorId: undefined as number | undefined,
   });
 
   useEffect(() => {
@@ -132,61 +94,67 @@ const ViewStudent = () => {
 
   const validateForm = () => {
     if (!newClass.name.trim()) {
-      setSubmitError("Class name is required");
+      setSubmitError("Class Name is required");
       return false;
     }
-    if (!newClass.description.trim()) {
-      setSubmitError("Class description is required");
+    if (!newClass.majorId) {
+      setSubmitError("Majors are required");
       return false;
     }
     return true;
   };
 
-  const handleSubmitClass = async () => {
+  const handleSubmitClass = () => {
     if (!validateForm()) return;
 
     setSubmitStatus("submitting");
+    console.log(newClass);
 
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      setSubmitStatus("success");
-
-      setTimeout(() => {
-        setIsAddClassModalOpen(false);
-        resetForm();
-      }, 1500);
-    } catch (error) {
-      setSubmitStatus("error");
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "Failed to create class. Please try again."
-      );
-    }
+    createClassroom(
+      {
+        name: newClass.name,
+        teacher_id: newClass.teacherId,
+        major_id: newClass.majorId,
+        total_student: newClass.totalStudent,
+      },
+      {
+        onSuccess: () => {
+          setSubmitStatus("success");
+          setTimeout(() => {
+            setIsAddClassModalOpen(false);
+            resetForm();
+          }, 1500);
+        },
+        onError: (error: any) => {
+          setSubmitStatus("error");
+          setSubmitError(
+            error?.response?.data?.message ||
+              "Gagal membuat kelas. Silakan coba lagi."
+          );
+        },
+      }
+    );
   };
 
   const resetForm = () => {
     setNewClass({
       name: "",
-      description: "",
+      majorId: undefined as number | undefined,
       teacherId: teacherId,
+      totalStudent: 0,
     });
     setSubmitStatus("idle");
     setSubmitError("");
   };
 
-  // Helper function to find major by name pattern
   const findMajorByNamePattern = (className: string): IMajor | null => {
     if (!majors || !className) return null;
 
-    // Extract code from class name (e.g., "XI TKR 1" -> "TKR")
     const codeMatch = className.match(/\s([A-Z]{2,3})\s?\d/);
     const extractedCode = codeMatch ? codeMatch[1] : "";
 
     if (!extractedCode) return null;
 
-    // Find major by checking if the major name contains the extracted code
     return (
       majors.find(
         (major: IMajor) =>
@@ -205,18 +173,15 @@ const ViewStudent = () => {
       return matchesSearch;
     }
 
-    // Filter by major ID
     const classroomMajor = findMajorByNamePattern(classroom.name);
     const matchesProgram = classroomMajor?.id?.toString() === programFilter;
 
     return matchesSearch && matchesProgram;
   });
 
-  // Helper functions for display
   const getProgramInitial = (className: string): string => {
     const major = findMajorByNamePattern(className);
     if (major) {
-      // Try to get initials from major name
       const words = major.name.split(" ");
       if (words.length > 1) {
         return words
@@ -227,7 +192,6 @@ const ViewStudent = () => {
       return major.name.charAt(0).toUpperCase();
     }
 
-    // Fallback to extracting from class name
     const codeMatch = className.match(/\s([A-Z]{2,3})\s?\d/);
     return codeMatch ? codeMatch[1].charAt(0) : "X";
   };
@@ -300,22 +264,31 @@ const ViewStudent = () => {
 
                   <div className="space-y-2">
                     <label
-                      htmlFor="classDescription"
+                      htmlFor="majorSelect"
                       className="text-sm font-medium text-gray-900"
                     >
-                      Class Description <span className="text-red-500">*</span>
+                      Major <span className="text-red-500">*</span>
                     </label>
-                    <textarea
-                      id="classDescription"
-                      placeholder="Enter class description..."
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none transition-colors duration-200"
-                      value={newClass.description}
-                      onChange={(e) =>
-                        handleInputChange("description", e.target.value)
+                    <Select
+                      value={newClass.majorId?.toString()}
+                      onValueChange={(value) =>
+                        handleInputChange("majorId", parseInt(value))
                       }
-                      disabled={submitStatus === "submitting"}
-                    />
+                    >
+                      <SelectTrigger className="border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-lg h-10 bg-white">
+                        <SelectValue placeholder="Select a major" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {majors?.map((major) => (
+                          <SelectItem
+                            key={major.id}
+                            value={major.id.toString()}
+                          >
+                            {major.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
@@ -371,15 +344,15 @@ const ViewStudent = () => {
                     <li className="flex items-start">
                       <span className="mr-1">•</span>
                       <span>
-                        Class name should follow format: Grade + Program +
-                        Number (e.g., XI TKR 1)
+                        Class name should follow format:
+                        <p className="font-medium">Grade + Program + Number (e.g., XI TKR 1)</p>
                       </span>
                     </li>
                     <li className="flex items-start">
                       <span className="mr-1">•</span>
                       <span>
-                        Description should include program details and academic
-                        year
+                        The major must be in accordance with the class that will
+                        be created
                       </span>
                     </li>
                     <li className="flex items-start">
