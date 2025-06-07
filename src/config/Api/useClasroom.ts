@@ -35,17 +35,18 @@ export const useClassroomByTeacherId = () => {
 
 //create classroom
 export const useClassroomCreate = () => {
+   const teacher_id = parseInt(localStorage.getItem("teacher_id") || "0", 10);
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ApiClassrooms.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["classes"] });
+      queryClient.invalidateQueries({ queryKey: ["teacherClasses", teacher_id] });
     },
   });
 };
 
-//upadate classroom
+//update classroom
 export const useClassroomUpdate = () => {
   const queryClient = useQueryClient();
 
