@@ -368,7 +368,7 @@ const ViewStudentByClass: React.FC = () => {
   const safePage = Math.min(Math.max(currentPage, 1), totalPages);
 
   return (
-    <div className="px-6 space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <ClassHeader
         className={classroom?.name || ""}
         teacherName={teacherName}

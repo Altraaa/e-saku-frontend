@@ -40,7 +40,7 @@ const ViewSettings = () => {
                 </p>
             </div>
 
-            <div className="flex flex-col justify-between items-center px-2 pt-5 gap-5">
+            <div className="flex flex-col justify-between items-center pt-5 gap-5">
                 <Card className="flex items-center justify-between px-5 py-4 w-full">
                     <div className="w-full">
                         <h3 className="text-xl font-semibold">Bahasa</h3>

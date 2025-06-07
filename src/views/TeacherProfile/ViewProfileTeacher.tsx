@@ -256,7 +256,7 @@ const ViewProfileTeacher = () => {
   }
 
   return (
-    <div className="container mx-auto py-4 sm:py-6 px-3 sm:px-4 text-black">
+    <div className="container text-black">
       {successMessage && (
         <div className="mb-4 sm:mb-6 p-3 bg-green-100 text-green-800 rounded-lg flex justify-between items-center">
           <div className="flex items-center">

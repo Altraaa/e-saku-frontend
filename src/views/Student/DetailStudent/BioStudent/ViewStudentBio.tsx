@@ -32,8 +32,8 @@ const ViewStudentBio = () => {
         </Link>
 
         <Form>
-          <div className="text-3xl font-bold mt-8 px-8">Biodata Siswa</div>
-          <div className="w-full flex px-8 gap-10">
+          <div className="text-3xl font-bold mt-8">Biodata Siswa</div>
+          <div className="w-full flex gap-10">
             <div className="w-[25%] max-w-[25%] ">
               <div className="flex flex-col gap-3 justify-center items-center">
                 {student.profile_image ? (

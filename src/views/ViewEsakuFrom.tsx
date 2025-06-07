@@ -20,9 +20,8 @@ import {
   Info,
   Send,
   Globe,
-  Calendar as CalendarIcon,
+  PenTool,
 } from "lucide-react";
-
 import {
   Card,
   CardContent,
@@ -30,7 +29,6 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -49,122 +47,44 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { id } from "date-fns/locale";
-
-import {
   ESakuFormErrorState,
   InputTypeOptions,
   FollowUpTypeOptions,
   ViolationTypeOptions,
   AchievementTypeOptions,
+  AchievementLevelOptions,
 } from "@/config/Models/FormTypes";
-import { useClassroomByTeacherId } from "@/config/Api/useClasroom";
+import { useClassroom } from "@/config/Api/useClasroom";
 import { IClassroom } from "@/config/Models/Classroom";
 import { useStudentsByClassId } from "@/config/Api/useStudent";
 import { useRules } from "@/config/Api/useRules";
 import { IRules } from "@/config/Models/Rules";
-
-type AchievementLevelOptions =
-  | "kota"
-  | "provinsi"
-  | "nasional"
-  | "internasional"
-  | "";
-
-const ESakuFormSkeleton = () => {
-  return (
-    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 animate-pulse">
-      <div>
-        <div className="h-8 w-64 bg-gray-200 rounded-md"></div>
-        <div className="h-4 w-72 bg-gray-200 rounded-md mt-2"></div>
-      </div>
-
-      <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md">
-        <div className="border-b bg-gray-200 p-4">
-          <div className="flex items-center gap-2">
-            <div className="h-6 w-6 bg-gray-300 rounded-md"></div>
-            <div className="h-6 w-40 bg-gray-300 rounded-md"></div>
-          </div>
-        </div>
-
-        <div className="p-6">
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row gap-6">
-              <div className="space-y-2 flex-1">
-                <div className="h-5 w-24 bg-gray-200 rounded-md"></div>
-                <div className="h-10 w-full bg-gray-200 rounded-md"></div>
-              </div>
-
-              <div className="space-y-2 flex-1">
-                <div className="h-5 w-24 bg-gray-200 rounded-md"></div>
-                <div className="h-10 w-full bg-gray-200 rounded-md"></div>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-6">
-              <div className="space-y-2 flex-1">
-                <div className="h-5 w-32 bg-gray-200 rounded-md"></div>
-                <div className="h-10 w-full bg-gray-200 rounded-md"></div>
-              </div>
-
-              <div className="space-y-2 flex-1">
-                <div className="h-5 w-24 bg-gray-200 rounded-md"></div>
-                <div className="h-10 w-full bg-gray-200 rounded-md"></div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="h-5 w-32 bg-gray-200 rounded-md"></div>
-              <div className="h-32 w-full bg-gray-200 rounded-md"></div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="h-5 w-40 bg-gray-200 rounded-md"></div>
-              <div className="h-24 w-full bg-gray-200 rounded-md"></div>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-between gap-3 pb-6 px-6 border-t pt-4">
-          <div className="h-10 w-32 bg-gray-200 rounded-md"></div>
-          <div className="flex gap-3">
-            <div className="h-10 w-32 bg-gray-200 rounded-md"></div>
-            <div className="h-10 w-44 bg-gray-200 rounded-md"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+import FormSekeleton from "@/components/shared/component/FormSekeleton";
+import DatePickerForm from "@/components/shared/component/DatePickerForm";
+import MobileSummaryCard from "@/components/shared/component/MobileSummaryCard";
+import FormFieldGroup from "@/components/shared/component/FormField";
+import LoadingSpinnerButton from "@/components/shared/component/LoadingSpinnerButton";
+import { useViolationCreate } from "@/config/Api/useViolation";
+import { useAccomplishmentCreate } from "@/config/Api/useAccomplishments";
+import { useReportCreate } from "@/config/Api/useTeacherReport";
+import ConfirmationModal from "@/components/ui/confirmation";
 
 const ESakuForm: React.FC = () => {
-  const labelClass = "text-gray-700 font-medium flex items-center gap-2";
+  const teacherId = Number(localStorage.getItem("teacher_id"));
   const inputClass =
     "border-gray-300 focus:border-green-500 focus:ring-green-500 rounded-lg h-10";
-  const errorClass = "text-red-500 text-xs mt-1";
-  const iconClass = "h-4 w-4";
-  const greenIconClass = `${iconClass} text-green-600`;
   const inputErrorClass = "border-red-500";
   const btnPrimaryClass =
-    "bg-green-600 hover:bg-green-700 text-white flex items-center gap-1.5";
+    "bg-green-600 hover:bg-green-700 text-white cursor-pointer flex items-center gap-1.5";
   const btnSecondaryClass =
     "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 flex items-center gap-1.5";
   const btnDarkClass =
-    "bg-gray-900 hover:bg-gray-800 text-white flex items-center gap-1.5";
-
+    "bg-gray-900 hover:bg-gray-800 cursor-pointer text-white flex items-center gap-1.5";
   const [isLoading, setIsLoading] = useState(true);
-
   const [inputType, setInputType] = useState<InputTypeOptions>("violation");
   const [classType, setClassType] = useState<string>("");
   const [violationType, setViolationType] = useState<ViolationTypeOptions>("");
-  const [achievementType, setAchievementType] =
+  const [achievementTypeOptions, setAchievementTypeOptions] =
     useState<AchievementTypeOptions>("");
   const [achievementLevel, setAchievementLevel] =
     useState<AchievementLevelOptions>("");
@@ -172,24 +92,32 @@ const ESakuForm: React.FC = () => {
     useState<FollowUpTypeOptions>("follow-up");
   const [customViolation, setCustomViolation] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [followUpDescription, setFollowUpDescription] = useState<string>("");
   const [studentName, setStudentName] = useState<string>("");
   const [date, setDate] = useState<Date>(() => {
     return new Date();
   });
   const [selectedRule, setSelectedRule] = useState<IRules | null>(null);
   const [selectedRuleId, setSelectedRuleId] = useState<string>("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [confirmType, setConfirmType] = useState<"report" | "save" | null>(
+    null
+  );
   const [point, setPoint] = useState<string>("0");
-
   const [formStep, setFormStep] = useState<number>(0);
   const [errors, setErrors] = useState<ESakuFormErrorState>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
-  const [isDateOpen, setIsDateOpen] = useState<boolean>(false);
-  const { data: rulesData } = useRules();
-  const { data: classrooms } = useClassroomByTeacherId();
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
-  const { data: students = [] } = useStudentsByClassId(selectedClassId || 0);
+  const [isClassTaughtByTeacher, setIsClassTaughtByTeacher] = useState<
+    boolean | null
+  >(null);
+
+  const { data: rulesData } = useRules();
+  const { data: classrooms } = useClassroom();
+  const { data: students = [] } = useStudentsByClassId(selectedClassId ?? 0);
+  const { mutate: createViolation } = useViolationCreate();
+  const { mutate: createAccomplishment } = useAccomplishmentCreate();
+  const { mutate: createReport } = useReportCreate();
 
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -201,46 +129,74 @@ const ESakuForm: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    const dynamicFieldChecks: Partial<
+      Record<keyof ESakuFormErrorState, boolean>
+    > = {
+      studentName: !!studentName.trim(),
+      classType: !!classType,
+      date: !!date,
+      violationType: inputType === "violation" ? !!violationType : true,
+      achievementTypeOptions:
+        inputType === "achievement" ? !!achievementTypeOptions : true,
+      achievementLevel: inputType === "achievement" ? !!achievementLevel : true,
+      customViolation:
+        violationType === "lainnya" || achievementTypeOptions === "lainnya"
+          ? !!customViolation.trim()
+          : true,
+      description: !!description.trim(),
+      point:
+        inputType === "achievement"
+          ? !isNaN(parseInt(point)) && parseInt(point) > 0
+          : true,
+    };
+
+    const fieldsToClear = Object.entries(dynamicFieldChecks).filter(
+      ([key, isValid]) => isValid && errors[key as keyof ESakuFormErrorState]
+    );
+
+    if (fieldsToClear.length > 0) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        for (const [key] of fieldsToClear) {
+          delete newErrors[key as keyof ESakuFormErrorState];
+        }
+        return newErrors;
+      });
+    }
+  }, [
+    studentName,
+    classType,
+    date,
+    violationType,
+    achievementTypeOptions,
+    achievementLevel,
+    customViolation,
+    description,
+    point,
+    inputType,
+    errors,
+  ]);
+
   const resetForm = () => {
     setInputType("violation");
     setClassType("");
     setViolationType("");
-    setAchievementType("");
+    setAchievementTypeOptions("");
     setAchievementLevel("");
     setSelectedRule(null);
     setPoint("0");
     setFollowUpType("follow-up");
     setCustomViolation("");
     setDescription("");
-    setFollowUpDescription("");
     setStudentName("");
-
     setDate(new Date());
-
     setFormStep(0);
     setErrors({});
 
     if (formRef.current) {
       formRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  };
-
-  useEffect(() => {
-    // Hanya untuk pelanggaran
-    if (inputType === "violation") {
-      switch (violationType) {
-        case "rambut-panjang": setPoint("5"); break;
-        case "terlambat": setPoint("2"); break;
-        case "tidak-seragam": setPoint("8"); break;
-        case "lainnya": setPoint("10"); break;
-        default: setPoint("0");
-      }
-    }
-  }, [violationType, inputType]);
-
-  const formatDate = (date: Date): string => {
-    if (!date) return "";
-    return format(date, "d MMMM yyyy", { locale: id });
   };
 
   const validateForm = (): boolean => {
@@ -254,10 +210,12 @@ const ESakuForm: React.FC = () => {
       newErrors.violationType = "Jenis pelanggaran harus dipilih";
     } else if (inputType === "achievement" && !achievementLevel) {
       newErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
+    } else if (inputType === "achievement" && !achievementTypeOptions) {
+      newErrors.achievementTypeOptions = "Jenis prestasi harus dipilih";
     }
 
     if (
-      (violationType === "lainnya" || achievementType === "lainnya") &&
+      (violationType === "lainnya" || achievementTypeOptions === "lainnya") &&
       !customViolation.trim()
     ) {
       newErrors.customViolation = `Jenis ${
@@ -266,10 +224,6 @@ const ESakuForm: React.FC = () => {
     }
 
     if (!description.trim()) newErrors.description = "Deskripsi diperlukan";
-
-    if (inputType === "violation" && !followUpDescription.trim()) {
-      newErrors.followUpDescription = "Deskripsi tindak lanjut diperlukan";
-    }
 
     if (inputType === "achievement") {
       if (!point.trim()) {
@@ -296,16 +250,16 @@ const ESakuForm: React.FC = () => {
       if (inputType === "violation" && !violationType) {
         newErrors.violationType = "Jenis pelanggaran harus dipilih";
       } else if (inputType === "achievement") {
+        if (!achievementTypeOptions) {
+          newErrors.achievementTypeOptions = "Jenis prestasi harus dipilih";
+        }
         if (!achievementLevel) {
           newErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
-        }
-        if (!achievementType) {
-          newErrors.achievementType = "Jenis prestasi harus dipilih";
         }
       }
 
       if (
-        (violationType === "lainnya" || achievementType === "lainnya") &&
+        (violationType === "lainnya" || achievementTypeOptions === "lainnya") &&
         !customViolation.trim()
       ) {
         newErrors.customViolation = `Jenis ${
@@ -332,40 +286,109 @@ const ESakuForm: React.FC = () => {
 
   const handleSubmit = (e?: FormEvent): void => {
     if (e) e.preventDefault();
-
     const isValid = validateForm();
+    if (!isValid) return;
 
-    if (isValid) {
-      setIsSubmitting(true);
+    setIsSubmitting(true);
 
-      setTimeout(() => {
-        console.log("Form submitted:", {
-          studentName,
-          classType,
-          date: format(date, "yyyy-MM-dd"),
-          inputType,
-          violationType:
-            violationType === "lainnya" ? customViolation : violationType,
-          achievementType:
-            achievementType === "lainnya" ? customViolation : achievementType,
-          achievementLevel,
-          point,
-          description,
-          followUpType,
-          followUpDescription,
-        });
-
-        setIsSubmitting(false);
-        setShowSuccess(true);
-
-        window.scrollTo({ top: 0, behavior: "smooth" });
-
-        setTimeout(() => {
-          setShowSuccess(false);
-          resetForm();
-        }, 3000);
-      }, 1000);
+    const studentObj = students.find((s) => s.name === studentName);
+    if (!studentObj) {
+      alert("Siswa tidak ditemukan");
+      setIsSubmitting(false);
+      return;
     }
+
+    if (inputType === "violation") {
+      createViolation(
+        {
+          student_id: studentObj.id,
+          description,
+          violation_date: date.toISOString().split("T")[0],
+          teacher_id: teacherId,
+          action: followUpType,
+          points: selectedRule?.points ?? 0,
+          rulesofconduct_id: selectedRule?.id ?? 0,
+        },
+        {
+          onSuccess: () => {
+            setShowSuccess(true);
+            resetForm();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            setTimeout(() => setShowSuccess(false), 3000);
+          },
+          onError: (err) => {
+            console.error("Gagal kirim pelanggaran:", err);
+            alert("Gagal menyimpan data pelanggaran.");
+          },
+          onSettled: () => setIsSubmitting(false),
+        }
+      );
+    } else {
+      const levelMap: Record<string, number> = {
+        kota: 1,
+        provinsi: 2,
+        nasional: 3,
+        internasional: 4,
+      };
+
+      createAccomplishment(
+        {
+          student_id: studentObj.id,
+          description,
+          accomplishment_date: date.toISOString().split("T")[0],
+          level: levelMap[achievementLevel] ?? 0,
+          points: parseInt(point),
+        },
+        {
+          onSuccess: () => {
+            setShowSuccess(true);
+            resetForm();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            setTimeout(() => setShowSuccess(false), 3000);
+          },
+          onError: (err) => {
+            console.error("Gagal kirim prestasi:", err);
+            alert("Gagal menyimpan data prestasi.");
+          },
+          onSettled: () => setIsSubmitting(false),
+        }
+      );
+    }
+  };
+
+  const handleSendAsReport = (): void => {
+    const studentObj = students.find((s) => s.name === studentName);
+    const classroomObj = classrooms?.find((c) => c.name === classType);
+
+    if (!studentObj || !classroomObj) {
+      alert("Data siswa atau kelas tidak valid.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    createReport(
+      {
+        student_id: studentObj.id,
+        reported_by: teacherId,
+        teacher_id: classroomObj.teacher_id,
+        violation_details: description,
+        report_date: date.toISOString().split("T")[0],
+      },
+      {
+        onSuccess: () => {
+          setShowSuccess(true);
+          resetForm();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          setTimeout(() => setShowSuccess(false), 3000);
+        },
+        onError: (error) => {
+          console.error("Gagal mengirim laporan:", error);
+          alert("Gagal mengirim laporan ke guru pengampu.");
+        },
+        onSettled: () => setIsSubmitting(false),
+      }
+    );
   };
 
   const handleNextStep = (): void => {
@@ -390,36 +413,6 @@ const ESakuForm: React.FC = () => {
     "Tindak Lanjut",
   ];
 
-  function getViolationLabel(type: ViolationTypeOptions): string {
-    switch (type) {
-      case "rambut-panjang":
-        return "Rambut Panjang";
-      case "terlambat":
-        return "Terlambat";
-      case "tidak-seragam":
-        return "Tidak Berseragam";
-      case "lainnya":
-        return customViolation || "Lainnya";
-      default:
-        return "-";
-    }
-  }
-
-  function getAchievementTypeLabel(type: AchievementTypeOptions): string {
-    switch (type) {
-      case "akademik":
-        return "Akademik";
-      case "olahraga":
-        return "Olahraga";
-      case "kesenian":
-        return "Seni";
-      case "lainnya":
-        return customViolation || "Lainnya";
-      default:
-        return "-";
-    }
-  }
-
   function getAchievementLevelLabel(level: AchievementLevelOptions): string {
     switch (level) {
       case "kota":
@@ -436,17 +429,10 @@ const ESakuForm: React.FC = () => {
   }
 
   const summaryData = {
-    name: studentName || "-",
-    class: classType || "-",
+    name: studentName,
+    class: classType,
     type: inputType === "violation" ? "Pelanggaran" : "Prestasi",
-    detail:
-      inputType === "violation"
-        ? violationType === "lainnya"
-          ? customViolation
-          : getViolationLabel(violationType)
-        : achievementType === "lainnya"
-        ? customViolation
-        : getAchievementTypeLabel(achievementType),
+    detail: inputType === "violation" ? selectedRule?.name : description,
     level:
       inputType === "achievement" && achievementLevel
         ? getAchievementLevelLabel(achievementLevel)
@@ -457,7 +443,7 @@ const ESakuForm: React.FC = () => {
   const isMobileView = typeof window !== "undefined" && window.innerWidth < 640;
 
   if (isLoading) {
-    return <ESakuFormSkeleton />;
+    return <FormSekeleton />;
   }
 
   const handleViolationTypeChange = (value: string) => {
@@ -478,9 +464,59 @@ const ESakuForm: React.FC = () => {
     }
   };
 
+  const handleOpenConfirm = (type: "report" | "save") => {
+    // Validasi khusus untuk laporan
+    if (type === "report") {
+      const reportErrors: ESakuFormErrorState = {};
+      if (!studentName.trim())
+        reportErrors.studentName = "Nama siswa diperlukan";
+      if (!classType) reportErrors.classType = "Kelas harus dipilih";
+      if (!date) reportErrors.date = "Tanggal diperlukan";
+      if (!description.trim())
+        reportErrors.description = "Deskripsi diperlukan";
+      if (!violationType)
+        reportErrors.violationType = "Pelanggaran harus dipilih";
+      if (!achievementTypeOptions)
+        reportErrors.achievementTypeOptions = "Tipe prestasi harus dipilih";
+      if (!achievementLevel)
+        reportErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
+      if (!point.trim()) {
+        reportErrors.point = "Poin prestasi diperlukan";
+      } else if (isNaN(parseInt(point))) {
+        reportErrors.point = "Poin harus berupa angka";
+      } else if (parseInt(point) <= 0) {
+        reportErrors.point = "Poin harus lebih besar dari 0";
+      }
+
+      setErrors(reportErrors);
+
+      if (Object.keys(reportErrors).length === 0) {
+        setConfirmType(type);
+        setIsModalOpen(true);
+      }
+      return;
+    }
+
+    // Validasi untuk simpan data
+    const isValid = validateForm();
+    if (isValid) {
+      setConfirmType(type);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleConfirm = () => {
+    setIsModalOpen(false);
+    if (confirmType === "report") {
+      handleSendAsReport();
+    } else if (confirmType === "save") {
+      handleSubmit();
+    }
+  };
+
   return (
-    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6" ref={formRef}>
-      <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-md">
+    <div className="space-y-4 sm:space-y-6" ref={formRef}>
+      <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-sm">
         <div className="flex items-center mb-2">
           <div className="bg-green-600/40 p-2 rounded-lg mr-3">
             <FileText className="h-6 w-6 text-white" />
@@ -496,7 +532,7 @@ const ESakuForm: React.FC = () => {
 
       {showSuccess && (
         <Alert className="bg-green-50 border border-green-200 text-green-800">
-          <CheckCircle className={greenIconClass} />
+          <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertDescription>Data berhasil disimpan!</AlertDescription>
         </Alert>
       )}
@@ -505,9 +541,9 @@ const ESakuForm: React.FC = () => {
         <CardHeader className="border-b bg-green-600 text-white p-4">
           <div className="flex items-center gap-2">
             {inputType === "violation" ? (
-              <AlertTriangle className={iconClass} />
+              <AlertTriangle className="h-4 w-4 text-green-600" />
             ) : (
-              <Award className={iconClass} />
+              <Award className="h-4 w-4 text-green-600" />
             )}
             <CardTitle>
               {isMobileView
@@ -558,170 +594,157 @@ const ESakuForm: React.FC = () => {
               <>
                 <div className="flex flex-col sm:flex-row gap-6">
                   <div className="space-y-2 flex-1">
-                    <Label htmlFor="class" className={labelClass}>
-                      <School className={greenIconClass} />
-                      Pilih Kelas <span className="text-red-500">*</span>
-                    </Label>
-                    <Select
-                      value={classType}
-                      onValueChange={(value) => {
-                        setClassType(value);
-                        // Cari ID kelas berdasarkan nama yang dipilih
-                        const selectedClass = classrooms?.find(
-                          (c: IClassroom) => c.name === value
-                        );
-                        setSelectedClassId(selectedClass?.id || null);
-                        setStudentName(""); // Reset nama siswa saat ganti kelas
-                      }}
+                    <FormFieldGroup
+                      label="Pilih Kelas"
+                      icon={<School className="h-4 w-4 text-green-600" />}
+                      error={errors.classType}
                     >
-                      <SelectTrigger
-                        className={`${inputClass} ${
-                          errors.classType ? inputErrorClass : ""
-                        }`}
+                      <Select
+                        value={classType}
+                        onValueChange={(value) => {
+                          setClassType(value);
+                          const selectedClass = classrooms?.find(
+                            (c: IClassroom) => c.name === value
+                          );
+                          setSelectedClassId(selectedClass?.id || null);
+                          setStudentName("");
+
+                          if (selectedClass?.teacher_id === teacherId) {
+                            setIsClassTaughtByTeacher(true);
+                          } else {
+                            setIsClassTaughtByTeacher(false);
+                          }
+                        }}
                       >
-                        <SelectValue placeholder="Pilih Kelas" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {classrooms?.map((classroom: IClassroom) => (
-                          <SelectItem key={classroom.id} value={classroom.name}>
-                            {classroom.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.classType && (
-                      <p className={errorClass}>{errors.classType}</p>
-                    )}
+                        <SelectTrigger
+                          className={`${inputClass} ${
+                            errors.classType ? inputErrorClass : ""
+                          }`}
+                        >
+                          <SelectValue placeholder="Pilih Kelas" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {classrooms?.map((classroom: IClassroom) => (
+                            <SelectItem
+                              key={classroom.id}
+                              value={classroom.name}
+                            >
+                              {classroom.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormFieldGroup>
                   </div>
 
                   <div className="space-y-2 flex-1">
-                    <Label htmlFor="studentName" className={labelClass}>
-                      <User className={greenIconClass} />
-                      Nama Siswa <span className="text-red-500">*</span>
-                    </Label>
-                    <Select
-                      value={studentName}
-                      onValueChange={setStudentName}
-                      disabled={!selectedClassId}
+                    <FormFieldGroup
+                      label="Pilih Siswa"
+                      icon={<User className="h-4 w-4 text-green-600" />}
+                      error={errors.studentName}
+                      required
                     >
-                      <SelectTrigger
-                        className={`${inputClass} ${
-                          errors.studentName ? inputErrorClass : ""
-                        }`}
+                      <Select
+                        value={studentName}
+                        onValueChange={setStudentName}
+                        disabled={!selectedClassId}
                       >
-                        <SelectValue
-                          placeholder={
-                            selectedClassId
-                              ? "Pilih Siswa"
-                              : "Pilih kelas terlebih dahulu"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {selectedClassId ? (
-                          students.length > 0 ? (
-                            students.map((student) => (
-                              <SelectItem
-                                key={student.id}
-                                value={student.name || `student-${student.id}`} // Pastikan value tidak kosong
-                              >
-                                {student.name}
+                        <SelectTrigger
+                          className={`${inputClass} ${
+                            errors.studentName ? inputErrorClass : ""
+                          }`}
+                        >
+                          <SelectValue
+                            placeholder={
+                              selectedClassId
+                                ? "Pilih Siswa"
+                                : "Pilih kelas terlebih dahulu"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {selectedClassId ? (
+                            students.length > 0 ? (
+                              students.map((student) => (
+                                <SelectItem
+                                  key={student.id}
+                                  value={
+                                    student.name || `student-${student.id}`
+                                  }
+                                >
+                                  {student.name}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="no-data" disabled>
+                                Tidak ada siswa di kelas ini
                               </SelectItem>
-                            ))
+                            )
                           ) : (
-                            <SelectItem value="no-data" disabled>
-                              Tidak ada siswa di kelas ini
+                            <SelectItem value="select-class-first" disabled>
+                              Pilih kelas terlebih dahulu
                             </SelectItem>
-                          )
-                        ) : (
-                          <SelectItem value="select-class-first" disabled>
-                            Pilih kelas terlebih dahulu
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                    {errors.studentName && (
-                      <p className={errorClass}>{errors.studentName}</p>
-                    )}
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </FormFieldGroup>
                   </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-6">
                   <div className="space-y-2 w-full sm:w-1/2">
-                    <Label htmlFor="date" className={labelClass}>
-                      <Calendar className={greenIconClass} />
-                      Tanggal{" "}
-                      {inputType === "violation"
-                        ? "Pelanggaran"
-                        : "Prestasi"}{" "}
-                      <span className="text-red-500">*</span>
-                    </Label>
-                    <Popover open={isDateOpen} onOpenChange={setIsDateOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !date && "text-muted-foreground",
-                            errors.date ? "border-red-500" : "",
-                            "h-10 px-3 py-2"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date ? formatDate(date) : <span>Pilih tanggal</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <CalendarComponent
-                          mode="single"
-                          selected={date}
-                          onSelect={(newDate) => {
-                            setDate(newDate || new Date());
-                            setIsDateOpen(false);
-                          }}
-                          locale={id}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    {errors.date && <p className={errorClass}>{errors.date}</p>}
+                    <FormFieldGroup
+                      label="Tanggal"
+                      icon={<Calendar className="h-4 w-4 text-green-600" />}
+                      required
+                    >
+                      <DatePickerForm
+                        value={date}
+                        onChange={setDate}
+                        error={errors.date}
+                      />
+                    </FormFieldGroup>
                   </div>
 
                   <div className="space-y-2 w-full sm:w-1/2">
-                    <Label htmlFor="inputType" className={labelClass}>
-                      {inputType === "violation" ? (
-                        <AlertTriangle className={greenIconClass} />
-                      ) : (
-                        <Award className={greenIconClass} />
-                      )}
-                      Jenis Input
-                    </Label>
-                    <Select
-                      value={inputType}
-                      onValueChange={(value: string) => {
-                        setInputType(value as InputTypeOptions);
-
-                        if (value === "violation") {
-                          setViolationType("");
-                          setAchievementType("");
-                          setAchievementLevel("");
-                          setCustomViolation("");
-                        } else {
-                          setViolationType("");
-                          setAchievementType("");
-                          setAchievementLevel("");
-                          setCustomViolation("");
-                        }
-                      }}
+                    <FormFieldGroup
+                      label={
+                        <>
+                          {inputType === "violation" ? (
+                            <AlertTriangle className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <Award className="h-4 w-4 text-green-600" />
+                          )}
+                          Jenis Input
+                        </>
+                      }
+                      error={errors.inputType}
                     >
-                      <SelectTrigger className={inputClass}>
-                        <SelectValue placeholder="Pilih Jenis Input" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="violation">Pelanggaran</SelectItem>
-                        <SelectItem value="achievement">Prestasi</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <Select
+                        value={inputType}
+                        onValueChange={(value: string) => {
+                          setInputType(value as InputTypeOptions);
+
+                          if (
+                            value === "violation" ||
+                            value === "achievement"
+                          ) {
+                            setViolationType("");
+                            setAchievementTypeOptions("");
+                            setAchievementLevel("");
+                            setCustomViolation("");
+                          }
+                        }}
+                      >
+                        <SelectTrigger className={inputClass}>
+                          <SelectValue placeholder="Pilih Jenis Input" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="violation">Pelanggaran</SelectItem>
+                          <SelectItem value="achievement">Prestasi</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormFieldGroup>
                   </div>
                 </div>
               </>
@@ -733,73 +756,75 @@ const ESakuForm: React.FC = () => {
                   {inputType === "violation" && (
                     <div className="flex flex-col sm:flex-row gap-6">
                       <div className="space-y-2 flex-grow">
-                        <Label htmlFor="violationType" className={labelClass}>
-                          <FileText className={greenIconClass} />
-                          Jenis Pelanggaran{" "}
-                          <span className="text-red-500">*</span>
-                        </Label>
-                        <Select
-                          value={selectedRuleId}
-                          onValueChange={(value) => {
-                            handleViolationTypeChange(value);
-                          }}
+                        <FormFieldGroup
+                          label="Jenis Pelanggaran"
+                          icon={<FileText className="h-4 w-4 text-green-600" />}
+                          error={errors.violationType}
+                          required
                         >
-                          <SelectTrigger
-                            className={`${inputClass} ${
-                              errors.violationType ? inputErrorClass : ""
-                            }`}
+                          <Select
+                            value={selectedRuleId}
+                            onValueChange={(value) => {
+                              handleViolationTypeChange(value);
+                            }}
                           >
-                            <SelectValue placeholder="Pilih Jenis Pelanggaran" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {rulesData?.map((rule) => (
-                              <SelectItem
-                                key={rule.id}
-                                value={rule.id.toString()}
-                              >
-                                {rule.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-
-                        {errors.violationType && (
-                          <p className={errorClass}>{errors.violationType}</p>
-                        )}
+                            <SelectTrigger
+                              className={`${inputClass} ${
+                                errors.violationType ? inputErrorClass : ""
+                              }`}
+                            >
+                              <SelectValue placeholder="Pilih Jenis Pelanggaran" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {rulesData?.map((rule) => (
+                                <SelectItem
+                                  key={rule.id}
+                                  value={rule.id.toString()}
+                                >
+                                  {rule.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormFieldGroup>
                       </div>
 
                       <div className="space-y-2 w-48">
-                        <Label htmlFor="point" className={labelClass}>
-                          Poin
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <Info
-                                  className={`${iconClass} text-gray-400 ml-1`}
-                                />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-xs">
-                                  Poin dihitung otomatis berdasarkan jenis
-                                  pelanggaran
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </Label>
-                        <div className="relative w-full">
-                          <div className="flex-1 h-10 px-3 py-2 border border-gray-300 bg-gray-50 text-gray-500 rounded-lg">
-                            {selectedRule
-                              ? `${selectedRule.points}`
-                              : "Pilih jenis pelanggaran"}
-                          </div>
-
-                          {selectedRule && selectedRule.points && (
-                            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-2 py-0.5 text-xs font-medium bg-red-100 text-red-600">
-                              -{selectedRule.points}
+                        <FormFieldGroup
+                          label={
+                            <>
+                              Poin
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Info className="h-4 w-4 text-gray-400 ml-1" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-xs">
+                                      Poin dihitung otomatis berdasarkan jenis
+                                      pelanggaran
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </>
+                          }
+                          error={errors.points}
+                        >
+                          <div className="relative w-full">
+                            <div className="flex-1 h-10 px-3 py-2 text-sm border border-gray-300 bg-gray-50 text-gray-500 rounded-lg">
+                              {selectedRule
+                                ? `${selectedRule.points}`
+                                : "Pilih jenis pelanggaran"}
                             </div>
-                          )}
-                        </div>
+
+                            {selectedRule?.points && (
+                              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-2 py-0.5 text-xs font-medium bg-red-100 text-red-600">
+                                -{selectedRule.points}
+                              </div>
+                            )}
+                          </div>
+                        </FormFieldGroup>
                       </div>
                     </div>
                   )}
@@ -807,143 +832,141 @@ const ESakuForm: React.FC = () => {
                   {inputType === "achievement" && (
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="achievementType" className={labelClass}>
-                          <Award className={greenIconClass} />
-                          Jenis Prestasi <span className="text-red-500">*</span>
-                        </Label>
-                        <Select
-                          value={achievementType}
-                          onValueChange={(value: string) =>
-                            setAchievementType(value as AchievementTypeOptions)
-                          }
+                        <FormFieldGroup
+                          label="Jenis Prestasi"
+                          icon={<Award className="h-4 w-4 text-green-600" />}
+                          error={errors.achievementTypeOptions}
+                          required
                         >
-                          <SelectTrigger
-                            className={`${inputClass} ${
-                              errors.achievementType ? inputErrorClass : ""
-                            }`}
-                          >
-                            <SelectValue placeholder="Pilih Jenis Prestasi" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="akademik">Akademik</SelectItem>
-                            <SelectItem value="non-akademik">
-                              Non Akademik
-                            </SelectItem>
-                            <SelectItem value="olahraga">Olahraga</SelectItem>
-                            <SelectItem value="seni">Seni</SelectItem>
-                            <SelectItem value="lainnya">Lainnya</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {errors.achievementType && (
-                          <p className={errorClass}>{errors.achievementType}</p>
-                        )}
-                      </div>
-
-                      {achievementType === "lainnya" && (
-                        <div className="space-y-2">
-                          <Label
-                            htmlFor="customViolation"
-                            className={labelClass}
-                          >
-                            Prestasi Lainnya{" "}
-                            <span className="text-red-500">*</span>
-                          </Label>
-                          <Input
-                            id="customViolation"
-                            type="text"
-                            value={customViolation}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                              setCustomViolation(e.target.value)
-                            }
-                            placeholder="Masukkan jenis prestasi lain"
-                            className={`${inputClass} ${
-                              errors.customViolation ? inputErrorClass : ""
-                            }`}
-                          />
-                          {errors.customViolation && (
-                            <p className={errorClass}>
-                              {errors.customViolation}
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      <div className="flex flex-col sm:flex-row gap-6">
-                        <div className="space-y-2 flex-grow">
-                          <Label
-                            htmlFor="achievementLevel"
-                            className={labelClass}
-                          >
-                            <Globe className={greenIconClass} />
-                            Tingkatan Prestasi{" "}
-                            <span className="text-red-500">*</span>
-                          </Label>
                           <Select
-                            value={achievementLevel}
+                            value={achievementTypeOptions}
                             onValueChange={(value: string) =>
-                              setAchievementLevel(
-                                value as AchievementLevelOptions
+                              setAchievementTypeOptions(
+                                value as AchievementTypeOptions
                               )
                             }
                           >
                             <SelectTrigger
                               className={`${inputClass} ${
-                                errors.achievementLevel ? inputErrorClass : ""
+                                errors.achievementTypeOptions
+                                  ? inputErrorClass
+                                  : ""
                               }`}
                             >
-                              <SelectValue placeholder="Pilih Tingkatan Prestasi" />
+                              <SelectValue placeholder="Pilih Jenis Prestasi" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="kota">Se-Kota</SelectItem>
-                              <SelectItem value="provinsi">
-                                Se-Provinsi
+                              <SelectItem value="akademik">Akademik</SelectItem>
+                              <SelectItem value="non-akademik">
+                                Non Akademik
                               </SelectItem>
-                              <SelectItem value="nasional">Nasional</SelectItem>
-                              <SelectItem value="internasional">
-                                Internasional
-                              </SelectItem>
+                              <SelectItem value="olahraga">Olahraga</SelectItem>
+                              <SelectItem value="seni">Seni</SelectItem>
+                              <SelectItem value="lainnya">Lainnya</SelectItem>
                             </SelectContent>
                           </Select>
-                          {errors.achievementLevel && (
-                            <p className={errorClass}>
-                              {errors.achievementLevel}
-                            </p>
-                          )}
+                        </FormFieldGroup>
+                      </div>
+
+                      {achievementTypeOptions === "lainnya" && (
+                        <div className="space-y-2">
+                          <FormFieldGroup
+                            label="Prestasi Lainnya"
+                            icon={<Award className="h-4 w-4 text-green-600" />}
+                            required
+                            error={errors.customViolation}
+                          >
+                            <Input
+                              id="customViolation"
+                              type="text"
+                              value={customViolation}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                setCustomViolation(e.target.value)
+                              }
+                              placeholder="Masukkan jenis prestasi lain"
+                              className={`${inputClass} ${
+                                errors.customViolation ? inputErrorClass : ""
+                              }`}
+                            />
+                          </FormFieldGroup>
+                        </div>
+                      )}
+
+                      <div className="flex flex-col sm:flex-row gap-6">
+                        <div className="space-y-2 flex-grow">
+                          <FormFieldGroup
+                            label="Tingkatan Prestasi"
+                            icon={<Globe className="h-4 w-4 text-green-600" />}
+                            required
+                            error={errors.achievementLevel}
+                          >
+                            <Select
+                              value={achievementLevel}
+                              onValueChange={(value: string) =>
+                                setAchievementLevel(
+                                  value as AchievementLevelOptions
+                                )
+                              }
+                            >
+                              <SelectTrigger
+                                className={`${inputClass} ${
+                                  errors.achievementLevel ? inputErrorClass : ""
+                                }`}
+                              >
+                                <SelectValue placeholder="Pilih Tingkatan Prestasi" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="kota">Se-Kota</SelectItem>
+                                <SelectItem value="provinsi">
+                                  Se-Provinsi
+                                </SelectItem>
+                                <SelectItem value="nasional">
+                                  Nasional
+                                </SelectItem>
+                                <SelectItem value="internasional">
+                                  Internasional
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormFieldGroup>
                         </div>
 
                         <div className="space-y-2 flex-grow">
-                          <Label htmlFor="point" className={labelClass}>
-                            Poin Prestasi{" "}
-                            <span className="text-red-500">*</span>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <Info
-                                    className={`${iconClass} text-gray-400 ml-1`}
-                                  />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p className="text-xs">
-                                    Masukkan poin untuk prestasi ini
-                                  </p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </Label>
-                          <Input
-                            id="point"
-                            type="number"
-                            min="1"
-                            value={point}
-                            onChange={(e) => setPoint(e.target.value)}
-                            placeholder="Masukkan poin prestasi"
-                            className={`${inputClass} ${
-                              errors.point ? inputErrorClass : ""
-                            }`}
-                          />
-                          {errors.point && (
-                            <p className={errorClass}>{errors.point}</p>
-                          )}
+                          <FormFieldGroup
+                            label={
+                              <>
+                                Poin Prestasi{""}
+                                <span className="text-red-500">*</span>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <Info
+                                        className={`h-4 w-4 text-gray-400 ml-1`}
+                                      />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p className="text-xs">
+                                        Masukkan poin untuk prestasi ini
+                                      </p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </>
+                            }
+                            error={errors.point}
+                          >
+                            <Input
+                              id="point"
+                              type="number"
+                              min="1"
+                              value={point}
+                              onChange={(e) => setPoint(e.target.value)}
+                              placeholder="Masukkan poin prestasi"
+                              className={`${inputClass} ${
+                                errors.point ? inputErrorClass : ""
+                              }`}
+                            />
+                          </FormFieldGroup>
                         </div>
                       </div>
                     </div>
@@ -951,54 +974,53 @@ const ESakuForm: React.FC = () => {
 
                   {inputType === "violation" && violationType === "lainnya" && (
                     <div className="space-y-2">
-                      <Label htmlFor="customViolation" className={labelClass}>
-                        Pelanggaran Lainnya{" "}
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="customViolation"
-                        type="text"
-                        value={customViolation}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                          setCustomViolation(e.target.value)
-                        }
-                        placeholder="Masukkan jenis pelanggaran lain"
-                        className={`${inputClass} ${
-                          errors.customViolation ? inputErrorClass : ""
-                        }`}
-                      />
-                      {errors.customViolation && (
-                        <p className={errorClass}>{errors.customViolation}</p>
-                      )}
+                      <FormFieldGroup
+                        label="Pelanggaran Lainnya"
+                        icon={<PenTool className="h-4 w-4 text-green-600" />}
+                        required
+                        error={errors.customViolation}
+                      >
+                        <Input
+                          id="customViolation"
+                          type="text"
+                          value={customViolation}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            setCustomViolation(e.target.value)
+                          }
+                          placeholder="Masukkan jenis pelanggaran lain"
+                          className={`${inputClass} ${
+                            errors.customViolation ? inputErrorClass : ""
+                          }`}
+                        />
+                      </FormFieldGroup>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description" className={labelClass}>
-                    <MessageSquare className={greenIconClass} />
-                    Deskripsi{" "}
-                    {inputType === "violation"
-                      ? "Pelanggaran"
-                      : "Prestasi"}{" "}
-                    <span className="text-red-500">*</span>
-                  </Label>
-                  <Textarea
-                    id="description"
-                    value={description}
-                    onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                      setDescription(e.target.value)
+                  <FormFieldGroup
+                    label={
+                      <>
+                        <MessageSquare className="h-4 w-4 text-green-600" />
+                        Deskripsi{" "}
+                        {inputType === "violation" ? "Pelanggaran" : "Prestasi"}
+                      </>
                     }
-                    placeholder={`Tambahkan deskripsi ${
-                      inputType === "violation" ? "pelanggaran" : "prestasi"
-                    }...`}
-                    className={`${inputClass.replace("h-10", "min-h-32")} ${
-                      errors.description ? inputErrorClass : ""
-                    }`}
-                  />
-                  {errors.description && (
-                    <p className={errorClass}>{errors.description}</p>
-                  )}
+                    error={errors.description}
+                    required
+                  >
+                    <Textarea
+                      id="description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder={`Tambahkan deskripsi ${
+                        inputType === "violation" ? "pelanggaran" : "prestasi"
+                      }...`}
+                      className={`${inputClass.replace("h-10", "min-h-32")} ${
+                        errors.description ? inputErrorClass : ""
+                      }`}
+                    />
+                  </FormFieldGroup>
                 </div>
               </>
             )}
@@ -1015,61 +1037,54 @@ const ESakuForm: React.FC = () => {
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label
-                          htmlFor="followUp"
-                          className="text-gray-700 font-medium"
-                        >
-                          Pilih Tindak Lanjut{" "}
-                          <span className="text-red-500">*</span>
-                        </Label>
-                        <Select
-                          value={followUpType}
-                          onValueChange={(value: string) =>
-                            setFollowUpType(value as FollowUpTypeOptions)
-                          }
-                        >
-                          <SelectTrigger className="border-green-200 focus:border-green-500 focus:ring-green-500 rounded-lg bg-white w-full h-10">
-                            <SelectValue placeholder="Pilih Tindak Lanjut" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="follow-up">
-                              Tindak Lanjut
-                            </SelectItem>
-                            <SelectItem value="meeting">
-                              Pertemuan dengan Orang Tua
-                            </SelectItem>
-                            <SelectItem value="warning">
-                              Surat Peringatan
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormFieldGroup label="Tindak Lanjut" required>
+                          <Select
+                            value={followUpType}
+                            onValueChange={(value: string) =>
+                              setFollowUpType(value as FollowUpTypeOptions)
+                            }
+                          >
+                            <SelectTrigger className="border-green-200 focus:border-green-500 focus:ring-green-500 rounded-lg bg-white w-full h-10">
+                              <SelectValue placeholder="Pilih Tindak Lanjut" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="follow-up">
+                                Tindak Lanjut
+                              </SelectItem>
+                              <SelectItem value="meeting">
+                                Pertemuan dengan Orang Tua
+                              </SelectItem>
+                              <SelectItem value="warning">
+                                Surat Peringatan
+                              </SelectItem>
+                              <SelectItem value="lainnya">Lainnya</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormFieldGroup>
                       </div>
-
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="followUpDescription"
-                          className="text-gray-700 font-medium"
+                      {followUpType === "lainnya" && (
+                        <FormFieldGroup
+                          label="Tindak Lanjut Lainnya"
+                          required
+                          error={errors.followUpType}
                         >
-                          Deskripsi Tindak Lanjut{" "}
-                          <span className="text-red-500">*</span>
-                        </Label>
-                        <Textarea
-                          id="followUpDescription"
-                          value={followUpDescription}
-                          onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                            setFollowUpDescription(e.target.value)
-                          }
-                          placeholder="Tambahkan deskripsi tindak lanjut..."
-                          className={`border-green-200 focus:border-green-500 focus:ring-green-500 rounded-lg min-h-24 bg-white w-full ${
-                            errors.followUpDescription ? inputErrorClass : ""
-                          }`}
-                        />
-                        {errors.followUpDescription && (
-                          <p className={errorClass}>
-                            {errors.followUpDescription}
-                          </p>
-                        )}
-                      </div>
+                          <Textarea
+                            id="otherFollowUp"
+                            value={
+                              followUpType === "lainnya" ? "" : followUpType
+                            }
+                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                              setFollowUpType(
+                                e.target.value as FollowUpTypeOptions
+                              )
+                            }
+                            placeholder="Tambahkan jenis tindak lanjut..."
+                            className={`border-green-200 focus:border-green-500 focus:ring-green-500 rounded-lg min-h-24 bg-white w-full ${
+                              errors.followUpType ? inputErrorClass : ""
+                            }`}
+                          />
+                        </FormFieldGroup>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -1096,83 +1111,7 @@ const ESakuForm: React.FC = () => {
                 )}
 
                 {isMobileView && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold mb-3 text-gray-700 flex items-center gap-1.5">
-                      <FileText className={iconClass + " text-gray-600"} />
-                      Ringkasan Data
-                    </h4>
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="flex flex-col">
-                          <span className="text-xs text-gray-500">Nama</span>
-                          <span className="font-medium">
-                            {summaryData.name}
-                          </span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs text-gray-500">Kelas</span>
-                          <span className="font-medium">
-                            {summaryData.class}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="flex flex-col">
-                          <span className="text-xs text-gray-500">Jenis</span>
-                          <span className="font-medium">
-                            {summaryData.type}
-                          </span>
-                        </div>
-                        {inputType === "violation" && (
-                          <div className="flex flex-col">
-                            <span className="text-xs text-gray-500">
-                              Detail
-                            </span>
-                            <span className="font-medium">
-                              {summaryData.detail || "-"}
-                            </span>
-                          </div>
-                        )}
-                        {inputType === "achievement" && (
-                          <div className="flex flex-col">
-                            <span className="text-xs text-gray-500">
-                              Detail
-                            </span>
-                            <span className="font-medium">
-                              {summaryData.detail || "-"}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {inputType === "achievement" && (
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div className="flex flex-col">
-                            <span className="text-xs text-gray-500">
-                              Tingkatan
-                            </span>
-                            <span className="font-medium">
-                              {summaryData.level}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex flex-col">
-                        <span className="text-xs text-gray-500">Poin</span>
-                        <span
-                          className={`font-medium ${
-                            inputType === "violation"
-                              ? "text-red-600"
-                              : "text-green-600"
-                          }`}
-                        >
-                          {summaryData.point}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  <MobileSummaryCard data={summaryData} inputType={inputType} />
                 )}
               </>
             )}
@@ -1186,7 +1125,7 @@ const ESakuForm: React.FC = () => {
                     className={btnSecondaryClass}
                     onClick={handlePrevStep}
                   >
-                    <ArrowLeft className={iconClass} />
+                    <ArrowLeft className="h-4 w-4" />
                     Kembali
                   </Button>
                 ) : (
@@ -1196,7 +1135,7 @@ const ESakuForm: React.FC = () => {
                     className={btnSecondaryClass}
                     onClick={resetForm}
                   >
-                    <RefreshCw className={iconClass} />
+                    <RefreshCw className="h-4 w-4" />
                     Reset
                   </Button>
                 )}
@@ -1208,46 +1147,17 @@ const ESakuForm: React.FC = () => {
                     onClick={handleNextStep}
                   >
                     Lanjut
-                    <ArrowRight className={iconClass} />
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
                 ) : (
-                  <Button
-                    type="button"
-                    className={btnPrimaryClass}
+                  <LoadingSpinnerButton
+                    isLoading={isSubmitting}
                     onClick={handleSubmit}
-                    disabled={isSubmitting}
+                    icon={<CheckCircle className="h-4 w-4" />}
+                    className={btnPrimaryClass}
                   >
-                    {isSubmitting ? (
-                      <>
-                        <svg
-                          className="animate-spin h-4 w-4"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Menyimpan...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className={iconClass} />
-                        Simpan
-                      </>
-                    )}
-                  </Button>
+                    Simpan
+                  </LoadingSpinnerButton>
                 )}
               </div>
             )}
@@ -1262,56 +1172,49 @@ const ESakuForm: React.FC = () => {
               className={btnSecondaryClass}
               onClick={resetForm}
             >
-              <RefreshCw className={iconClass} />
+              <RefreshCw className="h-4 w-4" />
               Reset Form
             </Button>
 
             <div className="flex gap-3">
               <Button
                 type="button"
-                className={btnPrimaryClass}
-                onClick={handleSubmit}
-                disabled={isSubmitting}
+                className={btnDarkClass}
+                onClick={() => handleOpenConfirm("report")}
+                disabled={isSubmitting || isClassTaughtByTeacher !== false}
               >
-                {isSubmitting ? (
-                  <span className="flex items-center gap-2">
-                    <svg
-                      className="animate-spin h-4 w-4 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Menyimpan...
-                  </span>
-                ) : (
-                  <>
-                    <CheckCircle className={iconClass} />
-                    Simpan Data
-                  </>
-                )}
-              </Button>
-              <Button type="button" className={btnDarkClass}>
-                <Send className={iconClass} />
+                <Send className="h-4 w-4" />
                 Kirim sebagai Laporan
               </Button>
+
+              <LoadingSpinnerButton
+                isLoading={isSubmitting}
+                onClick={() => handleOpenConfirm("save")}
+                icon={<CheckCircle className="h-4 w-4" />}
+                className={btnPrimaryClass}
+                disabled={isClassTaughtByTeacher !== true}
+              >
+                Simpan
+              </LoadingSpinnerButton>
             </div>
           </CardFooter>
         )}
       </Card>
+
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirm}
+        title={confirmType === "report" ? "Kirim Laporan?" : "Simpan Data?"}
+        description={
+          confirmType === "report"
+            ? "Apakah anda yakin ingin mengirim sebagai laporan?"
+            : "Apakah anda yakin ingin menyimpan data ini?"
+        }
+        confirmText={confirmType === "report" ? "Kirim" : "Simpan"}
+        cancelText="Batal"
+        type={confirmType === "report" ? "update" : "add"}
+      />
     </div>
   );
 };

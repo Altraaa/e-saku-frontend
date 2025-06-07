@@ -108,7 +108,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 
 const DashboardSkeleton = () => {
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <Skeleton className="h-8 w-64" />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[...Array(4)].map((_, i) => (
@@ -231,7 +231,7 @@ const ViewDashboard = () => {
   }
 
   return (
-    <div className="px-6 space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl sm:text-2xl font-bold">
           Hi🙌, <span className='text-green-500'>{teacherName}</span><br />

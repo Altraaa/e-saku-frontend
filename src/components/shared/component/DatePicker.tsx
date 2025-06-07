@@ -25,21 +25,17 @@ export function DatePicker({
   onChange,
   isForm = false,
 }: DatePickerProps) {
-  // Initialize date state from the value prop
   const [date, setDate] = React.useState<Date | undefined>(() => {
     if (!value) return undefined;
 
-    // Handle string date format (YYYY-MM-DD)
     if (typeof value === "string") {
       const dateObj = new Date(value);
       return isNaN(dateObj.getTime()) ? undefined : dateObj;
     }
 
-    // Handle Date object
     return value instanceof Date ? value : undefined;
   });
 
-  // Update date state when value prop changes
   React.useEffect(() => {
     if (!value) {
       setDate(undefined);
