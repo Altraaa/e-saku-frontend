@@ -88,8 +88,10 @@ const ESakuForm: React.FC = () => {
     useState<AchievementTypeOptions>("");
   const [achievementLevel, setAchievementLevel] =
     useState<AchievementLevelOptions>("");
+  const [customAchievement, setCustomAchievement] = useState<string>("");
   const [followUpType, setFollowUpType] =
-    useState<FollowUpTypeOptions>("follow-up");
+    useState<FollowUpTypeOptions>("tidak-perlu");
+  const [customFollowUp, setCustomFollowUp] = useState<string>("");
   const [customViolation, setCustomViolation] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [studentName, setStudentName] = useState<string>("");
@@ -111,6 +113,8 @@ const ESakuForm: React.FC = () => {
   const [isClassTaughtByTeacher, setIsClassTaughtByTeacher] = useState<
     boolean | null
   >(null);
+  const [showOnlyTeacherClass, setShowOnlyTeacherClass] =
+    useState<boolean>(false);
 
   const { data: rulesData } = useRules();
   const { data: classrooms } = useClassroom();
@@ -185,8 +189,10 @@ const ESakuForm: React.FC = () => {
     setAchievementTypeOptions("");
     setAchievementLevel("");
     setSelectedRule(null);
+    setSelectedRuleId("");
     setPoint("0");
-    setFollowUpType("follow-up");
+    setFollowUpType("tidak-perlu");
+    setCustomFollowUp("");
     setCustomViolation("");
     setDescription("");
     setStudentName("");
@@ -212,15 +218,24 @@ const ESakuForm: React.FC = () => {
       newErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
     } else if (inputType === "achievement" && !achievementTypeOptions) {
       newErrors.achievementTypeOptions = "Jenis prestasi harus dipilih";
+    } else if (inputType === "achievement" && !achievementTypeOptions) {
+      newErrors.achievementTypeOptions = "Jenis prestasi harus dipilih";
     }
 
     if (
-      (violationType === "lainnya" || achievementTypeOptions === "lainnya") &&
+      inputType === "violation" &&
+      violationType === "lainnya" &&
       !customViolation.trim()
     ) {
-      newErrors.customViolation = `Jenis ${
-        inputType === "violation" ? "pelanggaran" : "prestasi"
-      } lainnya diperlukan`;
+      newErrors.customViolation = "Jenis pelanggaran lainnya diperlukan";
+    }
+
+    if (
+      inputType === "achievement" &&
+      achievementTypeOptions === "lainnya" &&
+      !customAchievement.trim()
+    ) {
+      newErrors.customAchievement = "Jenis prestasi lainnya diperlukan";
     }
 
     if (!description.trim()) newErrors.description = "Deskripsi diperlukan";
@@ -288,7 +303,6 @@ const ESakuForm: React.FC = () => {
     if (e) e.preventDefault();
     const isValid = validateForm();
     if (!isValid) return;
-
     setIsSubmitting(true);
 
     const studentObj = students.find((s) => s.name === studentName);
@@ -305,7 +319,7 @@ const ESakuForm: React.FC = () => {
           description,
           violation_date: date.toISOString().split("T")[0],
           teacher_id: teacherId,
-          action: followUpType,
+          action: followUpType === "lainnya" ? customFollowUp : followUpType,
           points: selectedRule?.points ?? 0,
           rulesofconduct_id: selectedRule?.id ?? 0,
         },
@@ -335,6 +349,10 @@ const ESakuForm: React.FC = () => {
         {
           student_id: studentObj.id,
           description,
+          accomplishment_type:
+            achievementTypeOptions === "lainnya"
+              ? customAchievement
+              : achievementTypeOptions,
           accomplishment_date: date.toISOString().split("T")[0],
           level: levelMap[achievementLevel] ?? 0,
           points: parseInt(point),
@@ -497,13 +515,19 @@ const ESakuForm: React.FC = () => {
       return;
     }
 
-    // Validasi untuk simpan data
     const isValid = validateForm();
     if (isValid) {
       setConfirmType(type);
       setIsModalOpen(true);
     }
   };
+
+  const filteredClassrooms = classrooms?.filter((classroom) => {
+    if (inputType === "achievement") {
+      return classroom.teacher_id === teacherId;
+    }
+    return showOnlyTeacherClass ? classroom.teacher_id === teacherId : true;
+  });
 
   const handleConfirm = () => {
     setIsModalOpen(false);
@@ -593,6 +617,47 @@ const ESakuForm: React.FC = () => {
             {(!isMobileView || formStep === 0) && (
               <>
                 <div className="flex flex-col sm:flex-row gap-6">
+                  <div className="space-y-2 w-full sm:w-1/2">
+                    <FormFieldGroup
+                      label={
+                        <>
+                          {inputType === "violation" ? (
+                            <AlertTriangle className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <Award className="h-4 w-4 text-green-600" />
+                          )}
+                          Jenis Input
+                        </>
+                      }
+                      error={errors.inputType}
+                    >
+                      <Select
+                        value={inputType}
+                        onValueChange={(value: string) => {
+                          setInputType(value as InputTypeOptions);
+
+                          if (
+                            value === "violation" ||
+                            value === "achievement"
+                          ) {
+                            setViolationType("");
+                            setAchievementTypeOptions("");
+                            setAchievementLevel("");
+                            setCustomViolation("");
+                          }
+                        }}
+                      >
+                        <SelectTrigger className={inputClass}>
+                          <SelectValue placeholder="Pilih Jenis Input" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="violation">Pelanggaran</SelectItem>
+                          <SelectItem value="achievement">Prestasi</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormFieldGroup>
+                  </div>
+
                   <div className="space-y-2 flex-1">
                     <FormFieldGroup
                       label="Pilih Kelas"
@@ -624,7 +689,7 @@ const ESakuForm: React.FC = () => {
                           <SelectValue placeholder="Pilih Kelas" />
                         </SelectTrigger>
                         <SelectContent>
-                          {classrooms?.map((classroom: IClassroom) => (
+                          {filteredClassrooms?.map((classroom: IClassroom) => (
                             <SelectItem
                               key={classroom.id}
                               value={classroom.name}
@@ -633,11 +698,32 @@ const ESakuForm: React.FC = () => {
                             </SelectItem>
                           ))}
                         </SelectContent>
+                        {inputType === "violation" && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <input
+                              type="checkbox"
+                              id="filter-my-classes"
+                              checked={showOnlyTeacherClass}
+                              onChange={(e) =>
+                                setShowOnlyTeacherClass(e.target.checked)
+                              }
+                              className="h-4 w-4 text-green-600 border-gray-300 rounded-lg focus:ring-green-500"
+                            />
+                            <label
+                              htmlFor="filter-my-classes"
+                              className="text-sm text-gray-600"
+                            >
+                              Tampilkan hanya kelas yang diampu
+                            </label>
+                          </div>
+                        )}
                       </Select>
                     </FormFieldGroup>
                   </div>
+                </div>
 
-                  <div className="space-y-2 flex-1">
+                <div className="flex flex-col sm:flex-row gap-6">
+                  <div className="space-y-2 w-full sm:w-1/2">
                     <FormFieldGroup
                       label="Pilih Siswa"
                       icon={<User className="h-4 w-4 text-green-600" />}
@@ -689,10 +775,8 @@ const ESakuForm: React.FC = () => {
                       </Select>
                     </FormFieldGroup>
                   </div>
-                </div>
 
-                <div className="flex flex-col sm:flex-row gap-6">
-                  <div className="space-y-2 w-full sm:w-1/2">
+                  <div className="space-y-2 flex-1">
                     <FormFieldGroup
                       label="Tanggal"
                       icon={<Calendar className="h-4 w-4 text-green-600" />}
@@ -703,47 +787,6 @@ const ESakuForm: React.FC = () => {
                         onChange={setDate}
                         error={errors.date}
                       />
-                    </FormFieldGroup>
-                  </div>
-
-                  <div className="space-y-2 w-full sm:w-1/2">
-                    <FormFieldGroup
-                      label={
-                        <>
-                          {inputType === "violation" ? (
-                            <AlertTriangle className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <Award className="h-4 w-4 text-green-600" />
-                          )}
-                          Jenis Input
-                        </>
-                      }
-                      error={errors.inputType}
-                    >
-                      <Select
-                        value={inputType}
-                        onValueChange={(value: string) => {
-                          setInputType(value as InputTypeOptions);
-
-                          if (
-                            value === "violation" ||
-                            value === "achievement"
-                          ) {
-                            setViolationType("");
-                            setAchievementTypeOptions("");
-                            setAchievementLevel("");
-                            setCustomViolation("");
-                          }
-                        }}
-                      >
-                        <SelectTrigger className={inputClass}>
-                          <SelectValue placeholder="Pilih Jenis Input" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="violation">Pelanggaran</SelectItem>
-                          <SelectItem value="achievement">Prestasi</SelectItem>
-                        </SelectContent>
-                      </Select>
                     </FormFieldGroup>
                   </div>
                 </div>
@@ -874,18 +917,18 @@ const ESakuForm: React.FC = () => {
                             label="Prestasi Lainnya"
                             icon={<Award className="h-4 w-4 text-green-600" />}
                             required
-                            error={errors.customViolation}
+                            error={errors.customAchievement}
                           >
                             <Input
                               id="customViolation"
                               type="text"
-                              value={customViolation}
+                              value={customAchievement}
                               onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                                setCustomViolation(e.target.value)
+                                setCustomAchievement(e.target.value)
                               }
                               placeholder="Masukkan jenis prestasi lain"
                               className={`${inputClass} ${
-                                errors.customViolation ? inputErrorClass : ""
+                                errors.achievementType ? inputErrorClass : ""
                               }`}
                             />
                           </FormFieldGroup>
@@ -1048,13 +1091,13 @@ const ESakuForm: React.FC = () => {
                               <SelectValue placeholder="Pilih Tindak Lanjut" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="follow-up">
-                                Tindak Lanjut
+                              <SelectItem value="tidak-perlu">
+                                Tidak Diperlukan
                               </SelectItem>
-                              <SelectItem value="meeting">
+                              <SelectItem value="pemanggilan">
                                 Pertemuan dengan Orang Tua
                               </SelectItem>
-                              <SelectItem value="warning">
+                              <SelectItem value="peringatan">
                                 Surat Peringatan
                               </SelectItem>
                               <SelectItem value="lainnya">Lainnya</SelectItem>
@@ -1069,14 +1112,9 @@ const ESakuForm: React.FC = () => {
                           error={errors.followUpType}
                         >
                           <Textarea
-                            id="otherFollowUp"
-                            value={
-                              followUpType === "lainnya" ? "" : followUpType
-                            }
+                            value={customFollowUp}
                             onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                              setFollowUpType(
-                                e.target.value as FollowUpTypeOptions
-                              )
+                              setCustomFollowUp(e.target.value)
                             }
                             placeholder="Tambahkan jenis tindak lanjut..."
                             className={`border-green-200 focus:border-green-500 focus:ring-green-500 rounded-lg min-h-24 bg-white w-full ${
@@ -1177,15 +1215,17 @@ const ESakuForm: React.FC = () => {
             </Button>
 
             <div className="flex gap-3">
-              <Button
-                type="button"
-                className={btnDarkClass}
-                onClick={() => handleOpenConfirm("report")}
-                disabled={isSubmitting || isClassTaughtByTeacher !== false}
-              >
-                <Send className="h-4 w-4" />
-                Kirim sebagai Laporan
-              </Button>
+              {inputType === "violation" && (
+                <Button
+                  type="button"
+                  className={btnDarkClass}
+                  onClick={() => handleOpenConfirm("report")}
+                  disabled={isSubmitting || isClassTaughtByTeacher !== false}
+                >
+                  <Send className="h-4 w-4" />
+                  Kirim sebagai Laporan
+                </Button>
+              )}
 
               <LoadingSpinnerButton
                 isLoading={isSubmitting}

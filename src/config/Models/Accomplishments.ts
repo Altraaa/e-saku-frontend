@@ -3,6 +3,7 @@ import { IStudent } from "./Student";
 export interface IAccomplishments {
     id: number;
     student_id: number;
+    accomplishment_type: string;
     description: string;
     accomplishment_date: string;
     level: number;
