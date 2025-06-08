@@ -55,13 +55,13 @@ const ViewStudentBio = () => {
                   </div>
                 </Link>
                 <Link
-                  to={`/studentbio/accomplishments/${student.nis}`}
+                  to={`/studentbio/accomplishments/${student.id}`}
                   className="w-full bg-green-600 p-3 font-semibold text-white rounded-md hover:bg-green-500 transition-all duration-200 text-center"
                 >
                   Student Accomplishments
                 </Link>
                 <Link
-                  to={`/studentbio/violations/${student.nis}`}
+                  to={`/studentbio/violations/${student.id}`}
                   className="w-full bg-red-600 p-3 font-semibold text-white rounded-md hover:bg-red-500 transition-all duration-200 text-center"
                 >
                   Student Violations
