@@ -1,3 +1,5 @@
+import { IRules } from "./Rules";
+
 export interface IViolation {
     id: number;
     student_id: number;
@@ -7,6 +9,7 @@ export interface IViolation {
     action: string;
     points: number;
     rulesofconduct_id: number;
+    rules_of_conduct: IRules;
     created_at: string;
     updated_at: string;
 }
