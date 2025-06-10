@@ -19,6 +19,21 @@ export const useViolationById = (id: number) => {
   });
 };
 
+
+// Fecth violation by student ID
+export const useViolationsByStudentId = (student_id: string ) => {
+  return useQuery<IViolation[]>({
+    queryKey: ["violationsByStudent", student_id],
+    queryFn: () => {
+      if (student_id === undefined) {
+        return Promise.resolve([]);
+      }
+      return ApiViolations.getByStudentId(student_id);
+    },
+    enabled: !!student_id,
+  });
+};
+
 // Create violation
 export const useViolationCreate = () => {
   const queryClient = useQueryClient();

@@ -6,6 +6,8 @@ export const ApiAccomplishments = {
     ApiRequest({ url: "/accomplishments", method: "GET" }),
   getById: (id: number): Promise<IAccomplishments> =>
     ApiRequest({ url: `/accomplishments/${id}`, method: "GET" }),
+  getByStudentId: (student_id: string): Promise<IAccomplishments[]> =>
+    ApiRequest({ url: `/accomplishments/student/${student_id}`, method: "GET" }),
   create: (data: Partial<IAccomplishments>): Promise<IAccomplishments> =>
     ApiRequest({ url: "/accomplishments", method: "POST", body: data }),
   update: (
