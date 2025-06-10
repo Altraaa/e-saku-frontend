@@ -18,7 +18,6 @@ const ViewBioViolations = () => {
     const [, setCurrentPage] = useState(1);
     const [showFilters, setShowFilters] = useState(false);
     
-    // Filter states
     const [filters, setFilters] = useState({
         violationType: "",
         followUpAction: "",
@@ -29,7 +28,6 @@ const ViewBioViolations = () => {
         searchTerm: ""
     });
 
-    // Sample violations data for filtering demonstration
     const [violations] = useState([
         {
             id: 1,
@@ -84,38 +82,31 @@ const ViewBioViolations = () => {
         });
     };
 
-    // Helper function to convert DD/MM/YYYY to Date object
     const parseDate = (dateString) => {
         const [day, month, year] = dateString.split('/');
         return new Date(year, month - 1, day);
     };
 
-    // Helper function to convert YYYY-MM-DD to Date object
     const parseFilterDate = (dateString) => {
         return new Date(dateString);
     };
 
     const hasActiveFilters = Object.values(filters).some(filter => filter !== "");
 
-    // Filter violations based on current filters
     const filteredViolations = violations.filter(violation => {
-        // Search term filter
         if (filters.searchTerm && !violation.type.toLowerCase().includes(filters.searchTerm.toLowerCase()) && 
             !violation.description.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
             return false;
         }
         
-        // Violation type filter
         if (filters.violationType && violation.type !== filters.violationType) {
             return false;
         }
         
-        // Follow-up action filter
         if (filters.followUpAction && violation.followUp !== filters.followUpAction) {
             return false;
         }
         
-        // Date range filter
         if (filters.dateFrom || filters.dateTo) {
             const violationDate = parseDate(violation.date);
             
@@ -134,7 +125,6 @@ const ViewBioViolations = () => {
             }
         }
         
-        // Points range filter
         if (filters.pointsMin && violation.points < parseInt(filters.pointsMin)) {
             return false;
         }
@@ -151,7 +141,6 @@ const ViewBioViolations = () => {
 
     return (
         <div className="space-y-6">
-            {/* Back Button */}
             <div className="flex items-center">
                 <a href="/studentbio?nis" className="group">
                     <div className="flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors">
@@ -163,7 +152,6 @@ const ViewBioViolations = () => {
                 </a>
             </div>
 
-            {/* Header Section with Gradient Background */}
             <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-xl p-6 mb-6 shadow-md">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="flex items-center">
@@ -178,7 +166,6 @@ const ViewBioViolations = () => {
                         </div>
                     </div>
                     
-                    {/* Total Points Card */}
                     <div className="bg-red-500 rounded-xl p-4 text-white shadow-sm min-w-[140px]">
                         <div className="flex items-center gap-3">
                             <div className="bg-red-600/40 p-2 rounded-lg">
@@ -193,7 +180,6 @@ const ViewBioViolations = () => {
                 </div>
             </div>
 
-            {/* Summary Statistics */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <Card className="rounded-xl overflow-hidden shadow-sm">
                     <CardContent className="p-4">
@@ -224,7 +210,6 @@ const ViewBioViolations = () => {
                 </Card>
             </div>
 
-            {/* Violations Table */}
             <Card className="rounded-xl overflow-hidden shadow-sm">
                 <CardHeader className="px-6 pt-4 pb-4 border-b-2 border-red-500">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -275,11 +260,9 @@ const ViewBioViolations = () => {
                         </div>
                     </div>
                     
-                    {/* Filter Panel */}
                     {showFilters && (
                         <div className="mt-4 pt-4 border-t border-gray-200 bg-gray-50/50 -mx-6 px-6 pb-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {/* Search */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700">Pencarian</label>
                                     <div className="relative">
@@ -294,7 +277,6 @@ const ViewBioViolations = () => {
                                     </div>
                                 </div>
 
-                                {/* Violation Type */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700">Jenis Pelanggaran</label>
                                     <Select
@@ -313,7 +295,6 @@ const ViewBioViolations = () => {
                                     </Select>
                                 </div>
 
-                                {/* Follow-up Action */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700">Tindak Lanjut</label>
                                     <Select
@@ -332,7 +313,6 @@ const ViewBioViolations = () => {
                                     </Select>
                                 </div>
 
-                                {/* Date From */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700">Tanggal Dari</label>
                                     <input
@@ -343,7 +323,6 @@ const ViewBioViolations = () => {
                                     />
                                 </div>
 
-                                {/* Date To */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700">Tanggal Sampai</label>
                                     <input
@@ -354,7 +333,6 @@ const ViewBioViolations = () => {
                                     />
                                 </div>
 
-                                {/* Points Range */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700">Rentang Poin</label>
                                     <div className="flex gap-2 items-center">
