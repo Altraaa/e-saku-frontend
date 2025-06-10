@@ -19,7 +19,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useViolationDelete, useViolations } from "@/config/Api/useViolation";
+import { useViolationDelete, useViolationsByStudentId } from "@/config/Api/useViolation";
 import { DatePicker } from "@/components/shared/component/DatePicker";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
@@ -36,25 +36,21 @@ const ViewBioViolations = () => {
   );
   const { id } = useParams();
   const studentId = id ?? "";
-  const { data: student, isLoading: studentLoading } =
-    useStudentById(studentId);
+  const { data: student, isLoading: studentLoading } = useStudentById(studentId);
+
   const studentName = student ? student.name : "Loading...";
 
   const [filters, setFilters] = useState({
-    violationType: "",
-    followUpAction: "",
     selectedDate: "",
-    pointsMin: "",
-    pointsMax: "",
     searchTerm: "",
   });
 
-  const { data: violations = [], isLoading, error } = useViolations();
+  const {
+    data: studentViolations = [],
+    isLoading,
+    error,
+  } = useViolationsByStudentId(studentId);
   const deleteViolation = useViolationDelete();
-
-  const studentViolations = studentId
-    ? violations.filter((violation) => violation.student_id === studentId)
-    : violations;
 
   const handleRowsPerPageChange = (value: string) => {
     setRowsPerPage(value);
@@ -63,11 +59,7 @@ const ViewBioViolations = () => {
 
   const clearFilters = () => {
     setFilters({
-      violationType: "",
-      followUpAction: "",
       selectedDate: "",
-      pointsMin: "",
-      pointsMax: "",
       searchTerm: "",
     });
   };
@@ -97,6 +89,19 @@ const ViewBioViolations = () => {
       year: "numeric",
     });
   };
+
+  const formatStatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return format(date, "dd MMM yyyy");
+  };
+
+  const lastViolationDate =
+    studentViolations.length > 0
+      ? studentViolations.reduce((latest, violation) => {
+          const currentDate = new Date(violation.violation_date);
+          return currentDate > latest ? currentDate : latest;
+        }, new Date(studentViolations[0].violation_date))
+      : null;
 
   const parseApiDate = (dateString: string) => {
     return new Date(dateString);
@@ -130,17 +135,6 @@ const ViewBioViolations = () => {
       return false;
     }
 
-    if (filters.violationType && violation.type !== filters.violationType) {
-      return false;
-    }
-
-    if (
-      filters.followUpAction &&
-      violation.followUp !== filters.followUpAction
-    ) {
-      return false;
-    }
-
     if (filters.selectedDate) {
       const violationDate = parseApiDate(violation.date);
       const selectedDate = parseApiDate(filters.selectedDate);
@@ -149,15 +143,6 @@ const ViewBioViolations = () => {
         return false;
       }
     }
-
-    if (filters.pointsMin && violation.points < parseInt(filters.pointsMin)) {
-      return false;
-    }
-
-    if (filters.pointsMax && violation.points > parseInt(filters.pointsMax)) {
-      return false;
-    }
-
     return true;
   });
 
@@ -220,7 +205,7 @@ const ViewBioViolations = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center">
-        <Link to={`/studentbio/${student.id}`} className="group">
+        <Link to={`/studentbio/${student?.id}`} className="group">
           <div className="flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors">
             <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 group-hover:border-green-500 group-hover:bg-green-50 transition-all">
               <MoveLeft className="h-4 w-4" />
@@ -260,6 +245,41 @@ const ViewBioViolations = () => {
         </div>
       </div>
 
+      <div>
+        <div className="flex justify-between space-x-8 items-center">
+          {/* Total Pelanggaran */}
+          <div className="flex-1 p-4 rounded-xl border-2 bg-white">
+            <div className="flex items-center gap-4">
+              <div className="bg-red-500/40 p-2 text-red-800 rounded-lg">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Total Pelanggaran</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {studentViolations.length}
+                </p>
+              </div>
+            </div>
+          </div>
+          {/* Pelanggaran Terakhir */}
+          <div className="flex-1 p-4 rounded-xl border-2 bg-white">
+            <div className="flex items-center gap-4">
+              <div className="bg-red-500/40 p-2 text-red-800 rounded-lg">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Pelanggaran Terakhir</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {lastViolationDate
+                    ? formatStatDate(lastViolationDate.toString())
+                    : "tidak ada data"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Violations Table */}
       <Card className="rounded-xl overflow-hidden shadow-sm">
         <CardHeader className="px-6 pt-4 pb-4 border-b-2 border-red-500">
@@ -269,12 +289,6 @@ const ViewBioViolations = () => {
               <CardTitle className="text-xl font-bold text-gray-900">
                 Riwayat Pelanggaran Siswa
               </CardTitle>
-              {hasActiveFilters && (
-                <span className="text-sm font-normal text-gray-600">
-                  ({filteredViolations.length} dari {studentViolations.length}{" "}
-                  data)
-                </span>
-              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-3">

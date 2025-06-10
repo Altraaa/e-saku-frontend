@@ -2,7 +2,7 @@ import { IRules } from "./Rules";
 
 export interface IViolation {
     id: number;
-    student_id: number;
+    student_id: string;
     description: string;
     violation_date: string;
     teacher_id: number;

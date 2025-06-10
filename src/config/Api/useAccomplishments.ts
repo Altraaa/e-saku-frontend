@@ -19,6 +19,20 @@ export const useAccomplishmentById = (id: number) => {
   });
 };
 
+// Fetch accomplishments by student ID
+export const useAccomplishmentsByStudentId = (student_id: string) => {
+  return useQuery<IAccomplishments[]>({
+    queryKey: ["accomplishmentsByStudent", student_id],
+    queryFn: () => {
+      if (student_id === undefined) {
+        return Promise.resolve([]);
+      }
+      return ApiAccomplishments.getByStudentId(student_id);
+    },
+    enabled: !!student_id,
+  });
+};
+
 // Create accomplishment
 export const useAccomplishmentCreate = () => {
   const queryClient = useQueryClient();
