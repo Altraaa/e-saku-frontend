@@ -246,10 +246,10 @@ const ViewBioAccomplishments = () => {
                 <Trophy className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Total Prestasi</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {studentAccomplishments.length}
                 </p>
+                <p className="text-sm text-gray-600">Total Prestasi</p>
               </div>
             </div>
           </CardContent>
@@ -262,12 +262,12 @@ const ViewBioAccomplishments = () => {
                 <Calendar className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Prestasi Terakhir</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {lastAccomplishmentDate
                     ? formatStatDate(lastAccomplishmentDate.toString())
                     : "tidak ada data"}
                 </p>
+                <p className="text-sm text-gray-600">Prestasi Terakhir</p>
               </div>
             </div>
           </CardContent>
