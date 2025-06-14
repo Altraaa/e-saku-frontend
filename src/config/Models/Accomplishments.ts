@@ -7,6 +7,7 @@ export interface IAccomplishments {
     description: string;
     accomplishment_date: string;
     level: number;
+    rank: string
     points: number;
     created_at: string;
     updated_at: string;

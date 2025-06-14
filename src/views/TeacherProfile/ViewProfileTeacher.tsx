@@ -308,7 +308,7 @@ const ViewProfileTeacher = () => {
                   />
                 )}
               </div>
-              
+
               <div className="space-y-2 w-full">
                 <Button
                   onClick={handleChangeAvatar}
@@ -348,12 +348,15 @@ const ViewProfileTeacher = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     {classrooms.map((classroom, index) => (
-                      <span
+                      <button
                         key={index}
+                        onClick={() =>
+                          navigate(`/student/class/${classroom.id}`)
+                        }
                         className="px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-sm rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105 text-center"
                       >
                         {classroom.name}
-                      </span>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -611,7 +614,11 @@ const ViewProfileTeacher = () => {
                         onClick={() => togglePasswordVisibility("password")}
                         className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700"
                       >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
                       </button>
                     </div>
                   </div>

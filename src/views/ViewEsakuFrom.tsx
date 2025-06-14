@@ -69,6 +69,19 @@ import { useAccomplishmentCreate } from "@/config/Api/useAccomplishments";
 import { useReportCreate } from "@/config/Api/useTeacherReport";
 import ConfirmationModal from "@/components/ui/confirmation";
 
+const RankOptions = [
+  "Juara 1",
+  "Juara 2",
+  "Juara 3",
+  "Harapan 1",
+  "Harapan 2",
+  "Harapan 3",
+  "Peserta",
+  "lainnya",
+] as const;
+export type RankOptions = (typeof RankOptions)[number];
+
+
 const ESakuForm: React.FC = () => {
   const teacherId = Number(localStorage.getItem("teacher_id"));
   const inputClass =
@@ -99,6 +112,8 @@ const ESakuForm: React.FC = () => {
     return new Date();
   });
   const [selectedRule, setSelectedRule] = useState<IRules | null>(null);
+  const [rank, setRank] = useState<string>("");
+  const [customRank, setCustomRank] = useState<string>("");
   const [selectedRuleId, setSelectedRuleId] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmType, setConfirmType] = useState<"report" | "save" | null>(
@@ -195,6 +210,8 @@ const ESakuForm: React.FC = () => {
     setCustomFollowUp("");
     setCustomViolation("");
     setDescription("");
+    setRank("");
+    setCustomRank("");
     setStudentName("");
     setDate(new Date());
     setFormStep(0);
@@ -216,8 +233,6 @@ const ESakuForm: React.FC = () => {
       newErrors.violationType = "Jenis pelanggaran harus dipilih";
     } else if (inputType === "achievement" && !achievementLevel) {
       newErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
-    } else if (inputType === "achievement" && !achievementTypeOptions) {
-      newErrors.achievementTypeOptions = "Jenis prestasi harus dipilih";
     } else if (inputType === "achievement" && !achievementTypeOptions) {
       newErrors.achievementTypeOptions = "Jenis prestasi harus dipilih";
     }
@@ -247,6 +262,12 @@ const ESakuForm: React.FC = () => {
         newErrors.point = "Poin harus berupa angka";
       } else if (parseInt(point) <= 0) {
         newErrors.point = "Poin harus lebih besar dari 0";
+      }
+
+      if (!rank) {
+        newErrors.rank = "Peringkat diperlukan";
+      } else if (rank === "lainnya" && !customRank.trim()) {
+        newErrors.customRank = "Peringkat lainnya diperlukan";
       }
     }
 
@@ -291,6 +312,12 @@ const ESakuForm: React.FC = () => {
           newErrors.point = "Poin harus berupa angka";
         } else if (parseInt(point) <= 0) {
           newErrors.point = "Poin harus lebih besar dari 0";
+        }
+
+        if (!rank) {
+          newErrors.rank = "Peringkat diperlukan";
+        } else if (rank === "lainnya" && !customRank.trim()) {
+          newErrors.customRank = "Peringkat lainnya diperlukan";
         }
       }
     }
@@ -356,6 +383,7 @@ const ESakuForm: React.FC = () => {
           accomplishment_date: date.toISOString().split("T")[0],
           level: levelMap[achievementLevel] ?? 0,
           points: parseInt(point),
+          rank: rank === "lainnya" ? customRank : rank,
         },
         {
           onSuccess: () => {
@@ -456,6 +484,7 @@ const ESakuForm: React.FC = () => {
         ? getAchievementLevelLabel(achievementLevel)
         : "-",
     point: inputType === "violation" ? `-${point}` : `+${point}`,
+    rank: rank === "lainnya" ? customRank : rank,
   };
 
   const isMobileView = typeof window !== "undefined" && window.innerWidth < 640;
@@ -935,6 +964,44 @@ const ESakuForm: React.FC = () => {
                         </div>
                       )}
 
+                      <div className="space-y-2">
+                        <FormFieldGroup
+                          label="Peringkat"
+                          icon={<Award className="h-4 w-4 text-green-600" />}
+                          required
+                          error={errors.rank}
+                        >
+                          <Select
+                            value={rank}
+                            onValueChange={(value: string) => setRank(value)}
+                          >
+                            <SelectTrigger
+                              className={`${inputClass} ${
+                                errors.rank ? inputErrorClass : ""
+                              }`}
+                            >
+                              <SelectValue placeholder="Pilih Peringkat" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Juara 1">Juara 1</SelectItem>
+                              <SelectItem value="Juara 2">Juara 2</SelectItem>
+                              <SelectItem value="Juara 3">Juara 3</SelectItem>
+                              <SelectItem value="Harapan 1">
+                                Harapan 1
+                              </SelectItem>
+                              <SelectItem value="Harapan 2">
+                                Harapan 2
+                              </SelectItem>
+                              <SelectItem value="Harapan 3">
+                                Harapan 3
+                              </SelectItem>
+                              <SelectItem value="Peserta">Peserta</SelectItem>
+                              <SelectItem value="lainnya">Lainnya</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormFieldGroup>
+                      </div>
+
                       <div className="flex flex-col sm:flex-row gap-6">
                         <div className="space-y-2 flex-grow">
                           <FormFieldGroup
@@ -973,7 +1040,6 @@ const ESakuForm: React.FC = () => {
                             </Select>
                           </FormFieldGroup>
                         </div>
-
                         <div className="space-y-2 flex-grow">
                           <FormFieldGroup
                             label={
@@ -1012,6 +1078,26 @@ const ESakuForm: React.FC = () => {
                           </FormFieldGroup>
                         </div>
                       </div>
+                      {rank === "lainnya" && (
+                        <div className="space-y-2">
+                          <FormFieldGroup
+                            label="Peringkat Lainnya"
+                            icon={<Award className="h-4 w-4 text-green-600" />}
+                            required
+                            error={errors.customRank}
+                          >
+                            <Input
+                              type="text"
+                              value={customRank}
+                              onChange={(e) => setCustomRank(e.target.value)}
+                              placeholder="Masukkan peringkat lainnya"
+                              className={`${inputClass} ${
+                                errors.customRank ? inputErrorClass : ""
+                              }`}
+                            />
+                          </FormFieldGroup>
+                        </div>
+                      )}
                     </div>
                   )}
 

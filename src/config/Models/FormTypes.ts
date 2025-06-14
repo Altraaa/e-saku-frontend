@@ -14,6 +14,8 @@ export interface ESakuFormErrorState extends StudentFormErrorState {
   description?: string;
   followUpDescription?: string;
   customAchievement?: string;
+  rank?: string;
+  customRank?: string;
 }
 
 export type InputTypeOptions = "violation" | "achievement";
