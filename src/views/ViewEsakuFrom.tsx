@@ -68,6 +68,7 @@ import { useViolationCreate } from "@/config/Api/useViolation";
 import { useAccomplishmentCreate } from "@/config/Api/useAccomplishments";
 import { useReportCreate } from "@/config/Api/useTeacherReport";
 import ConfirmationModal from "@/components/ui/confirmation";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const RankOptions = [
   "Juara 1",
@@ -729,7 +730,7 @@ const ESakuForm: React.FC = () => {
                         </SelectContent>
                         {inputType === "violation" && (
                           <div className="flex items-center gap-2 mt-2">
-                            <Checkbox
+                            <Checkbox 
                               id="filter-my-classes"
                               checked={showOnlyTeacherClass}
                               onCheckedChange={(checked) =>
