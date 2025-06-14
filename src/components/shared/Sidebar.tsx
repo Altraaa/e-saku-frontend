@@ -9,6 +9,7 @@ import {
   LogOut,
   Users,
   CircleHelp,
+  MessageSquareWarning,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import skensalogo from "@/assets/skensa.png";
@@ -66,6 +67,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
     { label: "E-saku Form", icon: FileText, path: "/esakuform" },
     { label: "History", icon: History, path: "/history" },
     { label: "Rules", icon: DiamondMinusIcon, path: "/rules" },
+    { label: "Report", icon: MessageSquareWarning, path: "/report" },
   ];
 
   const accountItems = [

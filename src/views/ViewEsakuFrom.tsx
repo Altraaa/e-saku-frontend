@@ -129,7 +129,7 @@ const ESakuForm: React.FC = () => {
     boolean | null
   >(null);
   const [showOnlyTeacherClass, setShowOnlyTeacherClass] =
-    useState<boolean>(false);
+    useState<boolean>(true);
 
   const { data: rulesData } = useRules();
   const { data: classrooms } = useClassroom();
@@ -235,7 +235,7 @@ const ESakuForm: React.FC = () => {
       newErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
     } else if (inputType === "achievement" && !achievementTypeOptions) {
       newErrors.achievementTypeOptions = "Jenis prestasi harus dipilih";
-    }
+    } 
 
     if (
       inputType === "violation" &&
@@ -456,7 +456,7 @@ const ESakuForm: React.FC = () => {
   const stepTitles = [
     "Data Siswa",
     `Detail ${inputType === "violation" ? "Pelanggaran" : "Prestasi"}`,
-    "Tindak Lanjut",
+    inputType === "violation" ? "Tindak Lanjut" : "Ringkasan",
   ];
 
   function getAchievementLevelLabel(level: AchievementLevelOptions): string {
@@ -729,18 +729,17 @@ const ESakuForm: React.FC = () => {
                         </SelectContent>
                         {inputType === "violation" && (
                           <div className="flex items-center gap-2 mt-2">
-                            <input
-                              type="checkbox"
+                            <Checkbox
                               id="filter-my-classes"
                               checked={showOnlyTeacherClass}
-                              onChange={(e) =>
-                                setShowOnlyTeacherClass(e.target.checked)
+                              onCheckedChange={(checked) =>
+                                setShowOnlyTeacherClass(!!checked)
                               }
-                              className="h-4 w-4 text-green-600 border-gray-300 rounded-lg focus:ring-green-500"
+                              className="text-green-600"
                             />
                             <label
                               htmlFor="filter-my-classes"
-                              className="text-sm text-gray-600"
+                              className="text-sm text-gray-600 select-none"
                             >
                               Tampilkan hanya kelas yang diampu
                             </label>

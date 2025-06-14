@@ -254,26 +254,26 @@ const ViewBioViolations = () => {
                 <AlertTriangle className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Total Pelanggaran</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {studentViolations.length}
                 </p>
+                <p className="text-sm text-gray-600">Total Pelanggaran</p>
               </div>
             </div>
           </div>
           {/* Pelanggaran Terakhir */}
           <div className="flex-1 p-4 rounded-xl border-2 bg-white">
             <div className="flex items-center gap-4">
-              <div className="bg-red-500/40 p-2 text-red-800 rounded-lg">
-                <AlertTriangle className="h-5 w-5" />
+              <div className="bg-orange-400/40 p-2 text-orange-600 rounded-lg">
+                <Calendar className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Pelanggaran Terakhir</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {lastViolationDate
                     ? formatStatDate(lastViolationDate.toString())
                     : "tidak ada data"}
                 </p>
+                <p className="text-sm text-gray-600">Pelanggaran Terakhir</p>
               </div>
             </div>
           </div>
