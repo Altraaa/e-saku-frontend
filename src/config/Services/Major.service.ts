@@ -8,6 +8,6 @@ export const ApiMajors = {
   getById: (id: number): Promise<IMajor> =>
     ApiRequest({ url: `/majors/${id}`, method: "GET" }),
 
-  getWithClassrooms: (): Promise<IMajor[]> => // optionally define return type
+  getWithClassrooms: (): Promise<IMajor[]> =>  
     ApiRequest({ url: "/majors-with-classrooms", method: "GET" }),
 };
