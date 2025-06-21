@@ -22,5 +22,5 @@ export const ApiTeacherReports = {
   processReport: (id: number): Promise<ITeacherReport> =>
     ApiRequest({ url: `/reports-teacher/process/${id}`, method: "POST" }),
   delete: (id: number): Promise<{ message: string }> =>
-    ApiRequest({ url: `/reports-teacher/${id}`, method: "DELETE" }),
+    ApiRequest({ url: `/reports-teacher/${id}`, method: "POST", body: {_method: "DELETE"} }),
 };

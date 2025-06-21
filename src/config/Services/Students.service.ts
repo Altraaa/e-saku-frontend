@@ -12,5 +12,5 @@ export const ApiStudents = {
   update: (id: number, data: IStudent) =>
     ApiRequest({ url: `/students/${id}`, method: "PUT", body: data }),
   delete: (id: number) =>
-    ApiRequest({ url: `/students/${id}`, method: "DELETE" }),
+    ApiRequest({ url: `/students/${id}`, method: "POST", body: {_method: "DELETE"} }),
 };

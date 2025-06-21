@@ -44,15 +44,7 @@ import { useClassroomById } from "@/config/Api/useClasroom";
 import { useStudentDelete } from "@/config/Api/useStudent";
 import { useTeacherById } from "@/config/Api/useTeacher";
 import axios from "axios";
-
-interface IStudent {
-  id: number;
-  nis: string;
-  name: string;
-  violation_points?: number;
-  accomplishment_points?: number;
-  point_total?: number;
-}
+import { IStudent } from "@/config/Models/Student";
 
 interface ClassHeaderProps {
   className: string;
@@ -682,7 +674,7 @@ const ViewStudentByClass: React.FC = () => {
                           variant="outline"
                           className="bg-red-50 text-red-600 border-red-200"
                         >
-                          {student.violation_points || 0}
+                          {student.violations_sum_points || 0}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center font-normal">
@@ -690,7 +682,7 @@ const ViewStudentByClass: React.FC = () => {
                           variant="outline"
                           className="bg-green-50 text-green-600 border-green-200"
                         >
-                          {student.accomplishment_points || 0}
+                          {student.accomplishments_sum_points || 0}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center font-normal">

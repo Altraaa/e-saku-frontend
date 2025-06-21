@@ -13,5 +13,5 @@ export const ApiClassrooms = {
   update: (id: number, data: Partial<IClassroom>): Promise<IClassroom> =>
     ApiRequest({ url: `/classes/${id}`, method: "PUT", body: data }),
   delete: (id: number): Promise<{ message: string }> =>
-    ApiRequest({ url: `/classes/${id}`, method: "DELETE" }),
+    ApiRequest({ url: `/classes/${id}`, method: "POST", body: {_method: "DELETE"} }),
 };

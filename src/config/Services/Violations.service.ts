@@ -13,5 +13,5 @@ export const ApiViolations = {
   update: (id: number, data: Partial<IViolation>): Promise<IViolation> =>
     ApiRequest({ url: `/violations/${id}`, method: "PUT", body: data }),
   delete: (id: number): Promise<{ message: string }> =>
-    ApiRequest({ url: `/violations/${id}`, method: "DELETE" }),
+    ApiRequest({ url: `/violations/${id}`, method: "POST", body: {_method: "DELETE"} }),
 };
