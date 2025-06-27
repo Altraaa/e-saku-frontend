@@ -182,7 +182,7 @@ const ViewStudent = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 max-w-full">
+    <div className="container mx-auto md:py-4 max-w-full">
       <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 sm:p-6 shadow-md mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:mb-2">
           <div className="bg-green-600/40 p-2 rounded-lg mr-0 sm:mr-3 mb-2 sm:mb-0 self-start sm:self-auto">
