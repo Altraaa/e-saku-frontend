@@ -7,7 +7,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Trash2, Info, PlusCircle, AlertTriangle } from "lucide-react";
+import { Trash2, Info, PlusCircle, AlertTriangle, Send } from "lucide-react";
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -17,29 +17,40 @@ interface ConfirmationModalProps {
   description: string;
   confirmText: string;
   cancelText?: string;
-  type: "delete" | "update" | "add" | "logout";
+  type: "delete" | "update" | "add" | "logout" | "report"; // Tambahkan tipe report
 }
 
 const typeStyles = {
   delete: {
     icon: <Trash2 className="w-8 h-8 text-red-500" />,
     bgColor: "bg-red-100",
-    buttonColor: "outline-none focus:outline-none focus:border-none bg-red-500 hover:bg-red-600",
+    buttonColor:
+      "outline-none focus:outline-none focus:border-none bg-red-500 hover:bg-red-600",
   },
   update: {
     icon: <Info className="w-8 h-8 text-blue-500" />,
     bgColor: "bg-blue-100",
-    buttonColor: "outline-none focus:outline-none focus:border-none bg-blue-500 hover:bg-blue-600",
+    buttonColor:
+      "outline-none focus:outline-none focus:border-none bg-blue-500 hover:bg-blue-600",
   },
   add: {
     icon: <PlusCircle className="w-8 h-8 text-green-500" />,
     bgColor: "bg-green-100",
-    buttonColor: "outline-none focus:outline-none focus:border-none bg-green-500 hover:bg-green-600",
+    buttonColor:
+      "outline-none focus:outline-none focus:border-none bg-green-500 hover:bg-green-600",
   },
   logout: {
     icon: <AlertTriangle className="w-8 h-8 text-red-500" />,
     bgColor: "bg-red-100",
-    buttonColor: "outline-none focus:outline-none focus:border-none bg-red-500 hover:bg-red-600",
+    buttonColor:
+      "outline-none focus:outline-none focus:border-none bg-red-500 hover:bg-red-600",
+  },
+  // Tambahkan style untuk tipe report
+  report: {
+    icon: <Send className="w-8 h-8 text-black" />,
+    bgColor: "bg-purple-100",
+    buttonColor:
+      "outline-none focus:outline-none focus:border-none bg-black hover:bg-black/80",
   },
 };
 
@@ -50,7 +61,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   title,
   description,
   confirmText,
-  cancelText = "Cancel",
+  cancelText = "Batal",
   type,
 }) => {
   return (
