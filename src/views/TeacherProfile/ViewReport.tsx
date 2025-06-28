@@ -21,46 +21,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/shared/component/DatePicker";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Link } from "react-router-dom"; // For navigation
+import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 
 const dummyViolations = [
-  {
-    id: 1,
-    nis: "30688",
-    studentName: "I Made Gerrald Wahyu Darmawan",
-    className: "XII RPL 3",
-    type: "Rambut Panjang",
-    description: "Siswa tidak memotong rambut sesuai peraturan.",
-    followUp: "Peringatan",
-    date: "02/07/2025",
-    points: 3,
-    teacherSender: "Pak Agus Setiawan",
-  },
-  {
-    id: 2,
-    nis: "30890",
-    studentName: "Putu Berliana Suardana Putri",
-    className: "XII MM 1",
-    type: "Mencuri hatiku",
-    description: "Pelanggaran ringan, harusnya fokus pada pelajaran.",
-    followUp: "Bimbingan",
-    date: "02/07/2025",
-    points: 2,
-    teacherSender: "Bu Sari Dewi",
-  },
-  {
-    id: 3,
-    nis: "30686",
-    studentName: "I Made Dio Kartiana Putra",
-    className: "XII RPL 3",
-    type: "Suka sama Shandy",
-    description: "Mungkin perlu diberi nasihat terkait perasaan terhadap teman.",
-    followUp: "Observasi",
-    date: "02/07/2025",
-    points: 1,
-    teacherSender: "Pak Wayan Sudarta",
-  },
+
 ];
 
 const ViewReport = () => {
@@ -227,7 +192,7 @@ const ViewReport = () => {
         </div>
         <div className="mt-1 flex items-center">
           <span className="text-gray-600">Diampu oleh:</span>
-          <span className="ml-2 font-semibold text-gray-700">Mr. Teacher</span>
+          <span className="ml-2 font-semibold text-gray-700"></span>
         </div>
       </div>
 
