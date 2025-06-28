@@ -34,7 +34,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Link } from "react-router-dom"; // For navigation
-import { Card } from "@/components/ui/card";
 import { useReports } from "@/config/Api/useTeacherReport";
 
 const ViewReport = () => {
@@ -50,7 +49,10 @@ const ViewReport = () => {
   });
 
   // Fetch reports data using useReports hook
-  const { data: reports, isLoading: isReportsLoading, error } = useReports();
+  const { data: reports, isLoading: isReportsLoading } = useReports();
+
+  // Get logged-in teacher ID from localStorage
+  const teacherId = Number(localStorage.getItem("teacher_id"));
 
   useEffect(() => {
     if (isReportsLoading) {
@@ -90,10 +92,16 @@ const ViewReport = () => {
     (filter) => filter !== ""
   );
 
-  const filteredViolations = useMemo(() => {
+  // Filter reports by teacher_id and applied filters (search term and date)
+  const filteredReports = useMemo(() => {
     if (!reports) return [];
 
-    return reports.filter((violation) => {
+    // Filter reports where teacher_id matches the logged-in teacher
+    const teacherReports = reports.filter(
+      (report) => report.teacher_id === teacherId
+    );
+
+    return teacherReports.filter((violation) => {
       if (
         filters.searchTerm &&
         !violation.violation_details
@@ -113,14 +121,12 @@ const ViewReport = () => {
       }
       return true;
     });
-  }, [filters, reports]);
+  }, [filters, reports, teacherId]);
 
-  const totalPages = Math.ceil(
-    filteredViolations.length / parseInt(rowsPerPage)
-  );
+  const totalPages = Math.ceil(filteredReports.length / parseInt(rowsPerPage));
   const startIndex = (currentPage - 1) * parseInt(rowsPerPage);
   const endIndex = startIndex + parseInt(rowsPerPage);
-  const paginatedViolations = filteredViolations.slice(startIndex, endIndex);
+  const paginatedReports = filteredReports.slice(startIndex, endIndex);
 
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,10 +235,10 @@ const ViewReport = () => {
                   Nama
                 </TableHead>
                 <TableHead className="text-center font-medium text-black">
-                  Kelas
+                  Pelapor
                 </TableHead>
                 <TableHead className="text-center font-medium text-black">
-                  Pelapor
+                  Jenis Pelanggaran
                 </TableHead>
                 <TableHead className="text-center font-medium text-black">
                   Detail Pelanggaran
@@ -243,8 +249,8 @@ const ViewReport = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedViolations.length > 0 ? (
-                paginatedViolations.map((violation, index) => (
+              {paginatedReports.length > 0 ? (
+                paginatedReports.map((violation, index) => (
                   <TableRow
                     key={violation.id}
                     className="border-b hover:bg-gray-50"
@@ -259,10 +265,10 @@ const ViewReport = () => {
                       {violation.student?.name}
                     </TableCell>
                     <TableCell className="text-center font-normal">
-                      {violation.student?.classroom?.name}
+                      {violation.reporter?.name}
                     </TableCell>
                     <TableCell className="text-center font-normal">
-                      {violation.reporter?.name}
+                      {violation.rulesofconduct_id?.name}
                     </TableCell>
                     <TableCell className="text-center font-normal">
                       <Button
@@ -303,8 +309,8 @@ const ViewReport = () => {
         <div className="pl-6 pt-4 pb-4 flex justify-between items-center border-t">
           <div className="flex items-center space-x-4">
             <div className="text-sm text-gray-500">
-              Menampilkan {paginatedViolations.length} dari{" "}
-              {filteredViolations.length} pelanggaran
+              Menampilkan {paginatedReports.length} dari{" "}
+              {filteredReports.length} pelanggaran
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-600">Rows:</span>
@@ -369,22 +375,19 @@ const ViewReport = () => {
             </DialogHeader>
             <div className="space-y-4 text-sm text-gray-700">
               <p>
-                <strong>Jenis Pelanggaran:</strong>{" "}
-                {violationDetails?.violation_details}
-              </p>
-              <p>
                 <strong>Nama:</strong> {violationDetails?.student?.name}
               </p>
               <p>
-                <strong>Kelas:</strong> {violationDetails?.student?.classroom?.name}
-              </p>
-              <p>
                 <strong>Tanggal:</strong>{" "}
-                {formatDisplayDate(violationDetails?.report_date)}
+                {formatDisplayDate(violationDetails?.violation_date)}
               </p>
               <p>
                 <strong>Deskripsi:</strong>{" "}
                 {violationDetails?.violation_details}
+              </p>
+              <p>
+                <strong>Tindak Lanjut:</strong>{" "}
+                {violationDetails?.action}
               </p>
             </div>
           </DialogContent>
