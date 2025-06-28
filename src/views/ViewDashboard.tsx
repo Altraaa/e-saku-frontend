@@ -223,7 +223,7 @@ const ViewDashboard = () => {
         <h1 className="text-lg sm:text-xl lg:text-2xl font-bold leading-tight">
           Hi🙌, <span className='text-green-500'>{teacherName}</span>
         </h1>
-        <p className="text-lg sm:text-xl lg:text-2xl font-bold leading-tight">
+        <p className="text-md sm:text-xl lg:text-2xl font-bold leading-tight">
           Selamat datang di website E-Saku Siswa😊
         </p>
       </div>
