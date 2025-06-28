@@ -10,5 +10,5 @@ export const ApiRules = {
   update: (id: number, data: Partial<IRules>): Promise<IRules> =>
     ApiRequest({ url: `/rules-of-conduct/${id}`, method: "PUT", body: data }),
   delete: (id: number): Promise<{ message: string }> =>
-    ApiRequest({ url: `/rules-of-conduct/${id}`, method: "DELETE" }),
+    ApiRequest({ url: `/rules-of-conduct/${id}`, method: "POST", body: {_method: "DELETE"} }),
 };

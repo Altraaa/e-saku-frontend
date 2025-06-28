@@ -90,6 +90,7 @@ const ViewBioAccomplishments = () => {
     (accomplishment) => ({
       id: accomplishment.id,
       type: accomplishment.accomplishment_type,
+      rank: accomplishment.rank,
       description: accomplishment.description,
       date: accomplishment.accomplishment_date,
       level: accomplishment.level,
@@ -367,7 +368,7 @@ const ViewBioAccomplishments = () => {
                       <TableCell className="text-center font-medium py-4">
                         {startIndex + index + 1}
                       </TableCell>
-                      <TableCell className="font-medium py-4">
+                      <TableCell className="font-medium py-4 uppercase">
                         {accomplishment.type}
                       </TableCell>
                       <TableCell className="text-center py-4">
@@ -375,7 +376,7 @@ const ViewBioAccomplishments = () => {
                           variant="outline"
                           className="bg-blue-50 text-blue-700 border-blue-200"
                         >
-                          {accomplishment.type}
+                          {accomplishment.rank}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center py-4">

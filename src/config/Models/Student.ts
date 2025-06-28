@@ -30,6 +30,6 @@ export interface IStudent {
   class_id: number;
   violations_sum_points: number;
   accomplishments_sum_points: number;
-  classroom?: IClassroom[];
+  classroom?: IClassroom;
   major?: IMajor[];
 }

@@ -1,3 +1,4 @@
+// ViewHistory Component
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -82,7 +83,7 @@ const ViewHistory = () => {
   const { data: classrooms } = useClassroomByTeacherId();
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
   const [studentName, setStudentName] = useState<string>("");
-  
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null); // State untuk DatePicker
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -93,7 +94,11 @@ const ViewHistory = () => {
   }, []);
 
   const handleHistoryChange = (value : string) => {
-        setSelectedHistory(value);
+    setSelectedHistory(value);
+  };
+
+  const handleDateChange = (date: Date | undefined) => {
+    setSelectedDate(date || null); // Set the selected date or null if undefined
   };
 
   if (isLoading) {
@@ -146,12 +151,12 @@ const ViewHistory = () => {
               <SelectContent>
                 {classrooms?.map((classroom: IClassroom) => (
                   <SelectItem key={classroom.id} value={classroom.name}>
-                        {classroom.name}
+                    {classroom.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <DatePicker/>
+            <DatePicker value={selectedDate} onChange={handleDateChange} /> {/* Bind the DatePicker with selectedDate */}
           </div>
 
           <Button
@@ -164,11 +169,11 @@ const ViewHistory = () => {
       </div>
       <div>
         {selectedHistory === "violationhistory" && (
-          <ViolationHistoryTable />
+          <ViolationHistoryTable selectedDate={selectedDate} /> 
         )}
 
         {selectedHistory === "accomplishmenthistory" && (
-          <AccomplishmentHistoryTable />
+          <AccomplishmentHistoryTable selectedDate={selectedDate} /> 
         )}
       </div>
     </>

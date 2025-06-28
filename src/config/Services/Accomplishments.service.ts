@@ -16,5 +16,5 @@ export const ApiAccomplishments = {
   ): Promise<IAccomplishments> =>
     ApiRequest({ url: `/accomplishments/${id}`, method: "PUT", body: data }),
   delete: (id: number): Promise<{ message: string }> =>
-    ApiRequest({ url: `/accomplishments/${id}`, method: "DELETE" }),
+    ApiRequest({ url: `/accomplishments/${id}`, method: "POST", body: {_method: "DELETE"} }),
 };

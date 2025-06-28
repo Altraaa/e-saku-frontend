@@ -141,6 +141,8 @@ const ESakuForm: React.FC = () => {
 
   const formRef = useRef<HTMLDivElement>(null);
 
+  console.log("isModalOpen:", isModalOpen); // Debugging isModalOpen state
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -232,11 +234,14 @@ const ESakuForm: React.FC = () => {
 
     if (inputType === "violation" && !violationType) {
       newErrors.violationType = "Jenis pelanggaran harus dipilih";
-    } else if (inputType === "achievement" && !achievementLevel) {
-      newErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
-    } else if (inputType === "achievement" && !achievementTypeOptions) {
-      newErrors.achievementTypeOptions = "Jenis prestasi harus dipilih";
-    } 
+    } else if (inputType === "achievement") {
+      if (!achievementLevel) {
+        newErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
+      }
+      if (!achievementTypeOptions) {
+        newErrors.achievementTypeOptions = "Jenis prestasi harus dipilih";
+      }
+    }
 
     if (
       inputType === "violation" &&
@@ -343,7 +348,7 @@ const ESakuForm: React.FC = () => {
     if (inputType === "violation") {
       createViolation(
         {
-          student_id: studentObj.id,
+          student_id: studentObj.id.toString(),
           description,
           violation_date: date.toISOString().split("T")[0],
           teacher_id: teacherId,
@@ -375,7 +380,7 @@ const ESakuForm: React.FC = () => {
 
       createAccomplishment(
         {
-          student_id: studentObj.id,
+          student_id: studentObj.id.toString(),
           description,
           accomplishment_type:
             achievementTypeOptions === "lainnya"
@@ -404,6 +409,8 @@ const ESakuForm: React.FC = () => {
   };
 
   const handleSendAsReport = (): void => {
+    console.log("handleSendAsReport called");
+
     const studentObj = students.find((s) => s.name === studentName);
     const classroomObj = classrooms?.find((c) => c.name === classType);
 
@@ -414,28 +421,51 @@ const ESakuForm: React.FC = () => {
 
     setIsSubmitting(true);
 
-    createReport(
-      {
-        student_id: studentObj.id,
-        reported_by: teacherId,
-        teacher_id: classroomObj.teacher_id,
-        violation_details: description,
-        report_date: date.toISOString().split("T")[0],
+    // Prepare the data based on input type (violation or achievement)
+    let reportData: any = {
+      student_id: studentObj.id,
+      reported_by: teacherId,
+      teacher_id: classroomObj.teacher_id,
+      violation_details: description,
+      report_date: date.toISOString().split("T")[0],
+    };
+
+    const levelMap: Record<string, number> = {
+      kota: 1,
+      provinsi: 2,
+      nasional: 3,
+      internasional: 4,
+    };
+
+    if (inputType === "achievement") {
+      // For achievements, include the rank and points
+      reportData = {
+        ...reportData,
+        accomplishment_type:
+          achievementTypeOptions === "lainnya"
+            ? customAchievement
+            : achievementTypeOptions,
+        level: levelMap[achievementLevel] ?? 0,
+        points: parseInt(point),
+        rank: rank === "lainnya" ? customRank : rank,
+      };
+    }
+
+    console.log("Report data to be sent:", reportData);
+
+    createReport(reportData, {
+      onSuccess: () => {
+        setShowSuccess(true);
+        resetForm();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setTimeout(() => setShowSuccess(false), 3000);
       },
-      {
-        onSuccess: () => {
-          setShowSuccess(true);
-          resetForm();
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          setTimeout(() => setShowSuccess(false), 3000);
-        },
-        onError: (error) => {
-          console.error("Gagal mengirim laporan:", error);
-          alert("Gagal mengirim laporan ke guru pengampu.");
-        },
-        onSettled: () => setIsSubmitting(false),
-      }
-    );
+      onError: (error) => {
+        console.error("Gagal mengirim laporan:", error);
+        alert("Gagal mengirim laporan ke guru pengampu.");
+      },
+      onSettled: () => setIsSubmitting(false),
+    });
   };
 
   const handleNextStep = (): void => {
@@ -513,6 +543,8 @@ const ESakuForm: React.FC = () => {
   };
 
   const handleOpenConfirm = (type: "report" | "save") => {
+    console.log("Opening confirmation for type:", type);
+
     // Validasi khusus untuk laporan
     if (type === "report") {
       const reportErrors: ESakuFormErrorState = {};
@@ -522,18 +554,10 @@ const ESakuForm: React.FC = () => {
       if (!date) reportErrors.date = "Tanggal diperlukan";
       if (!description.trim())
         reportErrors.description = "Deskripsi diperlukan";
-      if (!violationType)
+
+      // Hanya validasi pelanggaran jika tipe input adalah violation
+      if (inputType === "violation" && !violationType) {
         reportErrors.violationType = "Pelanggaran harus dipilih";
-      if (!achievementTypeOptions)
-        reportErrors.achievementTypeOptions = "Tipe prestasi harus dipilih";
-      if (!achievementLevel)
-        reportErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
-      if (!point.trim()) {
-        reportErrors.point = "Poin prestasi diperlukan";
-      } else if (isNaN(parseInt(point))) {
-        reportErrors.point = "Poin harus berupa angka";
-      } else if (parseInt(point) <= 0) {
-        reportErrors.point = "Poin harus lebih besar dari 0";
       }
 
       setErrors(reportErrors);
@@ -541,10 +565,12 @@ const ESakuForm: React.FC = () => {
       if (Object.keys(reportErrors).length === 0) {
         setConfirmType(type);
         setIsModalOpen(true);
+        console.log("Confirmation modal is open.");
       }
       return;
     }
 
+    // Validasi untuk simpan biasa
     const isValid = validateForm();
     if (isValid) {
       setConfirmType(type);
@@ -561,11 +587,15 @@ const ESakuForm: React.FC = () => {
 
   const handleConfirm = () => {
     setIsModalOpen(false);
-    if (confirmType === "report") {
-      handleSendAsReport();
-    } else if (confirmType === "save") {
-      handleSubmit();
-    }
+
+    // Beri jeda sebelum eksekusi untuk memastikan state sudah update
+    setTimeout(() => {
+      if (confirmType === "report") {
+        handleSendAsReport();
+      } else if (confirmType === "save") {
+        handleSubmit();
+      }
+    }, 100);
   };
 
   return (
@@ -704,7 +734,13 @@ const ESakuForm: React.FC = () => {
                           setSelectedClassId(selectedClass?.id || null);
                           setStudentName("");
 
-                          if (selectedClass?.teacher_id === teacherId) {
+                          // Pastikan teacherId adalah number
+                          const teacherIdNum = Number(teacherId);
+
+                          if (
+                            selectedClass &&
+                            selectedClass.teacher_id === teacherIdNum
+                          ) {
                             setIsClassTaughtByTeacher(true);
                           } else {
                             setIsClassTaughtByTeacher(false);
@@ -730,7 +766,7 @@ const ESakuForm: React.FC = () => {
                         </SelectContent>
                         {inputType === "violation" && (
                           <div className="flex items-center gap-2 mt-2">
-                            <Checkbox 
+                            <Checkbox
                               id="filter-my-classes"
                               checked={showOnlyTeacherClass}
                               onCheckedChange={(checked) =>
@@ -1306,7 +1342,7 @@ const ESakuForm: React.FC = () => {
                   type="button"
                   className={btnDarkClass}
                   onClick={() => handleOpenConfirm("report")}
-                  disabled={isSubmitting || isClassTaughtByTeacher !== false}
+                  disabled={isSubmitting || isClassTaughtByTeacher === true}
                 >
                   <Send className="h-4 w-4" />
                   Kirim sebagai Laporan
@@ -1329,17 +1365,20 @@ const ESakuForm: React.FC = () => {
 
       <ConfirmationModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setConfirmType(null);
+        }}
         onConfirm={handleConfirm}
         title={confirmType === "report" ? "Kirim Laporan?" : "Simpan Data?"}
         description={
           confirmType === "report"
-            ? "Apakah anda yakin ingin mengirim sebagai laporan?"
+            ? "Apakah anda yakin ingin mengirim sebagai laporan ke guru pengampu kelas?"
             : "Apakah anda yakin ingin menyimpan data ini?"
         }
         confirmText={confirmType === "report" ? "Kirim" : "Simpan"}
         cancelText="Batal"
-        type={confirmType === "report" ? "update" : "add"}
+        type={confirmType === "report" ? "report" : "add"}
       />
     </div>
   );
