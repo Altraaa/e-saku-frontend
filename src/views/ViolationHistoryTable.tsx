@@ -24,10 +24,10 @@ import {
   SelectValue,
 } from "@radix-ui/react-select";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { useViolations } from "@/config/Api/useViolation";
+import { useViolationsByTeacherId } from "@/config/Api/useViolation";
 import { IViolation } from "@/config/Models/Violation";
 
-// Ambil data pelanggaran dari API
+// Fetch teacher's violations using teacher_id
 export const ViolationHistoryTable = () => {
   const [rowsPerPage, setRowsPerPage] = useState("10");
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,8 +36,16 @@ export const ViolationHistoryTable = () => {
     IViolation[]
   >([]);
 
-  // Ambil data pelanggaran dari API
-  const { data: violations, isLoading, isError, error } = useViolations();
+  // Get the logged-in teacher's ID from localStorage
+  const teacherId = localStorage.getItem("teacher_id");
+
+  // Fetch violations for the logged-in teacher using useViolationsByTeacherId hook
+  const {
+    data: violations,
+    isLoading,
+    isError,
+    error,
+  } = useViolationsByTeacherId(teacherId);
 
   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -48,7 +56,7 @@ export const ViolationHistoryTable = () => {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  // Filter data pelanggaran berdasarkan pencarian
+  // Filter violation data based on the search text
   const filteredViolationData = useMemo(() => {
     return (
       violations?.filter(
@@ -67,7 +75,7 @@ export const ViolationHistoryTable = () => {
     ); // Ensure it's always an array
   }, [searchText, violations]);
 
-  // Menangani pagination dan menampilkan data yang sesuai dengan halaman
+  // Handle pagination and display data for the current page
   useEffect(() => {
     const totalPages = Math.ceil(
       filteredViolationData.length / parseInt(rowsPerPage)
@@ -92,11 +100,11 @@ export const ViolationHistoryTable = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>; // Menampilkan indikator loading jika data sedang diambil
+    return <div>Loading...</div>; // Show loading indicator if data is being fetched
   }
 
   if (isError) {
-    return <div>Error: {error?.message}</div>; // Menampilkan pesan error jika terjadi kesalahan
+    return <div>Error: {error?.message}</div>; // Show error message if there's an error fetching data
   }
 
   return (
@@ -256,3 +264,5 @@ export const ViolationHistoryTable = () => {
     </Card>
   );
 };
+
+export default ViolationHistoryTable;
