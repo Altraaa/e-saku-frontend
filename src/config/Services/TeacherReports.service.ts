@@ -6,6 +6,8 @@ export const ApiTeacherReports = {
     ApiRequest({ url: "/reports-teacher", method: "GET" }),
   getById: (id: number): Promise<ITeacherReport> =>
     ApiRequest({ url: `/reports-teacher/${id}`, method: "GET" }),
+  getByTeacherId: (teacher_id: number): Promise<ITeacherReport[]> =>
+    ApiRequest({ url: `/reports-teacher/teacher/${teacher_id}`, method: "GET" }),
   getByClassId: (class_id: number): Promise<ITeacherReport[]> =>
     ApiRequest({ url: `/reports-teacher/class/${class_id}`, method: "GET" }),
   getByDate: (date: string): Promise<ITeacherReport[]> =>

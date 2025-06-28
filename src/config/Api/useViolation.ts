@@ -19,6 +19,14 @@ export const useViolationById = (id: number) => {
   });
 };
 
+// Fetch violations by teacher ID
+export const useViolationsByTeacherId = (teacher_id: string) => {
+  return useQuery<IViolation[]>({
+    queryKey: ["violations", "teacher", teacher_id],
+    queryFn: () => ApiViolations.getByTeacherId(teacher_id),
+    enabled: !!teacher_id,
+  });
+};
 
 // Fecth violation by student ID
 export const useViolationsByStudentId = (student_id: string ) => {

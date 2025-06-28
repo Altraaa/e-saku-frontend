@@ -8,6 +8,8 @@ export const ApiViolations = {
     ApiRequest({ url: `/violations/${id}`, method: "GET" }),
   getByStudentId: (student_id: string): Promise<IViolation[]> =>
     ApiRequest({ url: `/violations/student/${student_id}`, method: "GET" }),
+  getByTeacherId: (teacher_id: string): Promise<IViolation[]> =>
+    ApiRequest({ url: `/violations/teacher/${teacher_id}`, method: "GET" }),
   create: (data: Partial<IViolation>): Promise<IViolation> =>
     ApiRequest({ url: "/violations", method: "POST", body: data }),
   update: (id: number, data: Partial<IViolation>): Promise<IViolation> =>

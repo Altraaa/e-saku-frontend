@@ -424,10 +424,12 @@ const ESakuForm: React.FC = () => {
     // Prepare the data based on input type (violation or achievement)
     let reportData: any = {
       student_id: studentObj.id,
-      reported_by: teacherId,
-      teacher_id: classroomObj.teacher_id,
+      teacher_id: teacherId, // Automatically using the logged-in teacher's ID
+      violation_date: date.toISOString().split("T")[0],
       violation_details: description,
-      report_date: date.toISOString().split("T")[0],
+      action: followUpType === "lainnya" ? customFollowUp : followUpType,
+      rulesofconduct_id: selectedRule?.id ?? 0, // Selected from rules
+      points: selectedRule?.points ?? 0,
     };
 
     const levelMap: Record<string, number> = {
@@ -569,6 +571,8 @@ const ESakuForm: React.FC = () => {
       }
       return;
     }
+
+    console.log(handleOpenConfirm);
 
     // Validasi untuk simpan biasa
     const isValid = validateForm();
