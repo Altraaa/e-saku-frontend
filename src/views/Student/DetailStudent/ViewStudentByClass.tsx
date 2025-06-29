@@ -371,11 +371,11 @@ const ViewStudentByClass: React.FC = () => {
 
       <Card className="rounded-xl overflow-hidden shadow-sm border-gray-200">
         <div className="px-6 pt-4 pb-4 border-b-2 border-green-500">
-          <div className="flex flex-row items-center justify-between space-y-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
             <CardTitle className="text-xl font-bold text-gray-900">
               Daftar Siswa Kelas {classroom?.name}
             </CardTitle>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <Dialog
                 open={isImportModalOpen}
                 onOpenChange={(open) => {
@@ -383,7 +383,6 @@ const ViewStudentByClass: React.FC = () => {
                   if (!open) {
                     resetUploadState();
                   } else {
-                    // Reset upload state when dialog is opened
                     resetUploadState();
                   }
                 }}
@@ -391,7 +390,7 @@ const ViewStudentByClass: React.FC = () => {
                 <DialogTrigger asChild>
                   <Button
                     variant="default"
-                    className="hover:bg-[#009616] hover:text-white transition-all"
+                    className="hover:bg-[#009616] hover:text-white transition-all w-full sm:w-auto"
                   >
                     <Download className="mr-2 h-4 w-4" />
                     Import Excel
@@ -607,7 +606,7 @@ const ViewStudentByClass: React.FC = () => {
                 </DialogContent>
               </Dialog>
 
-              <div className="relative w-72">
+              <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
                   defaultValue={searchText}
@@ -620,33 +619,35 @@ const ViewStudentByClass: React.FC = () => {
           </div>
         </div>
         <div className="overflow-x-auto pt-3">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50 hover:bg-gray-50">
-                <TableHead className="w-12 text-center px-6 font-medium text-black">
-                  No
-                </TableHead>
-                <TableHead className="text-center font-medium text-black">
-                  NIS
-                </TableHead>
-                <TableHead className="text-left font-medium text-black">
-                  Nama
-                </TableHead>
-                <TableHead className="text-center font-medium text-black">
-                  Poin Pelanggaran
-                </TableHead>
-                <TableHead className="text-center font-medium text-black">
-                  Poin Prestasi
-                </TableHead>
-                <TableHead className="text-center font-medium text-black">
-                  Total Poin
-                </TableHead>
-                <TableHead className="text-center font-medium text-black">
-                  Aksi
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          {/* Desktop Table - Hidden on mobile */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50 hover:bg-gray-50">
+                  <TableHead className="w-12 text-center px-6 font-medium text-black">
+                    No
+                  </TableHead>
+                  <TableHead className="text-center font-medium text-black">
+                    NIS
+                  </TableHead>
+                  <TableHead className="text-left font-medium text-black">
+                    Nama
+                  </TableHead>
+                  <TableHead className="text-center font-medium text-black">
+                    Poin Pelanggaran
+                  </TableHead>
+                  <TableHead className="text-center font-medium text-black">
+                    Poin Prestasi
+                  </TableHead>
+                  <TableHead className="text-center font-medium text-black">
+                    Total Poin
+                  </TableHead>
+                  <TableHead className="text-center font-medium text-black">
+                    Aksi
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
               {displayedStudents && displayedStudents.length > 0 ? (
                 displayedStudents.map((student, index) => {
                   const actualIndex = (safePage - 1) * rowsPerPage + index + 1;
@@ -729,33 +730,118 @@ const ViewStudentByClass: React.FC = () => {
           </Table>
         </div>
 
-        <div className="pl-6 pt-4 pb-4 flex justify-between items-center border-t">
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-500">
-              Menampilkan {displayedStudents.length} dari{" "}
-              {filteredStudents.length} siswa
+        <div className="md:hidden space-y-4 px-4">
+          {displayedStudents && displayedStudents.length > 0 ? (
+            displayedStudents.map((student, index) => {
+              const actualIndex = (safePage - 1) * rowsPerPage + index + 1;
+              return (
+                <div
+                  key={student.id}
+                  className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                          #{actualIndex}
+                        </span>
+                        <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
+                          {student.nis || "N/A"}
+                        </span>
+                      </div>
+                      <Link
+                        to={`/studentbio/${student.id}`}
+                        className="text-lg font-semibold text-gray-900 hover:text-green-500 transition-colors block"
+                      >
+                        {student.name || "Nama tidak tersedia"}
+                      </Link>
+                    </div>
+                    <div className="flex gap-2">
+                      <Link
+                        to={`/studentbio/edit/${student.id}`}
+                        className="text-blue-500 hover:text-blue-600 transition-colors p-2"
+                      >
+                        <SquarePen className="h-4 w-4" />
+                      </Link>
+                      <button
+                        className="text-red-500 hover:text-red-600 transition-colors p-2"
+                        onClick={() => handleDelete(student.id)}
+                        disabled={deleteStudent.isPending}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center">
+                      <div className="text-xs text-gray-500 mb-1">Pelanggaran</div>
+                      <Badge
+                        variant="outline"
+                        className="bg-red-50 text-red-600 border-red-200 text-xs"
+                      >
+                        {student.violations_sum_points || 0}
+                      </Badge>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-500 mb-1">Prestasi</div>
+                      <Badge
+                        variant="outline"
+                        className="bg-green-50 text-green-600 border-green-200 text-xs"
+                      >
+                        {student.accomplishments_sum_points || 0}
+                      </Badge>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-500 mb-1">Total</div>
+                      <Badge
+                        variant="outline"
+                        className="bg-blue-50 text-blue-600 border-blue-200 text-xs"
+                      >
+                        {student.point_total || 0}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              {searchText
+                ? "Tidak ada data siswa yang sesuai dengan pencarian"
+                : "Tidak ada data siswa"}
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Rows:</span>
-              <Select
-                value={String(rowsPerPage)}
-                onValueChange={handleRowsPerPageChange}
-              >
-                <SelectTrigger className="w-16 h-8 border-gray-200 focus:ring-green-400 rounded-lg">
-                  <SelectValue placeholder="10" />
-                </SelectTrigger>
-                <SelectContent className="w-16 min-w-[4rem]">
-                  <SelectItem value="5">5</SelectItem>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="30">30</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          )}
+        </div>
+      </div>
 
-          <div className="pr-6 flex items-center space-x-2">
+      <div className="px-4 sm:px-6 pt-4 pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center border-t space-y-4 sm:space-y-0">
+        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+          <div className="text-sm text-gray-500 text-center sm:text-left">
+            Menampilkan {displayedStudents.length} dari{" "}
+            {filteredStudents.length} siswa
+          </div>
+          <div className="flex items-center justify-center sm:justify-start space-x-2">
+            <span className="text-sm text-gray-600">Rows:</span>
+            <Select
+              value={String(rowsPerPage)}
+              onValueChange={handleRowsPerPageChange}
+            >
+              <SelectTrigger className="w-16 h-8 border-gray-200 focus:ring-green-400 rounded-lg">
+                <SelectValue placeholder="10" />
+              </SelectTrigger>
+              <SelectContent className="w-16 min-w-[4rem]">
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="30">30</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-center space-x-2">
             <Button
               variant="outline"
               size="icon"
@@ -766,9 +852,10 @@ const ViewStudentByClass: React.FC = () => {
               <ChevronLeft className="h-4 w-4" />
             </Button>
 
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 px-2">
               Page {safePage} of {totalPages}
             </div>
+
 
             <Button
               variant="outline"
