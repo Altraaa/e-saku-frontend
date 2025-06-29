@@ -10,6 +10,7 @@ export interface IViolation {
     teacher_id: number;
     action: string;
     points: number;
+    accomplishment_date?: string;
     rulesofconduct_id: number;
     rules_of_conduct: IRules;
     created_at: string;

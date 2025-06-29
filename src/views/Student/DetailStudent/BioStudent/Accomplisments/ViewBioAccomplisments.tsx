@@ -38,6 +38,7 @@ import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/shared/component/DatePicker";
 import ConfirmationModal from "@/components/ui/confirmation";
+import { LevelLabel } from "@/config/Models/LevelMap";
 
 const ViewBioAccomplishments = () => {
   const [rowsPerPage, setRowsPerPage] = useState("10");
@@ -390,7 +391,7 @@ const ViewBioAccomplishments = () => {
                           variant="outline"
                           className="bg-purple-50 text-purple-700 border-purple-200"
                         >
-                          {accomplishment.level}
+                          <LevelLabel level={accomplishment.level} />
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center py-4">
