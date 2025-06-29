@@ -64,7 +64,7 @@ useEffect(() => {
       phone_number: studentData.phone_number || null,
       guardian_name: studentData.guardian_name || null,
       guardian_job: studentData.guardian_job || null,
-      email: studentData.email || "", // Tambahkan ini agar tidak undefined
+      email: studentData.email || "", 
     }));
   }
 }, [studentData]);

@@ -10,6 +10,7 @@ export const useLogin = () => {
     onSuccess: (data) => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("teacher_id", data.user?.teacher_id);
+      localStorage.setItem("login_time", new Date().toISOString());
       navigate("/");
     },
     onError: (error) => {
@@ -17,6 +18,7 @@ export const useLogin = () => {
     },
   });
 };
+
 
 export const useLogout = () => {
   const navigate = useNavigate();
