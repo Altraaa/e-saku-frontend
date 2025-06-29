@@ -284,7 +284,7 @@ const ViewHelpPreview = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+    <div className="max-w-7xl mx-auto  sm:px-6 md:px-8">
       <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 sm:p-6 mb-8 shadow-sm text-left">
         <h1 className="text-2xl sm:text-3xl font-bold mb-3 text-gray-800">Help Center</h1>
         <p className="text-sm sm:text-base text-gray-600 max-w-2xl mb-6">
