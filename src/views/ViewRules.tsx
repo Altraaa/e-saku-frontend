@@ -658,7 +658,7 @@ const ViewSchoolRules = () => {
               </div>
 
               {filteredViolations.length > 0 && (
-                <CardFooter className="flex justify-between items-center border-t p-4">
+                <CardFooter className="flex flex-col gap-2 md:gap-0 md:flex-row justify-between items-center border-t p-4">
                   <div className="flex items-center space-x-4">
                     <div className="text-sm text-gray-500">
                       Showing {paginatedViolations.length} of {filteredViolations.length} violations

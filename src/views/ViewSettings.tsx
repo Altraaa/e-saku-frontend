@@ -27,7 +27,7 @@ const ViewSettings = () => {
     }
     
     return(
-        <div>
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 md:px-8">
             <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-md">
                 <div className="flex items-center mb-2">
                     <div className="bg-green-600/40 p-2 rounded-lg mr-3">
@@ -40,13 +40,13 @@ const ViewSettings = () => {
                 </p>
             </div>
 
-            <div className="flex flex-col justify-between items-center pt-5 gap-5">
-                <Card className="flex items-center justify-between px-5 py-4 w-full">
-                    <div className="w-full">
+            <div className="flex flex-col gap-5">
+                <Card className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-5 py-4 w-full">
+                    <div className="w-full sm:w-auto mb-3 sm:mb-0">
                         <h3 className="text-xl font-semibold">Bahasa</h3>
                         <p className="opacity-75 text-md">Pilih bahasa yang diinginkan untuk menyesuaikan pengalaman Anda</p>
                     </div>
-                    <div className="flex items-center justify-end w-1/2">
+                    <div className="flex items-center justify-end w-full sm:w-1/2">
                         <FormSelect
                           id="language"
                           label=""
@@ -58,12 +58,12 @@ const ViewSettings = () => {
                         />
                     </div>
                 </Card>
-                <Card className="flex items-center justify-between px-5 py-4 w-full">
-                    <div className="w-full">
+                <Card className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-5 py-4 w-full">
+                    <div className="w-full sm:w-auto mb-3 sm:mb-0">
                         <h3 className="text-xl font-semibold">Tema</h3>
                         <p className="opacity-75 text-md">Atur tema aplikasi sesuai dengan preferensi visual Anda</p>
                     </div>
-                    <div className="flex justify-end items-center gap-5 w-full">
+                    <div className="flex flex-col sm:flex-row justify-end items-center gap-3 w-full sm:w-auto">
                         <button
                             onClick={() => handleClick(0)}
                             className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 

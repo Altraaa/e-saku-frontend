@@ -182,18 +182,26 @@ const ViewStudent = () => {
   }
 
   return (
-    <div className="container mx-auto md:py-4 max-w-full">
-      <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 sm:p-6 shadow-md mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:mb-2">
-          <div className="bg-green-600/40 p-2 rounded-lg mr-0 sm:mr-3 mb-2 sm:mb-0 self-start sm:self-auto">
-            <GraduationCap className="h-6 w-6 text-white" />
+    <div className="container mx-auto px-2 sm:px-4 md:py-4 max-w-full">
+      {/* Header Card - Made Responsive */}
+      <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-md mb-4 sm:mb-6">
+        <CardContent className="p-3 sm:p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:mb-2">
+            <div className="bg-green-600/40 p-2 rounded-lg mr-0 sm:mr-3 mb-2 sm:mb-0 self-start sm:self-auto">
+              <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+            </div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-green-600 break-words">
+              {teacherName}
+            </h1>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-green-600">{teacherName}</h1>
-        </div>
-        <p className="text-lg font-semibold mb-2">Kelas yang diampu :</p>
-      </div>
+          <p className="text-sm sm:text-base md:text-lg font-semibold mb-2">
+            Kelas yang diampu :
+          </p>
+        </CardContent>
+      </Card>
 
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
+      {/* Controls Section */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 sm:mb-6 gap-3 sm:gap-4">
         <Dialog
           open={isAddClassModalOpen}
           onOpenChange={(open) => {
@@ -204,30 +212,30 @@ const ViewStudent = () => {
           }}
         >
           <DialogTrigger asChild>
-            <Button variant="default" className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto">
+            <Button variant="default" className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto text-sm sm:text-base">
               <Plus className="mr-2 h-4 w-4" />
               Add Class
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-full sm:max-w-[500px] p-4 sm:p-6">
+          <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-3 sm:p-4 md:p-6 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-lg sm:text-xl">Add New Class</DialogTitle>
-              <DialogDescription className="text-sm sm:text-base">
+              <DialogTitle className="text-base sm:text-lg md:text-xl">Add New Class</DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm md:text-base">
                 Create a new class by filling in the information below
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid gap-4 py-4">
-              <div className="space-y-4">
+            <div className="grid gap-3 sm:gap-4 py-2 sm:py-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="space-y-2">
-                  <label htmlFor="className" className="text-sm sm:text-base font-medium text-gray-900">
+                  <label htmlFor="className" className="text-xs sm:text-sm md:text-base font-medium text-gray-900">
                     Class Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     id="className"
                     placeholder="Enter class name (e.g., XI TKR 1)"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200 text-sm sm:text-base"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200 text-xs sm:text-sm md:text-base"
                     value={newClass.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
                     disabled={submitStatus === "submitting"}
@@ -237,7 +245,7 @@ const ViewStudent = () => {
                 <div className="space-y-2">
                   <label
                     htmlFor="majorSelect"
-                    className="text-sm sm:text-base font-medium text-gray-900"
+                    className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
                   >
                     Major <span className="text-red-500">*</span>
                   </label>
@@ -247,7 +255,7 @@ const ViewStudent = () => {
                       handleInputChange("majorId", parseInt(value))
                     }
                   >
-                    <SelectTrigger className="border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-lg h-10 bg-white text-sm sm:text-base">
+                    <SelectTrigger className="border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-lg h-9 sm:h-10 bg-white text-xs sm:text-sm md:text-base">
                       <SelectValue placeholder="Select a major" />
                     </SelectTrigger>
                     <SelectContent>
@@ -255,7 +263,7 @@ const ViewStudent = () => {
                         <SelectItem
                           key={major.id}
                           value={major.id.toString()}
-                          className="text-sm sm:text-base"
+                          className="text-xs sm:text-sm md:text-base"
                         >
                           {major.name}
                         </SelectItem>
@@ -265,7 +273,7 @@ const ViewStudent = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="teacherSelect" className="text-sm sm:text-base font-medium text-gray-500">
+                  <label htmlFor="teacherSelect" className="text-xs sm:text-sm md:text-base font-medium text-gray-500">
                     Teacher (Auto-assigned)
                   </label>
                   <div className="relative">
@@ -273,29 +281,37 @@ const ViewStudent = () => {
                       type="text"
                       value={teacherName}
                       disabled
-                      className="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-600 cursor-not-allowed text-sm sm:text-base"
+                      className="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-600 cursor-not-allowed text-xs sm:text-sm md:text-base"
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                       <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                     </div>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-500">
+                  <p className="text-xs text-gray-500">
                     Classes will be assigned to the current teacher automatically
                   </p>
                 </div>
 
                 {submitError && (
-                  <div className="flex items-center space-x-2 text-sm sm:text-base text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
-                    <X className="w-4 h-4 flex-shrink-0" />
-                    <span>{submitError}</span>
-                  </div>
+                  <Card className="border-red-200 bg-red-50">
+                    <CardContent className="p-3">
+                      <div className="flex items-center space-x-2 text-xs sm:text-sm text-red-600">
+                        <X className="w-4 h-4 flex-shrink-0" />
+                        <span>{submitError}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
 
                 {submitStatus === "success" && (
-                  <div className="flex items-center space-x-2 text-sm sm:text-base text-green-600 bg-green-50 p-3 rounded-lg border border-green-200">
-                    <div className="w-4 h-4 flex-shrink-0">✓</div>
-                    <span>Class created successfully!</span>
-                  </div>
+                  <Card className="border-green-200 bg-green-50">
+                    <CardContent className="p-3">
+                      <div className="flex items-center space-x-2 text-xs sm:text-sm text-green-600">
+                        <div className="w-4 h-4 flex-shrink-0">✓</div>
+                        <span>Class created successfully!</span>
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
 
                 {submitStatus === "submitting" && (
@@ -305,53 +321,56 @@ const ViewStudent = () => {
                 )}
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-xs sm:text-sm">
-                <h4 className="text-sm sm:text-base font-medium mb-2">
-                  Class Creation Guidelines:
-                </h4>
-                <ul className="space-y-1">
-                  <li className="flex items-start">
-                    <span className="mr-1">•</span>
-                    <span>
-                      Class name should follow format:
-                      <p className="font-medium">Grade + Program + Number (e.g., XI TKR 1)</p>
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-1">•</span>
-                    <span>
-                      The major must be in accordance with the class that will
-                      be created
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-1">•</span>
-                    <span>
-                      Teacher assignment is automatic based on current user
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-1">•</span>
-                    <span>
-                      Students can be added to the class after creation
-                    </span>
-                  </li>
-                </ul>
-              </div>
+              {/* Guidelines Card - Made Responsive */}
+              <Card className="bg-gray-50 border-gray-200">
+                <CardContent className="p-3 sm:p-4">
+                  <h4 className="text-xs sm:text-sm md:text-base font-medium mb-2">
+                    Class Creation Guidelines:
+                  </h4>
+                  <ul className="space-y-1 text-xs sm:text-sm">
+                    <li className="flex items-start">
+                      <span className="mr-1">•</span>
+                      <span>
+                        Class name should follow format:
+                        <p className="font-medium">Grade + Program + Number (e.g., XI TKR 1)</p>
+                      </span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-1">•</span>
+                      <span>
+                        The major must be in accordance with the class that will
+                        be created
+                      </span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-1">•</span>
+                      <span>
+                        Teacher assignment is automatic based on current user
+                      </span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-1">•</span>
+                      <span>
+                        Students can be added to the class after creation
+                      </span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
 
               <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-2">
                 <Button
                   variant="outline"
                   onClick={() => setIsAddClassModalOpen(false)}
                   disabled={submitStatus === "submitting"}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto text-xs sm:text-sm"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSubmitClass}
                   disabled={submitStatus === "submitting"}
-                  className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto"
+                  className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto text-xs sm:text-sm"
                 >
                   {submitStatus === "submitting" ? (
                     <>
@@ -374,19 +393,21 @@ const ViewStudent = () => {
             </div>
           </DialogContent>
         </Dialog>
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-          <div className="w-full sm:w-48">
+
+        {/* Filter Controls */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full lg:w-auto">
+          <div className="w-full sm:w-40 md:w-48">
             <Select
               value={programFilter}
               onValueChange={setProgramFilter}
               disabled={majorsLoading}
             >
-              <SelectTrigger className="border-green-300 focus:ring-green-400 focus:border-green-500 rounded-lg h-10 bg-white shadow-sm text-sm sm:text-base">
+              <SelectTrigger className="border-green-300 focus:ring-green-400 focus:border-green-500 rounded-lg h-9 sm:h-10 bg-white shadow-sm text-xs sm:text-sm md:text-base">
                 <SelectValue
                   placeholder={majorsLoading ? "Loading..." : "Pilih Jurusan"}
                 />
               </SelectTrigger>
-              <SelectContent className="max-h-60 overflow-y-auto z-10 text-sm sm:text-base">
+              <SelectContent className="max-h-60 overflow-y-auto z-10 text-xs sm:text-sm md:text-base">
                 <SelectItem value="all">Semua Jurusan</SelectItem>
                 {majorsError ? (
                   <SelectItem value="error" disabled>
@@ -403,13 +424,13 @@ const ViewStudent = () => {
             </Select>
           </div>
 
-          <div className="relative w-full sm:w-72">
+          <div className="relative w-full sm:w-64 md:w-72">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               id="searchName"
               placeholder="Search by class name..."
-              className="pl-9 pr-4 py-2 bg-white border border-gray-300 w-full rounded-lg h-10 text-sm sm:text-base outline-none placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 shadow-sm"
+              className="pl-9 pr-4 py-2 bg-white border border-gray-300 w-full rounded-lg h-9 sm:h-10 text-xs sm:text-sm md:text-base outline-none placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 shadow-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -418,45 +439,49 @@ const ViewStudent = () => {
       </div>
 
       {/* Classes Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         {error ? (
           <div className="col-span-full">
-            <div className="text-center py-12">
-              <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                <X className="w-8 h-8 text-red-500" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Error Loading Classes
-              </h3>
-              <p className="text-gray-500">
-                Unable to load classes. Please try again later.
-              </p>
-            </div>
+            <Card className="border-red-200">
+              <CardContent className="text-center py-8 sm:py-12">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                  <X className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" />
+                </div>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+                  Error Loading Classes
+                </h3>
+                <p className="text-sm sm:text-base text-gray-500">
+                  Unable to load classes. Please try again later.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         ) : filteredClassrooms?.length === 0 ? (
           <div className="col-span-full">
-            <div className="text-center py-12">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                <Search className="w-8 h-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No Classes Found
-              </h3>
-              <p className="text-gray-500 mb-4">
-                {searchTerm || programFilter !== "all"
-                  ? "No classes match your current filters."
-                  : "You haven't created any classes yet."}
-              </p>
-              {!searchTerm && programFilter === "all" && (
-                <Button
-                  onClick={() => setIsAddClassModalOpen(true)}
-                  className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Your First Class
-                </Button>
-              )}
-            </div>
+            <Card className="border-gray-200">
+              <CardContent className="text-center py-8 sm:py-12">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Search className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
+                </div>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+                  No Classes Found
+                </h3>
+                <p className="text-sm sm:text-base text-gray-500 mb-4">
+                  {searchTerm || programFilter !== "all"
+                    ? "No classes match your current filters."
+                    : "You haven't created any classes yet."}
+                </p>
+                {!searchTerm && programFilter === "all" && (
+                  <Button
+                    onClick={() => setIsAddClassModalOpen(true)}
+                    className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto text-sm"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Your First Class
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
           </div>
         ) : (
           filteredClassrooms?.map((classroom: IClassroom) => (
@@ -465,31 +490,33 @@ const ViewStudent = () => {
               to={`/student/class/${classroom.id}`}
               className="group"
             >
-              <Card className="bg-white shadow-md py-8 flex flex-col items-center group-hover:shadow-lg hover:border-green-500 hover:border transition-all duration-200 relative rounded-lg">
+              <Card className="bg-white shadow-md hover:shadow-lg hover:border-green-500 hover:border transition-all duration-200 relative rounded-lg min-h-[200px] sm:min-h-[220px]">
                 <div className="w-2 h-full absolute left-0 top-0 bg-green-500 rounded-l-lg"></div>
-                <CardHeader className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-200 flex items-center justify-center p-0">
-                  <span className="text-2xl sm:text-3xl font-bold text-gray-400">
-                    {getProgramInitial(classroom.name)}
-                  </span>
-                </CardHeader>
-                <CardTitle className="mt-4 text-xl sm:text-2xl font-semibold">
-                  <span className="group-hover:text-green-500 transition-all duration-200">
-                    {classroom.name}
-                  </span>
-                </CardTitle>
-                <CardContent className="text-gray-400 text-sm sm:text-base pt-0">
-                  {classroom.total_student || 0} SISWA
-                </CardContent>
-                <div className="mt-2 flex items-center px-4">
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-green-100 border border-green-500 flex items-center justify-center mr-2">
-                    <span className="text-green-500 text-xs sm:text-sm font-bold">
+                <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center h-full justify-center">
+                  <CardHeader className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-gray-200 flex items-center justify-center p-0 mb-3 sm:mb-4">
+                    <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-400">
                       {getProgramInitial(classroom.name)}
                     </span>
+                  </CardHeader>
+                  <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold mb-2 break-words">
+                    <span className="group-hover:text-green-500 transition-all duration-200">
+                      {classroom.name}
+                    </span>
+                  </CardTitle>
+                  <div className="text-gray-400 text-xs sm:text-sm md:text-base mb-3">
+                    {classroom.total_student || 0} SISWA
                   </div>
-                  <span className="text-gray-500 text-xs sm:text-sm">
-                    {getProgramFullName(classroom.name)}
-                  </span>
-                </div>
+                  <div className="flex items-center justify-center px-2">
+                    <div className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded-full bg-green-100 border border-green-500 flex items-center justify-center mr-2 flex-shrink-0">
+                      <span className="text-green-500 text-xs font-bold">
+                        {getProgramInitial(classroom.name)}
+                      </span>
+                    </div>
+                    <span className="text-gray-500 text-xs sm:text-sm break-words text-center">
+                      {getProgramFullName(classroom.name)}
+                    </span>
+                  </div>
+                </CardContent>
               </Card>
             </Link>
           ))
