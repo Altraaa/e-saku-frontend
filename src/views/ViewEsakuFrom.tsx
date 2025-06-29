@@ -141,7 +141,6 @@ const ESakuForm: React.FC = () => {
 
   const formRef = useRef<HTMLDivElement>(null);
 
-  console.log("isModalOpen:", isModalOpen); // Debugging isModalOpen state
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -409,8 +408,6 @@ const ESakuForm: React.FC = () => {
   };
 
   const handleSendAsReport = (): void => {
-    console.log("handleSendAsReport called");
-
     const studentObj = students.find((s) => s.name === studentName);
     const classroomObj = classrooms?.find((c) => c.name === classType);
 
@@ -453,7 +450,6 @@ const ESakuForm: React.FC = () => {
       };
     }
 
-    console.log("Report data to be sent:", reportData);
 
     createReport(reportData, {
       onSuccess: () => {
@@ -545,7 +541,6 @@ const ESakuForm: React.FC = () => {
   };
 
   const handleOpenConfirm = (type: "report" | "save") => {
-    console.log("Opening confirmation for type:", type);
 
     // Validasi khusus untuk laporan
     if (type === "report") {
@@ -567,12 +562,9 @@ const ESakuForm: React.FC = () => {
       if (Object.keys(reportErrors).length === 0) {
         setConfirmType(type);
         setIsModalOpen(true);
-        console.log("Confirmation modal is open.");
       }
       return;
     }
-
-    console.log(handleOpenConfirm);
 
     // Validasi untuk simpan biasa
     const isValid = validateForm();

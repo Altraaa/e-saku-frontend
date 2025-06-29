@@ -112,7 +112,7 @@ const ViewReport = () => {
       }
 
       if (filters.selectedDate) {
-        const violationDate = new Date(violation.report_date);
+        const violationDate = new Date(violation.violation_date);
         const selectedDate = new Date(filters.selectedDate);
 
         if (violationDate.toDateString() !== selectedDate.toDateString()) {
@@ -268,7 +268,7 @@ const ViewReport = () => {
                       {violation.reporter?.name}
                     </TableCell>
                     <TableCell className="text-center font-normal">
-                      {violation.rulesofconduct_id?.name}
+                      {violation.rules_of_conduct?.name}
                     </TableCell>
                     <TableCell className="text-center font-normal">
                       <Button
