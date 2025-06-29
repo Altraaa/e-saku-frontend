@@ -551,23 +551,24 @@ const ViewStudentByClass: React.FC = () => {
                       </>
                     )}
  
-                    <div className="flex flex-col gap-2 sm:gap-1">
-                      <div className={`flex items-center justify-center space-x-2 ${uploadStatus === "success" ? "hidden" : ""}`}>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                      {uploadStatus !== "success" && (
                         <Button
                           variant="outline"
-                          className="text-green-600 hover:text-green-700 hover:bg-green-50 w-full sm:w-auto text-xs sm:text-sm"
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50 order-3 sm:order-1"
                           onClick={downloadTemplate}
                           disabled={uploadStatus === "uploading"}
                         >
-                          <FileSpreadsheet className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-                          <span className="truncate">Download Template</span>
+                          <FileSpreadsheet className="w-4 h-4 mr-2" />
+                          Download Template
                         </Button>
-                      </div>
-                      <div className="flex flex-col sm:flex-row justify-end gap-2">
+                      )}
+                      
+                      <div className="flex gap-2 order-1 sm:order-2">
                         {uploadStatus === "success" ? (
                           <Button
                             onClick={() => setIsImportModalOpen(false)}
-                            className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto text-xs sm:text-sm"
+                            className="bg-green-500 hover:bg-green-600 text-white flex-1 sm:flex-none"
                           >
                             Continue
                           </Button>
@@ -577,25 +578,25 @@ const ViewStudentByClass: React.FC = () => {
                               variant="outline"
                               onClick={() => setIsImportModalOpen(false)}
                               disabled={uploadStatus === "uploading"}
-                              className="w-full sm:w-auto text-xs sm:text-sm order-2 sm:order-1"
+                              className="flex-1 sm:flex-none"
                             >
                               Cancel
                             </Button>
                             <Button
                               onClick={handleFileUpload}
                               disabled={!selectedFile || uploadStatus === "uploading"}
-                              className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto text-xs sm:text-sm order-1 sm:order-2"
+                              className="bg-green-500 hover:bg-green-600 text-white flex-1 sm:flex-none"
                             >
                               {uploadStatus === "uploading" ? (
                                 <>
-                                  <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white mr-1 sm:mr-2 flex-shrink-0"></div>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                                   <span className="hidden sm:inline">Uploading... {uploadProgress}%</span>
                                   <span className="sm:hidden">{uploadProgress}%</span>
                                 </>
                               ) : (
                                 <>
-                                  <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
-                                  <span className="truncate">Upload File</span>
+                                  <Upload className="w-4 h-4 mr-2" />
+                                  Upload File
                                 </>
                               )}
                             </Button>
