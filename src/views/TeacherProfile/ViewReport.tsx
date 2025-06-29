@@ -157,45 +157,45 @@ const ViewReport = () => {
   }
 
   return (
-    <div className="space-y-6 py-4 min-h-screen">
+    <div className="space-y-6 py-4 min-h-screen px-4 sm:px-6 md:px-8 max-w-screen-xl mx-auto text-sm sm:text-base md:text-base">
       {/* Header */}
-      <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-xl p-6 shadow-md mb-6">
+      <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-xl p-4 sm:p-6 shadow-md mb-6">
         <div className="flex items-center mb-2">
           <div className="bg-red-600/40 p-2 rounded-lg mr-3">
             <AlertTriangle className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-black">
+          <h1 className="text-2xl sm:text-3xl font-bold text-black leading-tight">
             Laporan Tindak Lanjut
           </h1>
         </div>
-        <p className="text-gray-600 max-w-3xl">
+        <p className="text-gray-600 max-w-3xl leading-relaxed">
           Laporan tindak lanjut pelanggaran siswa.
         </p>
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-xl overflow-hidden shadow-sm">
-        <div className="px-6 pt-4 pb-4 border-b-2 border-red-500">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
-              <h2 className="text-xl font-bold text-gray-900">
-                Laporan Pelanggaran Siswa
-              </h2>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="relative w-full sm:w-72">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Search className="h-4 w-4 text-gray-400" />
-                </div>
-                <Input
-                  type="text"
-                  className="pl-10 pr-4 py-2 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  placeholder="Cari pelanggaran..."
-                  value={filters.searchTerm}
-                  onChange={handleSearchChange}
-                />
+        <div className="bg-white rounded-xl overflow-hidden shadow-sm">
+          <div className="px-4 sm:px-6 pt-4 pb-4 border-b-2 border-red-500">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-red-500" />
+                <h2 className="text-xl font-bold text-gray-900">
+                  Laporan Pelanggaran Siswa
+                </h2>
               </div>
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                <div className="relative w-full sm:w-72">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Search className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <Input
+                    type="text"
+                    className="pl-10 pr-4 py-2 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Cari pelanggaran..."
+                    value={filters.searchTerm}
+                    onChange={handleSearchChange}
+                  />
+                </div>
 
               <DatePicker
                 value={
@@ -221,98 +221,152 @@ const ViewReport = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto pt-3">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50 hover:bg-gray-50">
-                <TableHead className="text-center font-medium text-black">
-                  No
-                </TableHead>
-                <TableHead className="text-center font-medium text-black">
-                  NIS
-                </TableHead>
-                <TableHead className="text-left font-medium text-black">
-                  Nama
-                </TableHead>
-                <TableHead className="text-center font-medium text-black">
-                  Pelapor
-                </TableHead>
-                <TableHead className="text-center font-medium text-black">
-                  Jenis Pelanggaran
-                </TableHead>
-                <TableHead className="text-center font-medium text-black">
-                  Detail Pelanggaran
-                </TableHead>
-                <TableHead className="text-center font-medium text-black">
-                  Aksi
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedReports.length > 0 ? (
-                paginatedReports.map((violation, index) => (
-                  <TableRow
-                    key={violation.id}
-                    className="border-b hover:bg-gray-50"
-                  >
-                    <TableCell className="text-center px-6 font-normal">
-                      {startIndex + index + 1}
-                    </TableCell>
-                    <TableCell className="text-center font-normal">
-                      {violation.student?.nis}
-                    </TableCell>
-                    <TableCell className="text-left font-normal">
-                      {violation.student?.name}
-                    </TableCell>
-                    <TableCell className="text-center font-normal">
-                      {violation.reporter?.name}
-                    </TableCell>
-                    <TableCell className="text-center font-normal">
-                      {violation.rules_of_conduct?.name}
-                    </TableCell>
-                    <TableCell className="text-center font-normal">
-                      <Button
-                        variant="link"
-                        onClick={() => handleShowViolationDetails(violation)}
-                        className="text-gray-500 hover:text-gray-600"
-                      >
-                        <MoreHorizontal className="h-5 w-5" />
-                      </Button>
-                    </TableCell>
-                    <TableCell className="text-center font-normal">
-                      <div className="flex justify-center gap-2">
-                        <Link
-                          to={`/violation-details/${violation.id}`}
-                          className="text-blue-500 hover:text-blue-600 transition-colors"
+          <div className="overflow-x-auto pt-3 relative scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          {/* Desktop Table */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50 hover:bg-gray-50">
+                  <TableHead className="text-center font-medium text-black">
+                    No
+                  </TableHead>
+                  <TableHead className="text-center font-medium text-black">
+                    NIS
+                  </TableHead>
+                  <TableHead className="text-left font-medium text-black">
+                    Nama
+                  </TableHead>
+                  <TableHead className="text-center font-medium text-black hidden lg:table-cell">
+                    Kelas
+                  </TableHead>
+                  <TableHead className="text-center font-medium text-black hidden lg:table-cell">
+                    Pelapor
+                  </TableHead>
+                  <TableHead className="text-center font-medium text-black hidden lg:table-cell">
+                    Detail Pelanggaran
+                  </TableHead>
+                  <TableHead className="text-center font-medium text-black">
+                    Aksi
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedViolations.length > 0 ? (
+                  paginatedViolations.map((violation, index) => (
+                    <TableRow
+                      key={violation.id}
+                      className="border-b hover:bg-gray-50"
+                    >
+                      <TableCell className="text-center px-6 font-normal">
+                        {startIndex + index + 1}
+                      </TableCell>
+                      <TableCell className="text-center font-normal">
+                        {violation.student?.nis}
+                      </TableCell>
+                      <TableCell className="text-left font-normal">
+                        {violation.student?.name}
+                      </TableCell>
+                      <TableCell className="text-center font-normal hidden lg:table-cell">
+                        {violation.student?.classroom?.name}
+                      </TableCell>
+                      <TableCell className="text-center font-normal hidden lg:table-cell">
+                        {violation.reporter?.name}
+                      </TableCell>
+                      <TableCell className="text-center font-normal hidden lg:table-cell">
+                        <Button
+                          variant="link"
+                          onClick={() => handleShowViolationDetails(violation)}
+                          className="text-gray-500 hover:text-gray-600"
+                          aria-label={`Show details for violation ${violation.id}`}
                         >
-                          <SquarePen className="h-4 w-4" />
-                        </Link>
+                          <MoreHorizontal className="h-5 w-5" />
+                        </Button>
+                      </TableCell>
+                      <TableCell className="text-center font-normal">
+                        <div className="flex justify-center gap-2">
+                          <Link
+                            to={`/violation-details/${violation.id}`}
+                            className="text-blue-500 hover:text-blue-600 transition-colors p-2 rounded-lg"
+                            aria-label={`Edit violation ${violation.id}`}
+                          >
+                            <SquarePen className="h-6 w-6" />
+                          </Link>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-12 px-4">
+                      <div className="flex flex-col items-center gap-2 text-gray-500">
+                        <AlertTriangle className="h-8 w-8 text-gray-300" />
+                        <p>Tidak ada pelanggaran ditemukan</p>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 px-4">
-                    <div className="flex flex-col items-center gap-2 text-gray-500">
-                      <AlertTriangle className="h-8 w-8 text-gray-300" />
-                      <p>Tidak ada pelanggaran ditemukan</p>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Card List */}
+          <div className="md:hidden space-y-4 px-4">
+            {paginatedViolations.length > 0 ? (
+              paginatedViolations.map((violation, index) => (
+                <div
+                  key={violation.id}
+                  className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                          #{startIndex + index + 1}
+                        </span>
+                        <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
+                          {violation.student?.nis || "N/A"}
+                        </span>
+                      </div>
+                      <div className="text-lg font-semibold text-gray-900">
+                        {violation.student?.name || "Nama tidak tersedia"}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Kelas: {violation.student?.classroom?.name || "-"}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Pelapor: {violation.reporter?.name || "-"}
+                      </div>
+                      <div className="text-sm text-gray-500 mt-2">
+                        Detail Pelanggaran: {violation.violation_details || "-"}
+                      </div>
                     </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                    <div className="flex gap-2">
+                      <Link
+                        to={`/violation-details/${violation.id}`}
+                        className="text-blue-500 hover:text-blue-600 transition-colors p-2"
+                      >
+                        <SquarePen className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                Tidak ada pelanggaran ditemukan
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Pagination */}
-        <div className="pl-6 pt-4 pb-4 flex justify-between items-center border-t">
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-500">
-              Menampilkan {paginatedReports.length} dari{" "}
-              {filteredReports.length} pelanggaran
+        <div className="pl-6 pt-4 pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center border-t gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <div className="text-sm text-gray-500 text-center sm:text-left">
+              Menampilkan {paginatedViolations.length} dari{" "}
+              {filteredViolations.length} pelanggaran
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center justify-center sm:justify-start space-x-2">
               <span className="text-sm text-gray-600">Rows:</span>
               <Select
                 value={rowsPerPage}
@@ -330,7 +384,7 @@ const ViewReport = () => {
             </div>
           </div>
 
-          <div className="pr-6 flex items-center space-x-2">
+          <div className="pr-6 flex items-center justify-center sm:justify-end space-x-2">
             <Button
               variant="outline"
               size="icon"

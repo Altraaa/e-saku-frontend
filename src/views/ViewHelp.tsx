@@ -67,7 +67,7 @@ const FAQItem = ({ question, answer, icon, category }: FAQItemProps) => {
       >
         <div 
           ref={contentRef}
-          className="p-6 pt-4 pl-16 text-gray-600 bg-white"
+          className="p-4 sm:p-6 text-gray-600 bg-white"
         >
           {answer}
         </div>
@@ -116,7 +116,7 @@ const PolicyItem = ({ title, content, icon }: PolicyItemProps) => {
       >
         <div 
           ref={contentRef}
-          className="p-6 pt-4 pl-16 text-gray-600 bg-white"
+          className="p-4 sm:p-6 text-gray-600 bg-white"
         >
           {content || "Default content"}
         </div>
@@ -133,7 +133,7 @@ const ContactCard = ({ title, description, icon, actionText, actionUrl }: {
   actionUrl: string;
 }) => {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+    <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
       <div className="flex items-center mb-4">
         <div className="p-2 rounded-full bg-green-100 text-green-600 mr-4">
           {icon}
@@ -168,21 +168,21 @@ const ViewHelpPreview = () => {
     contact: useRef<HTMLButtonElement>(null)
   };
 
-  useEffect(() => {
-    const updateIndicator = () => {
-      const activeTabElement = tabRefs[activeTab as keyof typeof tabRefs].current;
+  const updateIndicator = () => {
+    const activeTabElement = tabRefs[activeTab as keyof typeof tabRefs].current;
+    
+    if (activeTabElement && tabsRef.current) {
+      const tabRect = activeTabElement.getBoundingClientRect();
+      const navRect = tabsRef.current.getBoundingClientRect();
       
-      if (activeTabElement && tabsRef.current) {
-        const tabRect = activeTabElement.getBoundingClientRect();
-        const navRect = tabsRef.current.getBoundingClientRect();
-        
-        setIndicatorStyle({
-          left: tabRect.left - navRect.left,
-          width: tabRect.width
-        });
-      }
-    };
+      setIndicatorStyle({
+        left: tabRect.left - navRect.left,
+        width: tabRect.width
+      });
+    }
+  };
 
+  useEffect(() => {
     if (!isLoading) {
       updateIndicator();
     }
@@ -284,10 +284,10 @@ const ViewHelpPreview = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-8 mb-8 shadow-sm">
-        <h1 className="text-3xl font-bold mb-3 text-gray-800">Help Center</h1>
-        <p className="text-gray-600 max-w-2xl mb-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+      <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 sm:p-6 mb-8 shadow-sm text-left">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-3 text-gray-800">Help Center</h1>
+        <p className="text-sm sm:text-base text-gray-600 max-w-2xl mb-6">
           Find answers to common questions about E-Saku, learn about our privacy policies, 
           and discover how to make the most of our platform.
         </p>
@@ -299,7 +299,7 @@ const ViewHelpPreview = () => {
           <input
             type="text"
             placeholder="Search for answers..."
-            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+            className="pl-10 pr-4 py-2 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -308,7 +308,7 @@ const ViewHelpPreview = () => {
       
       <div className="mb-6">
         <div className="relative">
-          <nav className="flex border-b border-gray-200" ref={tabsRef}>
+          <nav className="flex border-b border-gray-200 overflow-x-auto" ref={tabsRef}>
             <button
               ref={tabRefs.faq}
               className={`py-4 px-6 font-medium text-sm ${
@@ -358,8 +358,8 @@ const ViewHelpPreview = () => {
         {activeTab === "faq" && (
           <div className="animate-fadeIn">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-1">Frequently Asked Questions</h2>
-              <p className="text-gray-600">
+              <h2 className="text-lg sm:text-xl font-semibold mb-1">Frequently Asked Questions</h2>
+              <p className="text-sm sm:text-base text-gray-600">
                 Find answers to the most common questions about E-Saku
               </p>
             </div>
@@ -397,8 +397,8 @@ const ViewHelpPreview = () => {
         {activeTab === "policy" && (
           <div className="animate-fadeIn">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-1">Privacy & Data Policy</h2>
-              <p className="text-gray-600">
+              <h2 className="text-lg sm:text-xl font-semibold mb-1">Privacy & Data Policy</h2>
+              <p className="text-sm sm:text-base text-gray-600">
                 Learn how we handle your information and protect your privacy
               </p>
             </div>
@@ -419,13 +419,13 @@ const ViewHelpPreview = () => {
         {activeTab === "contact" && (
           <div className="animate-fadeIn">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-1">Contact Support</h2>
-              <p className="text-gray-600">
+              <h2 className="text-lg sm:text-xl font-semibold mb-1">Contact Support</h2>
+              <p className="text-sm sm:text-base text-gray-600">
                 Get in touch with our support team for personalized assistance
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <ContactCard
                 title="Email Support"
                 description="Send us an email and we'll get back to you within 24 hours. Our support team is available Monday through Friday."
@@ -466,7 +466,3 @@ const ViewHelpPreview = () => {
 };
 
 export default ViewHelpPreview;
-
-function updateIndicator() {
-  throw new Error("Function not implemented.");
-}

@@ -156,7 +156,7 @@ const ViewDashboard = () => {
       else if (width < 1280) setCurrentBreakpoint('lg');
       else setCurrentBreakpoint('xl');
     };
-    
+
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -177,19 +177,6 @@ const ViewDashboard = () => {
     }, 500);
     return () => clearTimeout(timer);
   }, []);
-
-  useEffect(() => {
-    if (!teacher && !teacherLoading) {
-      try {
-        const storedName = localStorage.getItem('teacherName');
-        if (storedName) {
-          setTeacherName(storedName);
-        }
-      } catch (error) {
-        console.error('Error accessing localStorage:', error);
-      }
-    }
-  }, [teacher, teacherLoading]);
 
   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -232,17 +219,20 @@ const ViewDashboard = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold">
-          Hi🙌, <span className='text-green-500'>{teacherName}</span><br />
-          Selamat datang di website E-Saku Siswa😊
+      <div className="flex flex-col gap-2 mb-4 sm:mb-6">
+        <h1 className="text-lg sm:text-xl lg:text-2xl font-bold leading-tight">
+          Hi🙌, <span className='text-green-500'>{teacherName}</span>
         </h1>
+        <p className="text-md sm:text-xl lg:text-2xl font-bold leading-tight">
+          Selamat datang di website E-Saku Siswa😊
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="rounded-xl overflow-hidden">
-          <CardContent className="p-0">
-            <div className="bg-green-500 p-5 text-white">
+      {/* Grid for Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+        <Card className="rounded-xl overflow-hidden bg-green-500">
+          <CardContent className="p-0 ">
+            <div className=" p-5 text-white">
               <div className="flex justify-between items-start mb-4">
                 <div className="bg-green-600/40 p-2 rounded-lg">
                   <AlertTriangle className="h-6 w-6" />
@@ -253,16 +243,16 @@ const ViewDashboard = () => {
                 </Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-bold">800</p>
+                <p className="text-2xl md:text-3xl font-bold">800</p>
                 <p className="text-sm text-white/80">Total Poin Pelanggaran</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl overflow-hidden">
+        <Card className="rounded-xl overflow-hidden bg-green-500">
           <CardContent className="p-0">
-            <div className="bg-green-500 p-5 text-white">
+            <div className=" p-5 text-white">
               <div className="flex justify-between items-start mb-4">
                 <div className="bg-green-600/40 p-2 rounded-lg">
                   <Users className="h-6 w-6" />
@@ -273,39 +263,39 @@ const ViewDashboard = () => {
                 </Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-bold">40</p>
+                <p className="text-2xl md:text-3xl font-bold">40</p>
                 <p className="text-sm text-white/80">Total Siswa Melanggar</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl overflow-hidden">
+        <Card className="rounded-xl overflow-hidden bg-green-500">
           <CardContent className="p-0">
-            <div className="bg-green-500 p-5 text-white">
+            <div className=" p-5 text-white">
               <div className="flex items-start mb-4">
                 <div className="bg-green-600/40 p-2 rounded-lg">
                   <School className="h-6 w-6" />
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-bold">XII RPL 3</p>
+                <p className="text-2xl md:text-3xl font-bold">XII RPL 3</p>
                 <p className="text-sm text-white/80">Kelas Pelanggar Terbanyak</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl overflow-hidden">
+        <Card className="rounded-xl overflow-hidden bg-green-500">
           <CardContent className="p-0">
-            <div className="bg-green-500 p-5 text-white">
+            <div className=" p-5 text-white">
               <div className="flex items-start mb-4">
                 <div className="bg-green-600/40 p-2 rounded-lg">
                   <Layers className="h-6 w-6" />
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-bold">XII</p>
+                <p className="text-2xl md:text-3xl font-bold">XII</p>
                 <p className="text-sm text-white/80">Tingkat Pelanggar Terbanyak</p>
               </div>
             </div>
@@ -313,7 +303,9 @@ const ViewDashboard = () => {
         </Card>
       </div>
 
+      {/* Grid for Main Content (Comparisons & Leaderboard) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Bar Chart Card */}
         <div className="col-span-1 lg:col-span-2">
           <Card className="rounded-xl overflow-hidden">
             <CardHeader className="border-b">
@@ -323,7 +315,7 @@ const ViewDashboard = () => {
                 </CardTitle>
                 <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full md:w-auto">
                   <Select value={activityType} onValueChange={setActivityType}>
-                    <SelectTrigger className="border-green-500 focus:ring-green-400 min-w-32 rounded-lg">
+                    <SelectTrigger className="border-green-500 focus:ring-green-400 w-full xs:w-auto xs:min-w-[140px] rounded-lg">
                       <SelectValue placeholder="Jenis Aktivitas" />
                     </SelectTrigger>
                     <SelectContent>
@@ -334,7 +326,7 @@ const ViewDashboard = () => {
                   </Select>
 
                   <Select value={timeRange} onValueChange={setTimeRange}>
-                    <SelectTrigger className="border-green-500 focus:ring-green-400 min-w-24 rounded-lg">
+                    <SelectTrigger className="border-green-500 focus:ring-green-400 w-full xs:w-auto xs:min-w-[120px] rounded-lg">
                       <SelectValue placeholder="Rentang Waktu" />
                     </SelectTrigger>
                     <SelectContent>
@@ -346,20 +338,31 @@ const ViewDashboard = () => {
               </div>
             </CardHeader>
             <CardContent className="pt-4 sm:pt-6">
-              <div className="w-full h-48 sm:h-64 md:h-80">
+              <div className="w-full h-48 sm:h-64 lg:h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} barGap={10} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
+                  <BarChart 
+                    data={chartData} 
+                    barGap={currentBreakpoint === 'xs' ? 5 : 10} 
+                    margin={{ 
+                      top: 10, 
+                      right: currentBreakpoint === 'xs' ? 5 : 10, 
+                      left: currentBreakpoint === 'xs' ? -10 : 0, 
+                      bottom: 10 
+                    }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis
                       dataKey="day"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fontSize: currentBreakpoint === 'xs' ? 10 : 12 }}
+                      tick={{ fontSize: currentBreakpoint === 'xs' ? 9 : currentBreakpoint === 'sm' ? 10 : 12 }}
+                      interval={currentBreakpoint === 'xs' ? 1 : 0}
                     />
                     <YAxis
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fontSize: currentBreakpoint === 'xs' ? 10 : 12 }}
+                      tick={{ fontSize: currentBreakpoint === 'xs' ? 9 : currentBreakpoint === 'sm' ? 10 : 12 }}
+                      width={currentBreakpoint === 'xs' ? 30 : 40}
                     />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} wrapperStyle={{ outline: 'none' }} />
                     <Bar dataKey="violations" name="Pelanggaran" fill="#14532d" radius={[4, 4, 0, 0]} />
@@ -381,7 +384,8 @@ const ViewDashboard = () => {
           </Card>
         </div>
 
-        <div>
+        {/* Leaderboard Card */}
+        <div className="order-2 xl:order-none">
           <Card className="rounded-xl overflow-hidden">
             <CardHeader className="text-center bg-green-500 text-white p-4">
               <CardTitle>Peringkat Pelanggaran</CardTitle>
@@ -415,156 +419,138 @@ const ViewDashboard = () => {
                     </div>
                     <div className="flex-shrink-0">
                       <Award
-                        className={`h-5 w-5 ${
-                          index === 0
-                            ? "text-yellow-500"
-                            : index === 1
-                            ? "text-gray-500"
-                            : "text-orange-500"
-                        }`}
+                        className={`h-5 w-5 ${index === 0 ? "text-yellow-500" : index === 1 ? "text-gray-500" : "text-orange-500"}`}
                       />
                     </div>
                   </div>
                 ))}
-
-                {leaderboardData.length < 5 && (
-                  <div className="space-y-0">
-                    {Array.from({ length: 5 - leaderboardData.length }).map((_, i) => (
-                      <div
-                        key={`placeholder-${i}`}
-                        className="flex items-center p-4 border-b"
-                      >
-                        <div className="w-10 h-10 flex items-center justify-center rounded-full mr-3 bg-gray-100 text-gray-300 font-bold">
-                          {leaderboardData.length + i + 1}
-                        </div>
-                        <div className="flex-1">
-                          <Skeleton className="h-5 w-36 mb-2" />
-                          <Skeleton className="h-4 w-28" />
-                        </div>
-                        <div>
-                          <Skeleton className="w-5 h-5 rounded-full" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
-
-              <Button variant="link" className="text-green-500 hover:text-green-600 p-4">
-                Lihat Semua Peringkat →
-              </Button>
             </CardContent>
           </Card>
         </div>
       </div>
-
-      <div>
-        <Card className="rounded-xl overflow-hidden">
-          <div className="px-6 pt-4 pb-4 border-b-2 border-green-500">
-            <div className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-xl font-bold text-gray-900">
-                Daftar Siswa Melanggar Hari Ini
-              </CardTitle>
-              <div className="relative w-72">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <Input
-                  value={searchText}
-                  onChange={handleSearchChange}
-                  placeholder="Cari siswa..."
-                  className="pl-9 bg-white border-gray-200 w-full rounded-lg"
-                />
+      
+      
+        <div>
+          <Card className="rounded-xl overflow-hidden">
+            <div className="px-4 sm:px-6 pt-4 pb-4 border-b-2 border-green-500">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <CardTitle className="text-lg sm:text-xl font-bold text-gray-900">
+                  Daftar Siswa Melanggar Hari Ini
+                </CardTitle>
+                <div className="relative w-full sm:w-72">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <Input
+                    value={searchText}
+                    onChange={handleSearchChange}
+                    placeholder="Cari siswa..."
+                    className="pl-9 bg-white border-gray-200 w-full rounded-lg"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-          <div className="overflow-x-auto pt-3">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50 hover:bg-gray-50">
-                  <TableHead className="w-12 text-center px-6 font-medium text-black">No</TableHead>
-                  <TableHead className="text-center font-medium text-black">NIS</TableHead>
-                  <TableHead className="text-center font-medium text-black">Nama</TableHead>
-                  <TableHead className="text-center font-medium text-black">Kelas</TableHead>
-                  <TableHead className="text-center hidden sm:table-cell font-medium text-black">Jenis Pelanggaran</TableHead>
-                  <TableHead className="text-center font-medium text-black">Poin</TableHead>
-                  <TableHead className="text-center font-medium text-black">Total Poin Pelanggaran</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {displayedViolationData.map((student) => (
-                  <TableRow key={student.id} className="border-b hover:bg-gray-50">
-                    <TableCell className="text-center px-6 font-normal">{student.id}</TableCell>
-                    <TableCell className="text-center font-normal">{student.nis}</TableCell>
-                    <TableCell className="text-left font-normal">{student.name}</TableCell>
-                    <TableCell className="text-center font-normal">{student.class}</TableCell>
-                    <TableCell className="text-center hidden sm:table-cell font-normal">{student.violationType}</TableCell>
-                    <TableCell className="text-center font-normal">{student.violationPoint}</TableCell>
-                    <TableCell className="text-center font-normal">{student.totalPoint}</TableCell>
+            <div className="overflow-x-auto pt-3">
+              <Table className=''>
+                <TableHeader>
+                  <TableRow className="bg-gray-50 hover:bg-gray-50">
+                    <TableHead className="w-12 text-center px-2 sm:px-6 font-medium text-black text-xs sm:text-sm">No</TableHead>
+                    <TableHead className="text-center font-medium text-black text-xs sm:text-sm">NIS</TableHead>
+                    <TableHead className="text-center font-medium text-black text-xs sm:text-sm">Nama</TableHead>
+                    <TableHead className="text-center font-medium text-black text-xs sm:text-sm hidden md:table-cell">Kelas</TableHead>
+                    <TableHead className="text-center font-medium text-black text-xs sm:text-sm hidden lg:table-cell">Jenis Pelanggaran</TableHead>
+                    <TableHead className="text-center font-medium text-black text-xs sm:text-sm">Poin</TableHead>
+                    <TableHead className="text-center font-medium text-black text-xs sm:text-sm sm:table-cell">Total</TableHead>
                   </TableRow>
-                ))}
-                {displayedViolationData.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                      Tidak ada data yang sesuai dengan pencarian
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-
-          <div className="pl-6 pt-4 pb-4 flex justify-between items-center border-t">
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-500">
-                Menampilkan {displayedViolationData.length} dari {filteredViolationData.length} siswa
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Rows:</span>
-                <Select
-                  value={rowsPerPage}
-                  onValueChange={handleRowsPerPageChange}
-                >
-                  <SelectTrigger className="w-16 h-8 border-gray-200 focus:ring-green-400 rounded-lg">
-                    <SelectValue placeholder="10" />
-                  </SelectTrigger>
-                  <SelectContent className="w-16 min-w-[4rem]">
-                    <SelectItem value="5">5</SelectItem>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="30">30</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                </TableHeader>
+                <TableBody className="overflow-x-scroll">
+                  {displayedViolationData.map((student) => (
+                    <TableRow key={student.id} className="border-b hover:bg-gray-50">
+                      <TableCell className="text-center px-2 sm:px-6 font-normal text-xs sm:text-sm">{student.id}</TableCell>
+                      <TableCell className="text-center font-normal text-xs sm:text-sm">{student.nis}</TableCell>
+                      <TableCell className="text-left font-normal text-xs sm:text-sm">
+                        <div className="min-w-0">
+                          <div className="truncate">{student.name}</div>
+                          {/* Show class and violation type on mobile as secondary info */}
+                          <div className="text-xs text-gray-500 md:hidden">
+                            {student.class} • {student.violationType}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center font-normal text-xs sm:text-sm hidden md:table-cell">{student.class}</TableCell>
+                      <TableCell className="text-center font-normal text-xs sm:text-sm hidden lg:table-cell">{student.violationType}</TableCell>
+                      <TableCell className="text-center font-normal text-xs sm:text-sm">
+                        <Badge variant="outline" className="text-xs">
+                          {student.violationPoint}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center font-normal text-xs sm:text-sm sm:table-cell">
+                        <Badge variant="secondary" className="text-xs">
+                          {student.totalPoint}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {displayedViolationData.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500 text-sm">
+                        Tidak ada data yang sesuai dengan pencarian
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </div>
 
-            <div className="pr-6 flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
+            <div className="px-4 sm:px-6 py-4 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center border-t">
+              <div className="flex justify-between items-center gap-2 xs:gap-4">
+                <div className="text-xs sm:text-sm text-gray-500">
+                    Menampilkan {displayedViolationData.length} dari {filteredViolationData.length} siswa
+                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs sm:text-sm text-gray-600">Rows:</span>
+                    <Select value={rowsPerPage} onValueChange={handleRowsPerPageChange}>
+                      <SelectTrigger className="w-16 h-8 border-gray-200 focus:ring-green-400 rounded-lg">
+                        <SelectValue placeholder="10" />
+                      </SelectTrigger>
+                      <SelectContent className="w-16 min-w-[4rem]">
+                        <SelectItem value="5">5</SelectItem>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="30">30</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-              <div className="text-sm text-gray-600">
-                Page {currentPage} of {Math.max(1, Math.ceil(filteredViolationData.length / parseInt(rowsPerPage)))}
+              <div className="flex items-center justify-center sm:justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+
+                <div className="text-xs sm:text-sm text-gray-600 px-2">
+                  {currentPage} / {Math.max(1, Math.ceil(filteredViolationData.length / parseInt(rowsPerPage)))}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, Math.ceil(filteredViolationData.length / parseInt(rowsPerPage))))}
+                    disabled={currentPage >= Math.ceil(filteredViolationData.length / parseInt(rowsPerPage))}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
               </div>
-
-              <Button
-                variant="outline"
-                size="icon"
-                className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, Math.ceil(filteredViolationData.length / parseInt(rowsPerPage))))}
-                disabled={currentPage >= Math.ceil(filteredViolationData.length / parseInt(rowsPerPage))}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
             </div>
-          </div>
-        </Card>
-      </div>
+          </Card>
+        </div>
     </div>
   );
 };
