@@ -113,7 +113,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
         x: -256,
         transition: { type: "spring", stiffness: 200, damping: 20 },
       }}
-      className="fixed top-0 left-0 h-screen bg-white dark:bg-background shadow-lg z-50 flex flex-col overflow-hidden"
+      className="fixed top-0 left-0 h-full bg-white dark:bg-background shadow-lg z-50 flex flex-col overflow-hidden"
     >
       <div className="flex items-center p-4 space-x-3 bg-gray-100">
         <img
