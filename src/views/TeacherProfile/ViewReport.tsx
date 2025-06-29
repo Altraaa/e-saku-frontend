@@ -150,7 +150,7 @@ const ViewReport = () => {
   }
 
   return (
-    <div className="space-y-6 py-4 min-h-screen px-4 sm:px-6 md:px-8 max-w-screen-xl mx-auto text-sm sm:text-base md:text-base">
+    <div className="space-y-6 py-4 min-h-screen md:px-8 max-w-screen-xl mx-auto text-sm sm:text-base md:text-base">
       {/* Header */}
       <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-xl p-4 sm:p-6 shadow-md mb-6">
         <div className="flex items-center mb-2">
