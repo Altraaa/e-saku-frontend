@@ -5,88 +5,82 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChevronLeft, ChevronRight, Search, SquarePen, Trash2 } from "lucide-react"
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button";
-
-const accomplismentData = [
-  {
-    id : 1,
-    name : "Kuchi hotai",
-    nis : "30688",
-    achievementName : "Kompe kompean",
-    rank : "Peserta",
-    eventDate : "20/01/2025 - 23/01/2025",
-    organizers : "Dev Community Denapsar",
-    competitionLevel : "Kota",
-    points : 20,
-  },
-  {
-    id : 2,
-    name : "Segara Cokorda",
-    nis : "30688",
-    achievementName : "Mancing Bersama Pendi",
-    rank : "Peserta",
-    eventDate : "20/01/2025 - 23/01/2025",
-    organizers : "Pak Rai Sibang",
-    competitionLevel : "World Championshit",
-    points : 100,
-  },
-  {
-    id : 3,
-    name : "Janginam",
-    nis : "30688",
-    achievementName : "Kompe kompean",
-    rank : "Peserta",
-    eventDate : "20/01/2025 - 23/01/2025",
-    organizers : "Dev Community Denapsar",
-    competitionLevel : "Kota",
-    points : 20,
-  }
-];
+import { useAccomplishmentsByTeacherId } from "@/config/Api/useAccomplishments"
+import { IAccomplishments } from "@/config/Models/Accomplishments"
 
 export const AccomplishmentHistoryTable = () => {
     const [rowsPerPage, setRowsPerPage] = useState("10");
     const [currentPage, setCurrentPage] = useState(1);
-    const [displayedAccomplishmentData, setDisplayedAccomplishmentData] = useState(accomplismentData);
     const [searchText, setSearchText] = useState("");
+    const [displayedAccomplishmentData, setDisplayedAccomplishmentData] = useState<
+      IAccomplishments[]
+    >([]);
+
+    const teacherId = localStorage.getItem("teacher_id");
+
+    const {
+    data: accomplishments,
+    isLoading,
+    isError,
+    error,
+  } = useAccomplishmentsByTeacherId(teacherId);
 
     const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        const timeoutId = setTimeout(() => {
-          setSearchText(value);
-        }, 300);
-        
-        return () => clearTimeout(timeoutId);
-      }, []); 
+    const value = e.target.value;
+    const timeoutId = setTimeout(() => {
+      setSearchText(value);
+    }, 300);
 
-      const filteredAccomplishmentData = useMemo(() => {
-    return accomplismentData.filter(student => 
-      searchText === "" || 
-      student.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      student.achievementName.toLowerCase().includes(searchText.toLowerCase()) ||
-      student.nis.includes(searchText) ||
-      student.rank.toLowerCase().includes(searchText.toLowerCase()) ||
-      student.eventDate.toLowerCase().includes(searchText.toLowerCase()) ||
-      student.organizers.toLowerCase().includes(searchText.toLowerCase()) ||
-      student.competitionLevel.toLowerCase().includes(searchText.toLowerCase()) ||
-      student.points.toString().includes(searchText) 
+      return () => clearTimeout(timeoutId);
+    }, []);
+
+    const filteredAccomplishmentData = useMemo(() => {
+    return (
+      accomplishments?.filter(
+        (accomplishments) =>
+          searchText === "" ||
+          accomplishments.student?.name
+            .toLowerCase()
+            .includes(searchText.toLowerCase()) ||
+          accomplishments.accomplishment_type
+            .toLowerCase()
+            .includes(searchText.toLowerCase()) ||
+          accomplishments.accomplishment_date
+            .toLowerCase()
+            .includes(searchText.toLowerCase())
+      ) || []
     );
-  }, [searchText]);
+  }, [searchText, accomplishments]);
 
   useEffect(() => {
-    const totalPages = Math.ceil(filteredAccomplishmentData.length / parseInt(rowsPerPage));
-    
+    const totalPages = Math.ceil(
+      filteredAccomplishmentData.length / parseInt(rowsPerPage)
+    );
+
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
     }
-    
+
     const startIndex = (currentPage - 1) * parseInt(rowsPerPage);
     const endIndex = startIndex + parseInt(rowsPerPage);
-    setDisplayedAccomplishmentData(filteredAccomplishmentData.slice(startIndex, endIndex));
+
+    setDisplayedAccomplishmentData(
+      filteredAccomplishmentData.slice(startIndex, endIndex)
+    ); // Update displayed data
   }, [filteredAccomplishmentData, currentPage, rowsPerPage]);
-    
+
   const handleRowsPerPageChange = (value: string) => {
     setRowsPerPage(value);
     setCurrentPage(1);
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>; // Show loading indicator if data is being fetched
+  }
+
+  if (isError) {
+    return <div>Error: {error?.message}</div>; // Show error message if there's an error fetching data
+  }
 
     return (
         <Card className="rounded-xl overflow-hidden">
@@ -113,30 +107,22 @@ export const AccomplishmentHistoryTable = () => {
                   <TableHead className="w-12 text-center px-6 font-medium text-black">No</TableHead>
                   <TableHead className="text-center font-medium text-black">NIS</TableHead>
                   <TableHead className="text-center font-medium text-black">Nama</TableHead>
-                  <TableHead className="text-center font-medium text-black">Achievement Name</TableHead>
-                  <TableHead className="text-center hidden sm:table-cell font-medium text-black">Rank</TableHead>
-                  <TableHead className="text-center font-medium text-black">Event Date</TableHead>
-                  <TableHead className="text-center font-medium text-black">Organizers</TableHead>
-                  <TableHead className="text-center font-medium text-black">Competition Level</TableHead>
-                  <TableHead className="text-center font-medium text-black">Points</TableHead>
+                  <TableHead className="text-center font-medium text-black">Jenis Prestasi</TableHead>
+                  <TableHead className="text-center font-medium text-black">Date</TableHead>
                   <TableHead className="text-center font-medium text-black">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAccomplishmentData.map((student) => (
+                {displayedAccomplishmentData.map((accomplishments, index:number) => (
                   <TableRow 
-                    key={student.id} 
+                    key={accomplishments.id} 
                     className="border-b hover:bg-gray-50"
                   >
-                    <TableCell className="text-center px-6 font-normal">{student.id}</TableCell>
-                    <TableCell className="text-center font-normal">{student.nis}</TableCell>
-                    <TableCell className="text-center font-normal">{student.name}</TableCell>
-                    <TableCell className="text-center font-normal">{student.achievementName}</TableCell>
-                    <TableCell className="text-center font-normal">{student.rank}</TableCell>
-                    <TableCell className="text-center hidden sm:table-cell font-normal">{student.eventDate}</TableCell>
-                    <TableCell className="text-center font-normal">{student.organizers}</TableCell>
-                    <TableCell className="text-center font-normal">{student.competitionLevel}</TableCell>
-                    <TableCell className="text-center font-normal">{student.points}</TableCell>
+                    <TableCell className="text-center px-6 font-normal">{index + 1}</TableCell>
+                    <TableCell className="text-center font-normal">{accomplishments.student?.nis}</TableCell>
+                    <TableCell className="text-center font-normal">{accomplishments.student?.name}</TableCell>
+                    <TableCell className="text-center font-normal">{accomplishments.accomplishment_type}</TableCell>
+                    <TableCell className="text-center font-normal">{accomplishments.accomplishment_date}</TableCell>
                     <TableCell className="flex justify-center gap-3">
                       <a href=""><SquarePen className="text-green-500 size-5"/></a>
                       <a href=""><Trash2 className="text-[#FF0000] size-5"/></a>
