@@ -229,10 +229,10 @@ const ViewDashboard = () => {
       </div>
 
       {/* Grid for Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="rounded-xl overflow-hidden">
-          <CardContent className="p-0">
-            <div className="bg-green-500 p-5 text-white">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+        <Card className="rounded-xl overflow-hidden bg-green-500">
+          <CardContent className="p-0 ">
+            <div className=" p-5 text-white">
               <div className="flex justify-between items-start mb-4">
                 <div className="bg-green-600/40 p-2 rounded-lg">
                   <AlertTriangle className="h-6 w-6" />
@@ -243,16 +243,16 @@ const ViewDashboard = () => {
                 </Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-bold">800</p>
+                <p className="text-2xl md:text-3xl font-bold">800</p>
                 <p className="text-sm text-white/80">Total Poin Pelanggaran</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl overflow-hidden">
+        <Card className="rounded-xl overflow-hidden bg-green-500">
           <CardContent className="p-0">
-            <div className="bg-green-500 p-5 text-white">
+            <div className=" p-5 text-white">
               <div className="flex justify-between items-start mb-4">
                 <div className="bg-green-600/40 p-2 rounded-lg">
                   <Users className="h-6 w-6" />
@@ -263,39 +263,39 @@ const ViewDashboard = () => {
                 </Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-bold">40</p>
+                <p className="text-2xl md:text-3xl font-bold">40</p>
                 <p className="text-sm text-white/80">Total Siswa Melanggar</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl overflow-hidden">
+        <Card className="rounded-xl overflow-hidden bg-green-500">
           <CardContent className="p-0">
-            <div className="bg-green-500 p-5 text-white">
+            <div className=" p-5 text-white">
               <div className="flex items-start mb-4">
                 <div className="bg-green-600/40 p-2 rounded-lg">
                   <School className="h-6 w-6" />
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-bold">XII RPL 3</p>
+                <p className="text-2xl md:text-3xl font-bold">XII RPL 3</p>
                 <p className="text-sm text-white/80">Kelas Pelanggar Terbanyak</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl overflow-hidden">
+        <Card className="rounded-xl overflow-hidden bg-green-500">
           <CardContent className="p-0">
-            <div className="bg-green-500 p-5 text-white">
+            <div className=" p-5 text-white">
               <div className="flex items-start mb-4">
                 <div className="bg-green-600/40 p-2 rounded-lg">
                   <Layers className="h-6 w-6" />
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-bold">XII</p>
+                <p className="text-2xl md:text-3xl font-bold">XII</p>
                 <p className="text-sm text-white/80">Tingkat Pelanggar Terbanyak</p>
               </div>
             </div>
@@ -450,7 +450,7 @@ const ViewDashboard = () => {
               </div>
             </div>
             <div className="overflow-x-auto pt-3">
-              <Table>
+              <Table className=''>
                 <TableHeader>
                   <TableRow className="bg-gray-50 hover:bg-gray-50">
                     <TableHead className="w-12 text-center px-2 sm:px-6 font-medium text-black text-xs sm:text-sm">No</TableHead>
@@ -459,10 +459,10 @@ const ViewDashboard = () => {
                     <TableHead className="text-center font-medium text-black text-xs sm:text-sm hidden md:table-cell">Kelas</TableHead>
                     <TableHead className="text-center font-medium text-black text-xs sm:text-sm hidden lg:table-cell">Jenis Pelanggaran</TableHead>
                     <TableHead className="text-center font-medium text-black text-xs sm:text-sm">Poin</TableHead>
-                    <TableHead className="text-center font-medium text-black text-xs sm:text-sm hidden sm:table-cell">Total</TableHead>
+                    <TableHead className="text-center font-medium text-black text-xs sm:text-sm sm:table-cell">Total</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="overflow-x-scroll">
                   {displayedViolationData.map((student) => (
                     <TableRow key={student.id} className="border-b hover:bg-gray-50">
                       <TableCell className="text-center px-2 sm:px-6 font-normal text-xs sm:text-sm">{student.id}</TableCell>
@@ -483,7 +483,7 @@ const ViewDashboard = () => {
                           {student.violationPoint}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-center font-normal text-xs sm:text-sm hidden sm:table-cell">
+                      <TableCell className="text-center font-normal text-xs sm:text-sm sm:table-cell">
                         <Badge variant="secondary" className="text-xs">
                           {student.totalPoint}
                         </Badge>
@@ -502,7 +502,7 @@ const ViewDashboard = () => {
             </div>
 
             <div className="px-4 sm:px-6 py-4 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center border-t">
-              <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4">
+              <div className="flex justify-between items-center gap-2 xs:gap-4">
                 <div className="text-xs sm:text-sm text-gray-500">
                     Menampilkan {displayedViolationData.length} dari {filteredViolationData.length} siswa
                   </div>
