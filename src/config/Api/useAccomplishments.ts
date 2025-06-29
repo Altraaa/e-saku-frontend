@@ -24,14 +24,20 @@ export const useAccomplishmentsByStudentId = (student_id: string) => {
   return useQuery<IAccomplishments[]>({
     queryKey: ["accomplishmentsByStudent", student_id],
     queryFn: () => {
-      if (student_id === undefined) {
-        return Promise.resolve([]);
+      if (!student_id) {
+        return Promise.resolve([]); // Menghindari request jika student_id tidak ada
       }
-      return ApiAccomplishments.getByStudentId(student_id);
+      return ApiAccomplishments.getByStudentId(student_id).catch((error) => {
+        console.error("Error fetching accomplishments:", error);
+        return []; // Mengembalikan array kosong jika terjadi error
+      });
     },
-    enabled: !!student_id,
+    enabled: !!student_id, // Hanya aktif jika student_id ada
+    retry: false, // Menghindari retry otomatis jika data tidak ditemukan
   });
 };
+
+
 
 // Create accomplishment
 export const useAccomplishmentCreate = () => {
@@ -77,11 +83,16 @@ export const useAccomplishmentDelete = () => {
 
   return useMutation({
     mutationFn: (id: number) => ApiAccomplishments.delete(id),
-    onSuccess: (_, id) => {
+    onMutate: (id) => {
+      // Optimistically update the cache to remove the deleted accomplishment
       queryClient.setQueryData<IAccomplishments[]>(
-        ["accomplishments"],
+        ["accomplishmentsByStudent"],
         (oldData) => oldData?.filter((item) => item.id !== id) || []
       );
+    },
+    onSuccess: () => {
+      // Invalidate the cache to ensure we get the updated data from the API
+      queryClient.invalidateQueries({ queryKey: ["accomplishmentsByStudent"] });
     },
     onError: (error) => {
       console.error("Error deleting accomplishment:", error);

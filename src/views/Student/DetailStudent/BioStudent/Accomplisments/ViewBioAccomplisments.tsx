@@ -81,7 +81,7 @@ const ViewBioAccomplishments = () => {
         setIsModalOpen(false);
         setaccomplishmentsDelete(null);
       } catch (error) {
-        console.error("Failed to delete violation:", error);
+        console.error("Failed to delete accomplishment:", error);
       }
     }
   };
@@ -417,7 +417,9 @@ const ViewBioAccomplishments = () => {
                             variant="outline"
                             size="sm"
                             className="h-8 w-8 p-0 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors"
-                            onClick={() => handleDeleteAccomplishment(accomplishment.id)}
+                            onClick={() =>
+                              handleDeleteAccomplishment(accomplishment.id)
+                            }
                             disabled={deleteAccomplishment.isPending}
                           >
                             {deleteAccomplishment.isPending ? (
@@ -534,3 +536,4 @@ const ViewBioAccomplishments = () => {
 };
 
 export default ViewBioAccomplishments;
+

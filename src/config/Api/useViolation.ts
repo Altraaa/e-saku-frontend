@@ -29,18 +29,23 @@ export const useViolationsByTeacherId = (teacher_id: string) => {
 };
 
 // Fecth violation by student ID
-export const useViolationsByStudentId = (student_id: string ) => {
+export const useViolationsByStudentId = (student_id: string) => {
   return useQuery<IViolation[]>({
     queryKey: ["violationsByStudent", student_id],
     queryFn: () => {
-      if (student_id === undefined) {
-        return Promise.resolve([]);
+      if (!student_id) {
+        return Promise.resolve([]); 
       }
-      return ApiViolations.getByStudentId(student_id);
+      return ApiViolations.getByStudentId(student_id).catch((error) => {
+
+        console.error("Error fetching violations:", error);
+        return [];
+      });
     },
-    enabled: !!student_id,
+    enabled: !!student_id, // Memastikan query hanya berjalan jika student_id ada
   });
 };
+
 
 // Create violation
 export const useViolationCreate = () => {
