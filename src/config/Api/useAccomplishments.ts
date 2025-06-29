@@ -19,6 +19,15 @@ export const useAccomplishmentById = (id: number) => {
   });
 };
 
+// Fetch violations by teacher ID
+export const useAccomplishmentsByTeacherId = (teacher_id: string) => {
+  return useQuery<IAccomplishments[]>({
+    queryKey: ["accomplishment", "teacher", teacher_id],
+    queryFn: () => ApiAccomplishments.getByTeacherId(teacher_id),
+    enabled: !!teacher_id,
+  });
+};
+
 // Fetch accomplishments by student ID
 export const useAccomplishmentsByStudentId = (student_id: string) => {
   return useQuery<IAccomplishments[]>({
