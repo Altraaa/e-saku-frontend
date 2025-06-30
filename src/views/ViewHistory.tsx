@@ -295,8 +295,8 @@ const ViewHistory = () => {
                   onChange={handleSearchChange}
                   placeholder={
                     selectedHistory === "violationhistory"
-                      ? "Cari siswa, pelanggaran, atau tanggal..."
-                      : "Cari siswa, prestasi, atau tanggal..."
+                      ? "Cari data pelanggaran..."
+                      : "Cari data prestasi..."
                   }
                   className="pl-9 bg-white border-gray-200 w-full rounded-lg"
                 />

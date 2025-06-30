@@ -182,7 +182,29 @@ const ViewReport = () => {
                 Laporan Pelanggaran Siswa
               </h2>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+              <div className="flex items-center space-x-2">
+                <DatePicker
+                  value={
+                    filters.selectedDate
+                      ? new Date(filters.selectedDate)
+                      : undefined
+                  }
+                  onChange={handleDateChange}
+                  isForm={false}
+                />
+                {hasActiveFilters && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="text-gray-600 hover:text-gray-800 h-8"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
               <div className="relative w-full sm:w-72">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <Search className="h-4 w-4 text-gray-400" />
@@ -195,27 +217,6 @@ const ViewReport = () => {
                   onChange={handleSearchChange}
                 />
               </div>
-
-              <DatePicker
-                value={
-                  filters.selectedDate
-                    ? new Date(filters.selectedDate)
-                    : undefined
-                }
-                onChange={handleDateChange}
-                isForm={false}
-              />
-              {hasActiveFilters && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearFilters}
-                  className="text-gray-600 hover:text-gray-800 h-8"
-                >
-                  <X className="h-3 w-3 mr-1" />
-                  Clear Filters
-                </Button>
-              )}
             </div>
           </div>
         </div>
