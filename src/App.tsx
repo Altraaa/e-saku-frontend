@@ -19,7 +19,7 @@ import EditStudentBio from "./pages/EditStudentBio";
 import BioAccomplisments from "./pages/BioAccomplisments";
 import BioViolations from "./pages/BioViolations";
 import Help from "./pages/Help";
-import Settings from "./pages/Settings";
+// import Settings from "./pages/Settings";
 import ProfileStudent from "./pages/ProfileStudent";
 import { SidebarProvider } from "./utils/context/sidebarContext";
 import MainLayout from "./components/layouts/MainLayout";
@@ -44,7 +44,7 @@ const LayoutWrapper = () => {
     help: "Help",
     profile: "Profile",
     profileteacher: "Teacher Profile",
-    settings: "Settings",
+    // settings: "Settings",
     rules: "Rules Of Conduct",
     privacypolicy: "Privacy Policy",
     report: "Report",
@@ -86,11 +86,10 @@ export function AppContent() {
             element={<BioViolations />}
           />
           <Route path="/report" element={<Report />} />
-          <Route path="/settings" element={<Settings />} />
+          {/* <Route path="/settings" element={<Settings />} /> */}
           <Route path="/help" element={<Help />} />
           <Route path="/profile" element={<ProfileStudent />} />
           <Route path="/profileteacher" element={<TeacherProfile />} />
-          <Route path="/settings" element={<Settings/>} />
           <Route path="/rules" element={<Rules/>} />
           {/* <Route path="/privacypolicy" element={<PrivacyPolicy/>} /> */}
 

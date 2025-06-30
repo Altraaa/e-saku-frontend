@@ -557,8 +557,8 @@ const ViewSchoolRules = () => {
             </CardHeader>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-5">
-            <Card className="border-green-100 shadow-sm md:col-span-1">
+          <div className="md:grid grid-cols-1 md:grid-cols-4 gap-5 mb-5">
+            <Card className="border-green-100 shadow-sm mb-6 lg:mb-0 lg:col-span-1">
               <CardHeader className="bg-green-50 border-b border-green-100 px-5 py-4">
                 <CardTitle className="text-md font-medium text-green-800 flex items-center gap-2">
                   <HelpCircle className="h-4 w-4 text-green-600" />
