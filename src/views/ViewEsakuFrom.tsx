@@ -69,6 +69,7 @@ import { useAccomplishmentCreate } from "@/config/Api/useAccomplishments";
 import { useReportCreate } from "@/config/Api/useTeacherReport";
 import ConfirmationModal from "@/components/ui/confirmation";
 import { Checkbox } from "@/components/ui/checkbox";
+import toast from "react-hot-toast";
 
 const RankOptions = [
   "Juara 1",
@@ -81,7 +82,6 @@ const RankOptions = [
   "lainnya",
 ] as const;
 export type RankOptions = (typeof RankOptions)[number];
-
 
 const ESakuForm: React.FC = () => {
   const teacherId = Number(localStorage.getItem("teacher_id"));
@@ -140,7 +140,6 @@ const ESakuForm: React.FC = () => {
   const { mutate: createReport } = useReportCreate();
 
   const formRef = useRef<HTMLDivElement>(null);
-
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -339,7 +338,7 @@ const ESakuForm: React.FC = () => {
 
     const studentObj = students.find((s) => s.name === studentName);
     if (!studentObj) {
-      alert("Siswa tidak ditemukan");
+      toast.error("Data siswa tidak ditemukan");
       setIsSubmitting(false);
       return;
     }
@@ -360,11 +359,12 @@ const ESakuForm: React.FC = () => {
             setShowSuccess(true);
             resetForm();
             window.scrollTo({ top: 0, behavior: "smooth" });
+            toast.success("Data pelanggaran berhasil disimpan");
             setTimeout(() => setShowSuccess(false), 3000);
           },
           onError: (err) => {
+            toast.error("Data pelanggaran gagal disimpan");
             console.error("Gagal kirim pelanggaran:", err);
-            alert("Gagal menyimpan data pelanggaran.");
           },
           onSettled: () => setIsSubmitting(false),
         }
@@ -395,11 +395,12 @@ const ESakuForm: React.FC = () => {
             setShowSuccess(true);
             resetForm();
             window.scrollTo({ top: 0, behavior: "smooth" });
+            toast.success("Data prestasi berhasil disimpan");
             setTimeout(() => setShowSuccess(false), 3000);
           },
           onError: (err) => {
+            toast.error("Data prestasi gagal disimpan");
             console.error("Gagal kirim prestasi:", err);
-            alert("Gagal menyimpan data prestasi.");
           },
           onSettled: () => setIsSubmitting(false),
         }
@@ -412,7 +413,7 @@ const ESakuForm: React.FC = () => {
     const classroomObj = classrooms?.find((c) => c.name === classType);
 
     if (!studentObj || !classroomObj) {
-      alert("Data siswa atau kelas tidak valid.");
+      toast.error("Data siswa atau kelas tidak ditemukan");
       return;
     }
 
@@ -450,17 +451,17 @@ const ESakuForm: React.FC = () => {
       };
     }
 
-
     createReport(reportData, {
       onSuccess: () => {
         setShowSuccess(true);
         resetForm();
         window.scrollTo({ top: 0, behavior: "smooth" });
+        toast.success("Laporan berhasil dikirim");
         setTimeout(() => setShowSuccess(false), 3000);
       },
       onError: (error) => {
+        toast.error("Gagal mengirim laporan");
         console.error("Gagal mengirim laporan:", error);
-        alert("Gagal mengirim laporan ke guru pengampu.");
       },
       onSettled: () => setIsSubmitting(false),
     });
@@ -541,7 +542,6 @@ const ESakuForm: React.FC = () => {
   };
 
   const handleOpenConfirm = (type: "report" | "save") => {
-
     // Validasi khusus untuk laporan
     if (type === "report") {
       const reportErrors: ESakuFormErrorState = {};

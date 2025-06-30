@@ -13,4 +13,6 @@ export const ApiStudents = {
     ApiRequest({ url: `/students/${id}`, method: "PUT", body: data }),
   delete: (id: number) =>
     ApiRequest({ url: `/students/${id}`, method: "POST", body: {_method: "DELETE"} }),
+  deleteByClassId: (class_id: number) =>
+    ApiRequest({ url: `/students/class/${class_id}`, method: "POST", body: {_method: "DELETE"} }),
 };

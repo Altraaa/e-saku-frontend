@@ -12,6 +12,7 @@ import { useStudentById, useStudentUpdate } from "@/config/Api/useStudent";
 import { IStudent } from "@/config/Models/Student";
 import ConfirmationModal from "@/components/ui/confirmation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import toast from "react-hot-toast";
 
 const ViewEditStudentBio = () => {
   const { id } = useParams();
@@ -135,12 +136,12 @@ const ViewEditStudentBio = () => {
       { id: studentId, data: updatedData },
       {
         onSuccess: () => {
-          alert("Student data updated successfully!");
+          toast.success("Data siswa berhasil diperbarui");
           navigate(`/studentbio/${studentId}`);
         },
         onError: (error) => {
+          toast.error("Data siswa gagal diperbarui");
           console.error("Error updating student:", error);
-          alert("Failed to update student data. Please try again.");
         },
       }
     );

@@ -39,6 +39,7 @@ import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/shared/component/DatePicker";
 import ConfirmationModal from "@/components/ui/confirmation";
 import { LevelLabel } from "@/config/Models/LevelMap";
+import toast from "react-hot-toast";
 
 const ViewBioAccomplishments = () => {
   const [rowsPerPage, setRowsPerPage] = useState("10");
@@ -58,9 +59,8 @@ const ViewBioAccomplishments = () => {
 
   const studentName = student ? student.name : "Loading...";
 
-  const {
-    data: studentAccomplishments = [],
-  } = useAccomplishmentsByStudentId(studentId);
+  const { data: studentAccomplishments = [] } =
+    useAccomplishmentsByStudentId(studentId);
   const deleteAccomplishment = useAccomplishmentDelete();
 
   if (studentLoading) return <div>Loading...</div>;
@@ -79,9 +79,11 @@ const ViewBioAccomplishments = () => {
     if (accomplishmentsDelete) {
       try {
         await deleteAccomplishment.mutateAsync(accomplishmentsDelete);
+        toast.success("Data prestasi berhasil dihapus");
         setIsModalOpen(false);
         setaccomplishmentsDelete(null);
       } catch (error) {
+        toast.error("Data prestasi gagal dihapus");
         console.error("Failed to delete accomplishment:", error);
       }
     }
@@ -537,4 +539,3 @@ const ViewBioAccomplishments = () => {
 };
 
 export default ViewBioAccomplishments;
-

@@ -13,13 +13,15 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import skensalogo from "@/assets/skensa.png";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSidebar } from "@/utils/context/sidebarContext";
 import { Sheet, SheetContent } from "../ui/sheet";
 import { useLogout } from "@/config/Api/useAuth";
 import ConfirmationModal from "../ui/confirmation";
+import toast from "react-hot-toast";
 
 const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
+  const navigate = useNavigate();
   const location = useLocation();
   const activeItem = location.pathname;
   const { isOpen, toggleSidebar, closeSidebar } = useSidebar();
@@ -33,8 +35,16 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
   const isMobileScreen = windowWidth < 768;
 
   const confirmLogout = () => {
-    logout();
     setLogoutModalOpen(false);
+    logout(undefined, {
+      onSuccess: () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("teacher_id");
+        localStorage.removeItem("login_time");
+        toast.success("Logout berhasil");
+        navigate("/login", { replace: true });
+      },
+    });
   };
 
   useEffect(() => {
@@ -79,9 +89,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
     { label: "Profile", icon: User, path: "/profileteacher" },
   ];
 
-  const studentProfile = [
-    { label: "Profile", icon: User, path: "/profile" },
-  ];
+  const studentProfile = [{ label: "Profile", icon: User, path: "/profile" }];
 
   const isActivePath = (currentPath: string, itemPath: string): boolean => {
     const matchPatterns: Record<string, RegExp[]> = {
@@ -287,7 +295,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
         type="logout"
       />
 
-      {(isMobile || isMobileScreen) ? (
+      {isMobile || isMobileScreen ? (
         <Sheet open={isOpen} onOpenChange={toggleSidebar}>
           <SheetContent side="left" className="p-0 w-64">
             {SidebarContent}
