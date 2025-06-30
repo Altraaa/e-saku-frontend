@@ -51,6 +51,7 @@ import axios from "axios";
 import { IStudent } from "@/config/Models/Student";
 import ConfirmationModal from "@/components/ui/confirmation";
 import toast from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ClassHeaderProps {
   className: string;
@@ -122,6 +123,7 @@ const ViewStudentByClass: React.FC = () => {
   const deleteStudent = useStudentDelete();
   const deleteStudentByClass = useStudentDeleteByClass();
   const token = localStorage.getItem("token");
+  const queryClient = useQueryClient();
 
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -213,10 +215,8 @@ const ViewStudentByClass: React.FC = () => {
     if (studentByClasstoDelete) {
       try {
         await deleteStudentByClass.mutateAsync(studentByClasstoDelete);
+        toast.success("Seluruh data siswa berhasil dihapus");
         setIsModalDeleteAllOpen(false);
-        setTimeout(() => {
-          toast.success("Seluruh data siswa berhasil dihapus");
-        }, 1000);
         setStudentByClasstoDelete(null);
       } catch (error) {
         toast.error("Data siswa gagal dihapus");
@@ -341,10 +341,9 @@ const ViewStudentByClass: React.FC = () => {
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       setUploadProgress(100);
+      toast.success("Data siswa berhasil diimport");
       setUploadStatus("success");
-      setTimeout(() => {
-        toast.success("Data siswa berhasil diimport");
-      }, 1000);
+      queryClient.invalidateQueries({ queryKey: ["students"] });
     } catch (error) {
       setUploadStatus("error");
       toast.error("Data siswa gagal diimport");

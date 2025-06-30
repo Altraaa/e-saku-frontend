@@ -19,17 +19,9 @@ export const useLogin = () => {
   });
 };
 
-
 export const useLogout = () => {
-  const navigate = useNavigate();
-
   return useMutation({
     mutationFn: ApiAuth.logout,
-    onSuccess: () => {
-      localStorage.removeItem("token");
-      localStorage.removeItem("teacher_id");
-      navigate("/login"); 
-    },
     onError: (error) => {
       console.error("Logout failed:", error);
     },
