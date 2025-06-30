@@ -32,7 +32,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
     typeof window !== "undefined" ? window.innerWidth : 1024
   );
 
-  const isMobileScreen = windowWidth < 768;
+  const isMobileScreen = windowWidth < 835;
 
   const confirmLogout = () => {
     setLogoutModalOpen(false);
@@ -55,8 +55,13 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
     window.addEventListener("resize", handleResize);
     handleResize();
 
+    // Setel sidebar ke tertutup (isOpen = false) pada ukuran layar tablet
+    if (window.innerWidth < 835 && isOpen) {
+      closeSidebar();
+    }
+
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [windowWidth, isOpen, closeSidebar]);
 
   const handleCloseSidebar = (e: React.MouseEvent) => {
     if ((isMobile || isMobileScreen) && isOpen) {
