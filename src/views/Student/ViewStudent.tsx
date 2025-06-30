@@ -87,9 +87,7 @@ const ViewStudent = () => {
 
   const handleSubmitClass = () => {
     if (!validateForm()) return;
-
     setSubmitStatus("submitting");
-    console.log(newClass);
 
     createClassroom(
       {
