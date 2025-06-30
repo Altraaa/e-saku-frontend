@@ -164,6 +164,14 @@ const ViewBioViolations = () => {
     }));
   };
 
+  const LoadingSpinner: React.FC = () => {
+    return (
+      <div className="p-6 flex justify-center items-center h-64">
+        <div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  };
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilters((prev) => ({
       ...prev,
@@ -173,28 +181,21 @@ const ViewBioViolations = () => {
   };
 
   if (studentLoading || isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Memuat data pelanggaran...</span>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px] px-4">
         <div className="text-center">
-          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <AlertTriangle className="h-8 w-8 sm:h-12 sm:w-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
             Error Loading Data
           </h3>
-          <p className="text-gray-600 mb-4">
+          <p className="text-sm sm:text-base text-gray-600 mb-4">
             Gagal memuat data pelanggaran. Silakan coba lagi.
           </p>
-          <Button onClick={() => window.location.reload()} variant="outline">
+          <Button onClick={() => window.location.reload()} variant="outline" size="sm">
             Coba Lagi
           </Button>
         </div>
@@ -203,78 +204,82 @@ const ViewBioViolations = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 max-w-full">
+      {/* Back Button */}
       <div className="flex items-center">
         <Link to={`/studentbio/${student?.id}`} className="group">
           <div className="flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors">
             <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 group-hover:border-green-500 group-hover:bg-green-50 transition-all">
               <MoveLeft className="h-4 w-4" />
             </div>
-            <span className="font-medium">Back to Student Profile</span>
+            <span className="font-medium text-sm sm:text-base">Back to Student Profile</span>
           </div>
         </Link>
       </div>
 
-      <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-xl p-6 mb-6 shadow-md">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex items-center">
-            <div className="bg-red-600/40 p-2 rounded-lg mr-3">
-              <AlertTriangle className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">
-                Riwayat Pelanggaran
-              </h1>
-              <p className="text-gray-600 mt-1">
-                <span className="font-semibold">{studentName}</span>
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-red-500 rounded-xl p-4 text-white shadow-sm min-w-[140px]">
-            <div className="flex items-center gap-3">
-              <div className="bg-red-600/40 p-2 rounded-lg">
-                <AlertTriangle className="h-5 w-5" />
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-xl p-4 sm:p-6 shadow-md">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="bg-red-600/40 p-2 rounded-lg flex-shrink-0">
+                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{totalPoints}</p>
-                <p className="text-sm text-red-100">Total Poin</p>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-800 break-words">
+                  Riwayat Pelanggaran
+                </h1>
+                <p className="text-sm sm:text-base text-gray-600 mt-1 break-words">
+                  <span className="font-semibold">{studentName}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-red-500 rounded-xl p-3 sm:p-4 text-white shadow-sm w-full sm:w-auto sm:min-w-[140px]">
+              <div className="flex items-center gap-3">
+                <div className="bg-red-600/40 p-2 rounded-lg flex-shrink-0">
+                  <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
+                </div>
+                <div>
+                  <p className="text-xl sm:text-2xl font-bold">{totalPoints}</p>
+                  <p className="text-xs sm:text-sm text-red-100">Total Poin</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div>
-        <div className="flex justify-between space-x-8 items-center">
-          {/* Total Pelanggaran */}
-          <div className="flex-1 p-4 rounded-xl border-2 bg-white">
-            <div className="flex items-center gap-4">
-              <div className="bg-red-500/40 p-2 text-red-800 rounded-lg">
-                <AlertTriangle className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">
-                  {studentViolations.length}
-                </p>
-                <p className="text-sm text-gray-600">Total Pelanggaran</p>
-              </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Total Pelanggaran */}
+        <div className="p-4 rounded-xl border-2 bg-white">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="bg-red-500/40 p-2 text-red-800 rounded-lg flex-shrink-0">
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                {studentViolations.length}
+              </p>
+              <p className="text-xs sm:text-sm text-gray-600">Total Pelanggaran</p>
             </div>
           </div>
-          {/* Pelanggaran Terakhir */}
-          <div className="flex-1 p-4 rounded-xl border-2 bg-white">
-            <div className="flex items-center gap-4">
-              <div className="bg-orange-400/40 p-2 text-orange-600 rounded-lg">
-                <Calendar className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">
-                  {lastViolationDate
-                    ? formatStatDate(lastViolationDate.toString())
-                    : "tidak ada data"}
-                </p>
-                <p className="text-sm text-gray-600">Pelanggaran Terakhir</p>
-              </div>
+        </div>
+        
+        {/* Pelanggaran Terakhir */}
+        <div className="p-4 rounded-xl border-2 bg-white">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="bg-orange-400/40 p-2 text-orange-600 rounded-lg flex-shrink-0">
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-base sm:text-xl font-bold text-gray-900 break-words">
+                {lastViolationDate
+                  ? formatStatDate(lastViolationDate.toString())
+                  : "tidak ada data"}
+              </p>
+              <p className="text-xs sm:text-sm text-gray-600">Pelanggaran Terakhir</p>
             </div>
           </div>
         </div>
@@ -282,31 +287,33 @@ const ViewBioViolations = () => {
 
       {/* Violations Table */}
       <Card className="rounded-xl overflow-hidden shadow-sm">
-        <CardHeader className="px-6 pt-4 pb-4 border-b-2 border-red-500">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <CardHeader className="px-4 sm:px-6 pt-4 pb-4 border-b-2 border-red-500">
+          <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
-              <CardTitle className="text-xl font-bold text-gray-900">
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 flex-shrink-0" />
+              <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 break-words">
                 Riwayat Pelanggaran Siswa
               </CardTitle>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="relative">
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Search Input */}
+              <div className="relative flex-1">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <Search className="h-4 w-4 text-gray-400" />
                 </div>
                 <Input
                   type="text"
-                  className="pl-10 pr-4 py-2"
+                  className="pl-10 pr-4 py-2 text-sm"
                   placeholder="Cari pelanggaran..."
                   value={filters.searchTerm}
                   onChange={handleSearchChange}
                 />
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="w-36">
+              {/* Date Picker and Clear Button */}
+              <div className="flex gap-2">
+                <div className="w-full sm:w-36">
                   <DatePicker
                     value={
                       filters.selectedDate
@@ -317,48 +324,36 @@ const ViewBioViolations = () => {
                     isForm={false}
                   />
                 </div>
-              </div>
 
-              {hasActiveFilters && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearFilters}
-                  className="text-gray-600 hover:text-gray-800 h-8"
-                >
-                  <X className="h-3 w-3 mr-1" />
-                  Clear
-                </Button>
-              )}
+                {hasActiveFilters && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="text-gray-600 hover:text-gray-800 h-8 px-3 flex-shrink-0"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    <span className="hidden sm:inline">Clear</span>
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </CardHeader>
+        
         <CardContent className="p-0">
-          <div className="overflow-x-auto p-4">
+          {/* Desktop Table View */}
+          <div className="hidden lg:block overflow-x-auto p-4">
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 hover:bg-gray-50 border-b-2 border-gray-200">
-                  <th className="text-center font-semibold text-gray-900 py-4 px-4">
-                    No
-                  </th>
-                  <th className="font-semibold text-gray-900 py-4 px-4 text-left">
-                    Jenis Pelanggaran
-                  </th>
-                  <th className="text-center font-semibold text-gray-900 py-4 px-4">
-                    Deskripsi
-                  </th>
-                  <th className="text-center font-semibold text-gray-900 py-4 px-4">
-                    Tindak Lanjut
-                  </th>
-                  <th className="text-center font-semibold text-gray-900 py-4 px-4">
-                    Tanggal & Waktu
-                  </th>
-                  <th className="text-center font-semibold text-gray-900 py-4 px-4">
-                    Poin
-                  </th>
-                  <th className="text-center font-semibold text-gray-900 py-4 px-4">
-                    Aksi
-                  </th>
+                  <th className="text-center font-semibold text-gray-900 py-4 px-4">No</th>
+                  <th className="font-semibold text-gray-900 py-4 px-4 text-left">Jenis Pelanggaran</th>
+                  <th className="text-center font-semibold text-gray-900 py-4 px-4">Deskripsi</th>
+                  <th className="text-center font-semibold text-gray-900 py-4 px-4">Tindak Lanjut</th>
+                  <th className="text-center font-semibold text-gray-900 py-4 px-4">Tanggal & Waktu</th>
+                  <th className="text-center font-semibold text-gray-900 py-4 px-4">Poin</th>
+                  <th className="text-center font-semibold text-gray-900 py-4 px-4">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -368,14 +363,10 @@ const ViewBioViolations = () => {
                       key={violation.id}
                       className="hover:bg-gray-50/50 transition-colors border-b"
                     >
-                      <td className="text-center py-4 px-4">
-                        {startIndex + index + 1}
-                      </td>
+                      <td className="text-center py-4 px-4">{startIndex + index + 1}</td>
                       <td className="py-4 px-4">{violation.type}</td>
                       <td className="text-center py-4 px-4">
-                        <span className="text-gray-600">
-                          {violation.description}
-                        </span>
+                        <span className="text-gray-600">{violation.description}</span>
                       </td>
                       <td className="text-center py-4 px-4">
                         <Badge
@@ -462,17 +453,114 @@ const ViewBioViolations = () => {
             </table>
           </div>
 
+          {/* Mobile Card View */}
+          <div className="lg:hidden p-4 space-y-4">
+            {paginatedViolations.length > 0 ? (
+              paginatedViolations.map((violation, index) => (
+                <Card key={violation.id} className="border border-gray-200 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-500">
+                          #{startIndex + index + 1}
+                        </span>
+                        <Badge
+                          variant="destructive"
+                          className="bg-red-100 text-red-700 border-red-200 text-xs"
+                        >
+                          {violation.points} poin
+                        </Badge>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 w-7 p-0 border-blue-200 hover:bg-blue-50"
+                          asChild
+                        >
+                          <a href={`/violation/edit/${violation.id}`}>
+                            <SquarePen className="h-3 w-3" />
+                          </a>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 w-7 p-0 border-red-200 hover:bg-red-50"
+                          onClick={() => handleDeleteViolation(violation.id)}
+                          disabled={deleteViolation.isPending}
+                        >
+                          {deleteViolation.isPending ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3 w-3" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div>
+                        <h4 className="font-semibold text-gray-900 text-sm mb-1">
+                          {violation.type}
+                        </h4>
+                        <p className="text-gray-600 text-sm">{violation.description}</p>
+                      </div>
+                      
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <Calendar className="h-3 w-3" />
+                          <span>{formatDisplayDate(violation.date)}</span>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={
+                            violation.followUp === "Peringatan"
+                              ? "bg-yellow-50 text-yellow-700 border-yellow-200 text-xs"
+                              : "bg-orange-50 text-orange-700 border-orange-200 text-xs"
+                          }
+                        >
+                          {violation.followUp}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <div className="flex flex-col items-center gap-2 text-gray-500">
+                  <AlertTriangle className="h-8 w-8 text-gray-300" />
+                  <p className="text-sm">
+                    {hasActiveFilters
+                      ? "Tidak ada pelanggaran yang sesuai dengan filter"
+                      : "Tidak ada pelanggaran ditemukan"}
+                  </p>
+                  {hasActiveFilters && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearFilters}
+                      className="mt-2"
+                    >
+                      Reset Filter
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Pagination */}
-          <div className="pl-6 pt-4 pb-4 flex justify-between items-center border-t">
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-500">
+          <div className="px-4 sm:px-6 pt-4 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-t">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <div className="text-xs sm:text-sm text-gray-500">
                 Menampilkan{" "}
                 {Math.min(startIndex + 1, filteredViolations.length)} -{" "}
                 {Math.min(endIndex, filteredViolations.length)} dari{" "}
                 {filteredViolations.length} pelanggaran
               </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Rows:</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm text-gray-600">Rows:</span>
                 <Select
                   value={rowsPerPage}
                   onValueChange={handleRowsPerPageChange}
@@ -492,18 +580,19 @@ const ViewBioViolations = () => {
             </div>
 
             {totalPages > 1 && (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className="h-8"
+                  className="h-8 text-xs sm:text-sm px-2 sm:px-3"
                 >
-                  Previous
+                  <span className="hidden sm:inline">Previous</span>
+                  <span className="sm:hidden">Prev</span>
                 </Button>
 
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     const pageNum = i + 1;
                     return (
@@ -514,7 +603,7 @@ const ViewBioViolations = () => {
                         }
                         size="sm"
                         onClick={() => setCurrentPage(pageNum)}
-                        className="h-8 w-8 p-0"
+                        className="h-8 w-8 p-0 text-xs"
                       >
                         {pageNum}
                       </Button>
@@ -529,15 +618,17 @@ const ViewBioViolations = () => {
                     setCurrentPage(Math.min(totalPages, currentPage + 1))
                   }
                   disabled={currentPage === totalPages}
-                  className="h-8"
+                  className="h-8 text-xs sm:text-sm px-2 sm:px-3"
                 >
-                  Next
+                  <span className="hidden sm:inline">Next</span>
+                  <span className="sm:inline">Next</span>
                 </Button>
               </div>
             )}
           </div>
         </CardContent>
       </Card>
+      
       <ConfirmationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
