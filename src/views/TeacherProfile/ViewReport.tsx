@@ -7,6 +7,7 @@ import {
   ChevronRight,
   MoreHorizontal,
   SquarePen,
+  Trash2,
 } from "lucide-react";
 import {
   Table,
@@ -33,8 +34,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Link } from "react-router-dom"; // For navigation
-import { useReports } from "@/config/Api/useTeacherReport";
+import { useNavigate } from "react-router-dom"; // For navigation
+import { useReportDelete, useReports } from "@/config/Api/useTeacherReport";
+import toast from "react-hot-toast";
+import ConfirmationModal from "@/components/ui/confirmation";
 
 const ViewReport = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -47,9 +50,15 @@ const ViewReport = () => {
     selectedDate: "",
     searchTerm: "",
   });
+  const navigate = useNavigate(); // Tambahkan ini
 
   // Fetch reports data using useReports hook
   const { data: reports, isLoading: isReportsLoading } = useReports();
+  const { mutate: deleteReport } = useReportDelete();
+
+  // Tambahkan state untuk konfirmasi delete
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState<any>(null);
 
   // Get logged-in teacher ID from localStorage
   const teacherId = Number(localStorage.getItem("teacher_id"));
@@ -144,6 +153,26 @@ const ViewReport = () => {
       selectedDate: date ? date.toISOString().split("T")[0] : "",
     }));
   }, []);
+
+  const handleDeleteClick = (report: any) => {
+    setReportToDelete(report);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (reportToDelete) {
+      deleteReport(reportToDelete.id, {
+        onSuccess: () => {
+          toast.success("Laporan berhasil dihapus");
+          setIsDeleteModalOpen(false);
+        },
+        onError: (error) => {
+          toast.error("Gagal menghapus laporan");
+          console.error("Gagal menghapus laporan:", error);
+        },
+      });
+    }
+  };
 
   const HistorySkeleton = () => {
     return (
@@ -277,12 +306,25 @@ const ViewReport = () => {
                       </TableCell>
                       <TableCell className="text-center font-normal">
                         <div className="flex justify-center gap-2">
-                          <Link
-                            to={`/violation-details/${report.id}`}
+                          <Button
+                            variant="outline"
+                            onClick={() =>
+                              navigate("/esakuform", {
+                                state: { editData: report },
+                              })
+                            }
                             className="text-blue-500 hover:text-blue-600 transition-colors p-2 rounded-lg"
                           >
                             <SquarePen className="h-6 w-6" />
-                          </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleDeleteClick(report)}
+                            className="text-red-500 hover:text-red-600 transition-colors p-2 rounded-lg"
+                          >
+                            <Trash2 className="h-6 w-6" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -313,7 +355,7 @@ const ViewReport = () => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                          #{startIndex + index + 1}
+                          {startIndex + index + 1}
                         </span>
                         <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
                           {report.student?.nis || "N/A"}
@@ -347,12 +389,24 @@ const ViewReport = () => {
                       >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
-                      <Link
-                        to={`/violation-details/${report.id}`}
-                        className="text-blue-500 hover:text-blue-600 transition-colors p-2"
+                      <Button
+                        onClick={() =>
+                          navigate("/esakuform", {
+                            state: { editData: report },
+                          })
+                        }
+                        className="text-blue-500 hover:text-blue-600 transition-colors p-2 rounded-lg"
                       >
-                        <SquarePen className="h-4 w-4" />
-                      </Link>
+                        <SquarePen className="h-6 w-6" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteClick(report)}
+                        className="text-red-500 hover:text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -460,6 +514,16 @@ const ViewReport = () => {
           )}
         </DialogContent>
       </Dialog>
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Laporan?"
+        description="Apakah anda yakin ingin menghapus laporan ini? Data yang dihapus tidak dapat dikembalikan."
+        confirmText="Hapus"
+        cancelText="Batal"
+        type="delete"
+      />
     </div>
   );
 };

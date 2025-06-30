@@ -13,7 +13,7 @@ export function ProtectedRoute() {
       const currentTime = new Date().getTime();
       const loginTimestamp = new Date(loginTime).getTime();
       const timeDifference = currentTime - loginTimestamp;
-      if (timeDifference > 3 * 60 * 60 * 1000) {
+      if (timeDifference > 60 * 60 * 1000) {
         logout();
       }
     }

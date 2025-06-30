@@ -70,6 +70,7 @@ import { useReportCreate } from "@/config/Api/useTeacherReport";
 import ConfirmationModal from "@/components/ui/confirmation";
 import { Checkbox } from "@/components/ui/checkbox";
 import toast from "react-hot-toast";
+import { useLocation } from "react-router-dom";
 
 const RankOptions = [
   "Juara 1",
@@ -140,6 +141,36 @@ const ESakuForm: React.FC = () => {
   const { mutate: createReport } = useReportCreate();
 
   const formRef = useRef<HTMLDivElement>(null);
+
+  const location = useLocation();
+  const editData = location.state?.editData as any;
+
+  useEffect(() => {
+    if (editData) {
+      // Isi form dengan data dari report
+      setStudentName(editData.student?.name || "");
+      setClassType(editData.student?.class?.name || "");
+      setDescription(editData.violation_details || "");
+
+      // Set tanggal dari report
+      if (editData.violation_date) {
+        setDate(new Date(editData.violation_date));
+      }
+
+      // Set jenis input berdasarkan data
+      if (editData.accomplishment_type) {
+        setInputType("achievement");
+        setAchievementTypeOptions(editData.accomplishment_type);
+        setAchievementLevel(editData.level || "");
+        setPoint(editData.points?.toString() || "0");
+        setRank(editData.rank || "");
+      } else {
+        setInputType("violation");
+        setViolationType(editData.rules_of_conduct?.name || "");
+        setFollowUpType(editData.action || "tidak-perlu");
+      }
+    }
+  }, [editData]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
