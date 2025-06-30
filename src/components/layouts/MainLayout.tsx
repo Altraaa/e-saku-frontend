@@ -22,7 +22,11 @@ const MainLayout = ({
 
       <div
         className={`flex-1 flex flex-col bg-gray-100 transition-all duration-300 ${
-          isOpen && !isMobile ? "md:ml-64" : "ml-0"
+          isOpen
+            ? isMobile
+              ? "transform translate-x-64" // On mobile, translate the content
+              : "tablet:ml-64" // On desktop, use left margin to push content
+            : ""
         }`}
       >
         <Navbar onToggleNotification={() => {}} title={title} />
