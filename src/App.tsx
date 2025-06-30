@@ -28,6 +28,7 @@ import { ProtectedRoute } from "./config/Routes/ProtectedRoutes";
 import TeacherProfile from "./pages/TeacherProfile";
 import Rules from "./pages/Rules";
 import Report from "./pages/Report";
+import { Toaster } from "react-hot-toast";
 // import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const LayoutWrapper = () => {
@@ -90,9 +91,8 @@ export function AppContent() {
           <Route path="/help" element={<Help />} />
           <Route path="/profile" element={<ProfileStudent />} />
           <Route path="/profileteacher" element={<TeacherProfile />} />
-          <Route path="/rules" element={<Rules/>} />
+          <Route path="/rules" element={<Rules />} />
           {/* <Route path="/privacypolicy" element={<PrivacyPolicy/>} /> */}
-
         </Route>
       </Route>
     </Routes>
@@ -107,6 +107,7 @@ function App() {
         <SidebarProvider>
           <Router>
             <AppContent />
+            <Toaster position="top-center" reverseOrder={false} />
           </Router>
         </SidebarProvider>
       </TooltipProvider>
