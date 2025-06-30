@@ -514,7 +514,7 @@ const ViewHistory = () => {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                          #{startIndex + index + 1}
+                          {startIndex + index + 1}
                         </span>
                         <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
                           {item.student?.nis || "N/A"}
