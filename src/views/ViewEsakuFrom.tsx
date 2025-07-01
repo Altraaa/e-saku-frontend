@@ -70,7 +70,7 @@ import { useReportCreate } from "@/config/Api/useTeacherReport";
 import ConfirmationModal from "@/components/ui/confirmation";
 import { Checkbox } from "@/components/ui/checkbox";
 import toast from "react-hot-toast";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const RankOptions = [
   "Juara 1",
@@ -83,6 +83,13 @@ const RankOptions = [
   "lainnya",
 ] as const;
 export type RankOptions = (typeof RankOptions)[number];
+const followUpOptions = [
+  "tidak-perlu",
+  "pemanggilan",
+  "peringatan",
+  "lainnya",
+] as const;
+type FollowUpType = (typeof followUpOptions)[number];
 
 const ESakuForm: React.FC = () => {
   const teacherId = Number(localStorage.getItem("teacher_id"));
@@ -123,6 +130,7 @@ const ESakuForm: React.FC = () => {
   );
   const [point, setPoint] = useState<string>("0");
   const [formStep, setFormStep] = useState<number>(0);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [errors, setErrors] = useState<ESakuFormErrorState>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
@@ -143,14 +151,15 @@ const ESakuForm: React.FC = () => {
   const formRef = useRef<HTMLDivElement>(null);
 
   const location = useLocation();
+  const navigate = useNavigate();
   const editData = location.state?.editData as any;
 
   useEffect(() => {
-    if (editData) {
+    if (editData && classrooms && classrooms.length > 0) {
       // Isi form dengan data dari report
       setStudentName(editData.student?.name || "");
-      setClassType(editData.student?.class?.name || "");
       setDescription(editData.violation_details || "");
+      setIsEditMode(true);
 
       // Set tanggal dari report
       if (editData.violation_date) {
@@ -167,10 +176,43 @@ const ESakuForm: React.FC = () => {
       } else {
         setInputType("violation");
         setViolationType(editData.rules_of_conduct?.name || "");
-        setFollowUpType(editData.action || "tidak-perlu");
+
+        // Handle follow-up type dengan array yang baru
+        if (editData.action && !followUpOptions.includes(editData.action)) {
+          setFollowUpType("lainnya");
+          setCustomFollowUp(editData.action);
+        } else {
+          setFollowUpType((editData.action as FollowUpType) || "tidak-perlu");
+        }
+      }
+
+      // Set kelas berdasarkan data siswa
+      if (editData.student?.class) {
+        setClassType(editData.student.class.name);
+      } else if (editData.student?.class_id && classrooms) {
+        const studentClass = classrooms.find(
+          (c: IClassroom) => c.id === editData.student.class_id
+        );
+        if (studentClass) {
+          setClassType(studentClass.name);
+        }
+      }
+
+      // Set rule jika tersedia
+      if (editData.rules_of_conduct) {
+        setSelectedRuleId(editData.rules_of_conduct.id.toString());
+        setSelectedRule(editData.rules_of_conduct);
+        setPoint(editData.rules_of_conduct.points.toString());
       }
     }
-  }, [editData]);
+  }, [editData, classrooms]);
+
+  useEffect(() => {
+    // Jika tidak ada editData, pastikan mode edit dimatikan
+    if (!location.state?.editData) {
+      setIsEditMode(false);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -229,6 +271,8 @@ const ESakuForm: React.FC = () => {
     errors,
   ]);
 
+// Di dalam handleSubmit dan handleSendAsReport, setelah berhasil
+
   const resetForm = () => {
     setInputType("violation");
     setClassType("");
@@ -248,6 +292,7 @@ const ESakuForm: React.FC = () => {
     setDate(new Date());
     setFormStep(0);
     setErrors({});
+    setIsEditMode(false); 
 
     if (formRef.current) {
       formRef.current.scrollIntoView({ behavior: "smooth" });
@@ -367,12 +412,30 @@ const ESakuForm: React.FC = () => {
     if (!isValid) return;
     setIsSubmitting(true);
 
-    const studentObj = students.find((s) => s.name === studentName);
+    let studentObj;
+    if (isEditMode) {
+      if (!editData || !editData.student) {
+        toast.error("Data siswa tidak valid");
+        setIsSubmitting(false);
+        return;
+      }
+      // Gunakan data siswa langsung dari editData di mode edit
+      studentObj = {
+        id: editData.student.id,
+        name: editData.student.name,
+      };
+    } else {
+      // Cari siswa dari API di mode normal
+      studentObj = students.find((s) => s.name === studentName);
+    }
+
     if (!studentObj) {
       toast.error("Data siswa tidak ditemukan");
       setIsSubmitting(false);
       return;
     }
+
+    
 
     if (inputType === "violation") {
       createViolation(
@@ -389,8 +452,16 @@ const ESakuForm: React.FC = () => {
           onSuccess: () => {
             setShowSuccess(true);
             resetForm();
+            setIsEditMode(false);
+            navigate(location.pathname, { replace: true });
             window.scrollTo({ top: 0, behavior: "smooth" });
-            toast.success("Data pelanggaran berhasil disimpan");
+            toast.success(
+              isEditMode
+                ? "Data berhasil diperbarui"
+                : inputType === "violation"
+                ? "Data pelanggaran berhasil disimpan"
+                : "Data prestasi berhasil disimpan"
+            );
             setTimeout(() => setShowSuccess(false), 3000);
           },
           onError: (err) => {
@@ -440,8 +511,23 @@ const ESakuForm: React.FC = () => {
   };
 
   const handleSendAsReport = (): void => {
-    const studentObj = students.find((s) => s.name === studentName);
-    const classroomObj = classrooms?.find((c) => c.name === classType);
+    let studentObj;
+    let classroomObj;
+
+    if (isEditMode) {
+      // Gunakan data langsung dari editData
+      if (!editData || !editData.student) {
+        toast.error("Data siswa tidak valid");
+        return;
+      }
+
+      studentObj = editData.student;
+      classroomObj = editData.student.class;
+    } else {
+      // Mode normal
+      studentObj = students.find((s) => s.name === studentName);
+      classroomObj = classrooms?.find((c) => c.name === classType);
+    }
 
     if (!studentObj || !classroomObj) {
       toast.error("Data siswa atau kelas tidak ditemukan");
@@ -751,65 +837,69 @@ const ESakuForm: React.FC = () => {
                       icon={<School className="h-4 w-4 text-green-600" />}
                       error={errors.classType}
                     >
-                      <Select
-                        value={classType}
-                        onValueChange={(value) => {
-                          setClassType(value);
-                          const selectedClass = classrooms?.find(
-                            (c: IClassroom) => c.name === value
-                          );
-                          setSelectedClassId(selectedClass?.id || null);
-                          setStudentName("");
+                      {isEditMode ? (
+                        // Display class name directly for edit mode
+                        <Input
+                          value={classType}
+                          readOnly
+                          className="bg-gray-100"
+                        />
+                      ) : (
+                        <Select
+                          value={classType}
+                          onValueChange={(value) => {
+                            setClassType(value);
+                            const selectedClass = classrooms?.find(
+                              (c: IClassroom) => c.name === value
+                            );
+                            setSelectedClassId(selectedClass?.id || null);
+                            setStudentName("");
 
-                          // Pastikan teacherId adalah number
-                          const teacherIdNum = Number(teacherId);
-
-                          if (
-                            selectedClass &&
-                            selectedClass.teacher_id === teacherIdNum
-                          ) {
-                            setIsClassTaughtByTeacher(true);
-                          } else {
-                            setIsClassTaughtByTeacher(false);
-                          }
-                        }}
-                      >
-                        <SelectTrigger
-                          className={`${inputClass} ${
-                            errors.classType ? inputErrorClass : ""
-                          }`}
+                            const teacherIdNum = Number(teacherId);
+                            setIsClassTaughtByTeacher(
+                              selectedClass?.teacher_id === teacherIdNum
+                            );
+                          }}
                         >
-                          <SelectValue placeholder="Pilih Kelas" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {filteredClassrooms?.map((classroom: IClassroom) => (
-                            <SelectItem
-                              key={classroom.id}
-                              value={classroom.name}
-                            >
-                              {classroom.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                        {inputType === "violation" && (
-                          <div className="flex items-center gap-2 mt-2">
-                            <Checkbox
-                              id="filter-my-classes"
-                              checked={showOnlyTeacherClass}
-                              onCheckedChange={(checked) =>
-                                setShowOnlyTeacherClass(!!checked)
-                              }
-                              className="text-green-600"
-                            />
-                            <label
-                              htmlFor="filter-my-classes"
-                              className="text-sm text-gray-600 select-none"
-                            >
-                              Tampilkan hanya kelas yang diampu
-                            </label>
-                          </div>
-                        )}
-                      </Select>
+                          <SelectTrigger
+                            className={`${inputClass} ${
+                              errors.classType ? inputErrorClass : ""
+                            }`}
+                          >
+                            <SelectValue placeholder="Pilih Kelas" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {filteredClassrooms?.map(
+                              (classroom: IClassroom) => (
+                                <SelectItem
+                                  key={classroom.id}
+                                  value={classroom.name}
+                                >
+                                  {classroom.name}
+                                </SelectItem>
+                              )
+                            )}
+                          </SelectContent>
+                          {inputType === "violation" && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <Checkbox
+                                id="filter-my-classes"
+                                checked={showOnlyTeacherClass}
+                                onCheckedChange={(checked) =>
+                                  setShowOnlyTeacherClass(!!checked)
+                                }
+                                className="text-green-600"
+                              />
+                              <label
+                                htmlFor="filter-my-classes"
+                                className="text-sm text-gray-600 select-none"
+                              >
+                                Tampilkan hanya kelas yang diampu
+                              </label>
+                            </div>
+                          )}
+                        </Select>
+                      )}
                     </FormFieldGroup>
                   </div>
                 </div>
@@ -822,49 +912,58 @@ const ESakuForm: React.FC = () => {
                       error={errors.studentName}
                       required
                     >
-                      <Select
-                        value={studentName}
-                        onValueChange={setStudentName}
-                        disabled={!selectedClassId}
-                      >
-                        <SelectTrigger
-                          className={`${inputClass} ${
-                            errors.studentName ? inputErrorClass : ""
-                          }`}
+                      {isEditMode ? (
+                        // Display student name directly for edit mode
+                        <Input
+                          value={studentName}
+                          readOnly
+                          className="bg-gray-100"
+                        />
+                      ) : (
+                        <Select
+                          value={studentName}
+                          onValueChange={setStudentName}
+                          disabled={!selectedClassId}
                         >
-                          <SelectValue
-                            placeholder={
-                              selectedClassId
-                                ? "Pilih Siswa"
-                                : "Pilih kelas terlebih dahulu"
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {selectedClassId ? (
-                            students.length > 0 ? (
-                              students.map((student) => (
-                                <SelectItem
-                                  key={student.id}
-                                  value={
-                                    student.name || `student-${student.id}`
-                                  }
-                                >
-                                  {student.name}
+                          <SelectTrigger
+                            className={`${inputClass} ${
+                              errors.studentName ? inputErrorClass : ""
+                            }`}
+                          >
+                            <SelectValue
+                              placeholder={
+                                selectedClassId
+                                  ? "Pilih Siswa"
+                                  : "Pilih kelas terlebih dahulu"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {selectedClassId ? (
+                              students.length > 0 ? (
+                                students.map((student) => (
+                                  <SelectItem
+                                    key={student.id}
+                                    value={
+                                      student.name || `student-${student.id}`
+                                    }
+                                  >
+                                    {student.name}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="no-data" disabled>
+                                  Tidak ada siswa di kelas ini
                                 </SelectItem>
-                              ))
+                              )
                             ) : (
-                              <SelectItem value="no-data" disabled>
-                                Tidak ada siswa di kelas ini
+                              <SelectItem value="select-class-first" disabled>
+                                Pilih kelas terlebih dahulu
                               </SelectItem>
-                            )
-                          ) : (
-                            <SelectItem value="select-class-first" disabled>
-                              Pilih kelas terlebih dahulu
-                            </SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </FormFieldGroup>
                   </div>
 
@@ -1364,7 +1463,7 @@ const ESakuForm: React.FC = () => {
             </Button>
 
             <div className="flex gap-3">
-              {inputType === "violation" && (
+              {inputType === "violation" && !isEditMode && (
                 <Button
                   type="button"
                   className={btnDarkClass}
@@ -1381,9 +1480,12 @@ const ESakuForm: React.FC = () => {
                 onClick={() => handleOpenConfirm("save")}
                 icon={<CheckCircle className="h-4 w-4" />}
                 className={btnPrimaryClass}
-                disabled={isClassTaughtByTeacher !== true}
+                disabled={
+                  isSubmitting || 
+                  (inputType === "violation" && !isEditMode && isClassTaughtByTeacher !== true)
+                }
               >
-                Simpan
+                {isEditMode ? "Perbarui Data" : "Simpan"}
               </LoadingSpinnerButton>
             </div>
           </CardFooter>
