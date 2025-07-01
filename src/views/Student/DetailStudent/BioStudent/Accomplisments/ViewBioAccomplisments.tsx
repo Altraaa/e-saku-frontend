@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   MoveLeft,
   SquarePen,
@@ -45,6 +45,7 @@ const ViewBioAccomplishments = () => {
   const [rowsPerPage, setRowsPerPage] = useState("10");
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userType, setUserType] = useState<"teacher" | "student">("teacher");
   const [filters, setFilters] = useState({
     searchTerm: "",
     selectedDate: "",
@@ -62,6 +63,13 @@ const ViewBioAccomplishments = () => {
   const { data: studentAccomplishments = [] } =
     useAccomplishmentsByStudentId(studentId);
   const deleteAccomplishment = useAccomplishmentDelete();
+
+  useEffect(() => {
+    // Cek tipe pengguna dari localStorage
+    const teacherId = localStorage.getItem("teacher_id");
+    const studentId = localStorage.getItem("student_id");
+    setUserType(teacherId ? "teacher" : studentId ? "student" : "teacher");
+  }, []);
 
   if (studentLoading) return <div>Loading...</div>;
 
@@ -200,7 +208,14 @@ const ViewBioAccomplishments = () => {
     <div className="space-y-6">
       {/* Back Button */}
       <div className="flex items-center">
-        <Link to={`/studentbio/${student?.id}`} className="group">
+        <Link
+          to={
+            userType === "teacher"
+              ? `/studentbio/${student?.id}`
+              : "/profilestudent"
+          }
+          className="group"
+        >
           <div className="flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors">
             <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 group-hover:border-green-500 group-hover:bg-green-50 transition-all">
               <MoveLeft className="h-4 w-4" />

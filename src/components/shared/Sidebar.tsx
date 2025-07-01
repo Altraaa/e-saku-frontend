@@ -31,6 +31,10 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
     typeof window !== "undefined" ? window.innerWidth : 1024
   );
 
+  // Determine user type
+  const isTeacher = localStorage.getItem("teacher_id") !== null;
+  const isStudent = localStorage.getItem("student_id") !== null;
+
   const isMobileScreen = windowWidth < 835;
 
   const confirmLogout = () => {
@@ -39,6 +43,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
       onSuccess: () => {
         localStorage.removeItem("token");
         localStorage.removeItem("teacher_id");
+        localStorage.removeItem("student_id"); // Also remove student_id
         localStorage.removeItem("login_time");
         toast.success("Logout berhasil");
         navigate("/login", { replace: true });
@@ -70,25 +75,42 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
     }
   };
 
-  const platformItems = [
+  // Common items for both teacher and student
+  const commonPlatformItems = [
     { label: "Dashboard", icon: Home, path: "/" },
+    { label: "Rules", icon: DiamondMinusIcon, path: "/rules" },
+  ];
+
+  // Teacher-only items
+  const teacherPlatformItems = [
     { label: "Student", icon: Users, path: "/student" },
     { label: "E-saku Form", icon: FileText, path: "/esakuform" },
     { label: "History", icon: History, path: "/history" },
-    { label: "Rules", icon: DiamondMinusIcon, path: "/rules" },
     { label: "Report", icon: MessageSquareWarning, path: "/report" },
   ];
 
-  const accountItems = [
-    // { label: "Settings", icon: Settings, path: "/settings" },
-    { label: "Help", icon: CircleHelp, path: "/help" },
+  // Student-only items
+  const studentPlatformItems = [
+    { label: "My Class", icon: Users, path: "/student" },
   ];
+
+  // Combine common items with role-specific items
+  const platformItems = [
+    ...commonPlatformItems,
+    ...(isTeacher ? teacherPlatformItems : []),
+    ...(isStudent ? studentPlatformItems : []),
+  ];
+
+  // Account items (common for both)
+  const accountItems = [{ label: "Help", icon: CircleHelp, path: "/help" }];
 
   const teacherProfile = [
     { label: "Profile", icon: User, path: "/profileteacher" },
   ];
 
-  const studentProfile = [{ label: "Profile", icon: User, path: "/profile" }];
+  const studentProfile = [
+    { label: "Profile", icon: User, path: "/profilestudent" },
+  ];
 
   const isActivePath = (currentPath: string, itemPath: string): boolean => {
     const matchPatterns: Record<string, RegExp[]> = {
@@ -101,6 +123,8 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
       "/esakuform": [/^\/esakuform$/],
       "/history": [/^\/history$/],
       "/rules": [/^\/rules$/],
+      "/profilestudent": [/^\/profile$/],
+      "/profileteacher": [/^\/profileteacher$/],
     };
 
     const patterns = matchPatterns[itemPath];
@@ -196,69 +220,38 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
           ))}
         </ul>
 
-        {/* Conditionally Render Teacher or Student Profile */}
-        {localStorage.getItem("teacher_id") && (
+        {/* Render profile section based on user type */}
+        {(isTeacher || isStudent) && (
           <>
             <div className="my-4 border-t border-gray-300" />
             <div className="text-xs font-semibold mb-3 text-muted-foreground uppercase">
               Account
             </div>
             <ul className="space-y-1 mt-4">
-              {teacherProfile.map((item, index) => (
-                <li key={index}>
-                  <Link
-                    to={item.path}
-                    onClick={handleMenuItemClick}
-                    className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
-                      activeItem === item.path
-                        ? "bg-green-100 text-green-600 font-medium"
-                        : "hover:bg-gray-100 hover:text-black"
-                    }`}
-                  >
-                    <item.icon
-                      className={`w-5 h-5 flex-shrink-0 ${
+              {(isTeacher ? teacherProfile : studentProfile).map(
+                (item, index) => (
+                  <li key={index}>
+                    <Link
+                      to={item.path}
+                      onClick={handleMenuItemClick}
+                      className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
                         activeItem === item.path
-                          ? "text-green-600"
-                          : "text-gray-500"
+                          ? "bg-green-100 text-green-600 font-medium"
+                          : "hover:bg-gray-100 hover:text-black"
                       }`}
-                    />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-
-        {localStorage.getItem("student_id") && (
-          <>
-            <div className="my-4 border-t border-gray-300" />
-            <div className="text-xs font-semibold mb-3 text-muted-foreground uppercase">
-              Account
-            </div>
-            <ul className="space-y-1">
-              {studentProfile.map((item, index) => (
-                <li key={index}>
-                  <Link
-                    to={item.path}
-                    onClick={handleMenuItemClick}
-                    className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
-                      activeItem === item.path
-                        ? "bg-green-100 text-green-600 font-medium"
-                        : "hover:bg-gray-100 hover:text-black"
-                    }`}
-                  >
-                    <item.icon
-                      className={`w-5 h-5 flex-shrink-0 ${
-                        activeItem === item.path
-                          ? "text-green-600"
-                          : "text-gray-500"
-                      }`}
-                    />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                </li>
-              ))}
+                    >
+                      <item.icon
+                        className={`w-5 h-5 flex-shrink-0 ${
+                          activeItem === item.path
+                            ? "text-green-600"
+                            : "text-gray-500"
+                        }`}
+                      />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  </li>
+                )
+              )}
             </ul>
           </>
         )}

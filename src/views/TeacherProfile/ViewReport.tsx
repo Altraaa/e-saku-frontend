@@ -366,7 +366,12 @@ const ViewReport = () => {
                         </span>
                       </div>
                       <div className="text-lg font-semibold text-gray-900">
-                        {report.student?.name || "Nama tidak tersedia"}
+                        <Link
+                          to={`/studentbio/${report.student?.id}`}
+                          className="hover:text-green-500 transition-colors"
+                        >
+                          {report.student?.name || "N/A"}
+                        </Link>
                       </div>
                       <div className="text-sm text-gray-500">
                         Pelapor: {report.reporter?.name || "-"}

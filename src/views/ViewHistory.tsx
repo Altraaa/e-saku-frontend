@@ -38,6 +38,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { LevelLabel } from "@/config/Models/LevelMap";
 import toast from "react-hot-toast";
 import ConfirmationModal from "@/components/ui/confirmation";
+import { Link } from "react-router-dom";
 
 // Helper function to format date as YYYY-MM-DD in local time
 const formatDate = (date: Date) => {
@@ -462,7 +463,12 @@ const handleConfirmDelete = async () => {
                         {item.student?.nis}
                       </TableCell>
                       <TableCell className="text-center font-normal">
-                        {item.student?.name}
+                        <Link
+                          to={`/studentbio/${item.student?.id}`}
+                          className="hover:text-green-500 transition-colors"
+                        >
+                          {item.student?.name}
+                        </Link>
                       </TableCell>
 
                       {selectedHistory === "violationhistory" ? (
@@ -584,7 +590,12 @@ const handleConfirmDelete = async () => {
                         </span>
                       </div>
                       <div className="text-base font-semibold text-gray-900">
-                        {item.student?.name || "Nama tidak tersedia"}
+                        <Link
+                          to={`/studentbio/${item.student?.id}`}
+                          className="hover:text-green-500 transition-colors"
+                        >
+                          {item.student?.name}
+                        </Link>
                       </div>
                     </div>
                     <div className="flex gap-1">

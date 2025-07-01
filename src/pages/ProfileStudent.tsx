@@ -1,5 +1,5 @@
 import ViewProfileStudent from "@/views/ViewProfileStudent";
 
-export default function StudentBio() {
+export default function StudentProfile() {
     return <ViewProfileStudent />
 }

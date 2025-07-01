@@ -56,6 +56,7 @@ import { IClassroom } from "@/config/Models/Classroom";
 import { useClassroom } from "@/config/Api/useClasroom";
 import { useAccomplishments } from "@/config/Api/useAccomplishments";
 import { IAccomplishments } from "@/config/Models/Accomplishments";
+import { useStudentById } from "@/config/Api/useStudent";
 
 interface LeaderboardItem {
   rank: number;
@@ -131,7 +132,8 @@ const DashboardSkeleton = () => {
 };
 
 const ViewDashboard = () => {
-  const [teacherName, setTeacherName] = useState("");
+  const [userName, setUserName] = useState("");
+  const [userRole, setUserRole] = useState<"teacher" | "student">("teacher");
   const [timeRange, setTimeRange] = useState<"weekly" | "monthly">("weekly");
   const [overallTimeRange, setOverallTimeRange] = useState<
     "daily" | "weekly" | "monthly"
@@ -147,31 +149,56 @@ const ViewDashboard = () => {
   const [rowsPerPage, setRowsPerPage] = useState("10");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // State baru untuk data dari API
+  // State for data
   const [violationData, setViolationData] = useState<IViolation[]>([]);
-  const [accomplishmentData, setAccomplishmentData] = useState<IAccomplishments[]>([]);
+  const [accomplishmentData, setAccomplishmentData] = useState<
+    IAccomplishments[]
+  >([]);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([]);
   const [statsData, setStatsData] = useState({
     totalPoints: 0,
     totalStudents: 0,
-    topClass: "Unknown", // Initialized with "Unknown"
-    topGrade: "", // Initialized with an empty string
+    topClass: "Unknown",
+    topGrade: "",
   });
   const [chartData, setChartData] = useState<
     { day: string; violations: number; achievements: number }[]
   >([]);
 
-  // Hook untuk mendapatkan data guru
+  // Get user role and ID
+  useEffect(() => {
+    const role = localStorage.getItem("user_type");
+    const teacherId = localStorage.getItem("teacher_id");
+    const studentId = localStorage.getItem("student_id");
+
+    if (role === "student" && studentId) {
+      setUserRole("student");
+    } else {
+      setUserRole("teacher");
+    }
+  }, []);
+
+  // Get user data based on role
   const teacherId = localStorage.getItem("teacher_id");
+  const studentId = localStorage.getItem("student_id");
+
   const { data: teacher } = useTeacherById(teacherId ? Number(teacherId) : 0);
+  const { data: student } = useStudentById(studentId || "");
+
+  useEffect(() => {
+    if (userRole === "teacher" && teacher) {
+      setUserName(teacher.name);
+    } else if (userRole === "student" && student) {
+      setUserName(student.name);
+    }
+  }, [teacher, student, userRole]);
 
   // Hook untuk mendapatkan data pelanggaran
   const { data: violationsResponse, isLoading: isViolationsLoading } =
     useViolations();
 
   // Ambil data semua kelas
-  const { data: accomplishmentsResponse } =
-    useAccomplishments();
+  const { data: accomplishmentsResponse } = useAccomplishments();
   const { data: classrooms } = useClassroom();
 
   // Mapping class_id ke nama kelas
@@ -189,7 +216,7 @@ const ViewDashboard = () => {
   const getClassName = useCallback(
     (classId: number | undefined): string => {
       if (!classId) return "-";
-      return classroomMap[classId] || "-"; 
+      return classroomMap[classId] || "-";
     },
     [classroomMap]
   );
@@ -199,6 +226,7 @@ const ViewDashboard = () => {
     const gradeMatch = className.match(/^(X|XI|XII)/);
     return gradeMatch ? gradeMatch[0] : "-";
   };
+
   // Filter berdasarkan rentang waktu
   const filterByTimeRange = <
     T extends { violation_date?: string; accomplishment_date?: string }
@@ -251,7 +279,7 @@ const ViewDashboard = () => {
         classCount[className] = (classCount[className] || 0) + 1;
       });
 
-      let topClass = "-"; 
+      let topClass = "-";
       if (Object.entries(classCount).length > 0) {
         topClass = Object.entries(classCount).sort((a, b) => b[1] - a[1])[0][0];
       }
@@ -387,12 +415,6 @@ const ViewDashboard = () => {
   ]);
 
   useEffect(() => {
-    if (teacher) {
-      setTeacherName(teacher.name);
-    }
-  }, [teacher]);
-
-  useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
       if (width < 640) setCurrentBreakpoint("xs");
@@ -446,14 +468,17 @@ const ViewDashboard = () => {
     setRowsPerPage(value);
     setCurrentPage(1);
   };
+
   if (isLoading || isViolationsLoading) {
     return <DashboardSkeleton />;
   }
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col gap-2 mb-4 sm:mb-6">
         <h1 className="text-lg sm:text-xl lg:text-2xl font-bold leading-tight">
-          Hi🙌, <span className="text-green-500">{teacherName}</span>
+          Hi🙌, <span className="text-green-500">{userName}</span>
+          {userRole === "student" ? " (Siswa)" : " (Guru)"}
         </h1>
         <p className="text-md sm:text-xl lg:text-2xl font-bold leading-tight">
           Selamat datang di website E-Saku Siswa😊
