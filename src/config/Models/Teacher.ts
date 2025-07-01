@@ -2,7 +2,7 @@ export interface ITeacher {
     id: number;
     teacher_code: string;
     name: string;
-    nip: number | null;
+    nip: string | null;
     email: string | null;
     profile_image: string | null;
     created_at: string;

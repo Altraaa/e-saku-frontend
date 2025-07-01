@@ -147,12 +147,14 @@ const ViewEditStudentBio = () => {
 
     const updatedData: IStudent = { ...formData, id: Number(studentId) };
 
+      console.log(updatedData);
+
     if (!updatedData.email) {
       delete updatedData.email;
     }
 
     updateMutation.mutate(
-      { id: Number(studentId), data: updatedData },
+      { id: studentId, data: updatedData },
       {
         onSuccess: () => {
           toast.success("Data siswa berhasil diperbarui");

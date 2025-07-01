@@ -8,8 +8,12 @@ export const ApiTeachers = {
     ApiRequest({ url: `/teachers/${id}`, method: "GET" }),
   create: (data: Partial<ITeacher>): Promise<ITeacher> =>
     ApiRequest({ url: "/teachers", method: "POST", body: data }),
-  update: (id: number, data: Partial<ITeacher>): Promise<ITeacher> =>
-    ApiRequest({ url: `/teachers/${id}`, method: "PUT", body: data }),
+  update: (id: string, data: Partial<ITeacher>): Promise<ITeacher> =>
+    ApiRequest({
+      url: `/teachers/${id}`,
+      method: "POST",
+      body: { ...data, _method: "PUT" },
+    }),
   uploadPhoto: (id: string, file: File): Promise<any> => {
     const formData = new FormData();
     formData.append("profile_image", file);

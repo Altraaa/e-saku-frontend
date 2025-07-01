@@ -225,12 +225,12 @@ const ViewProfileTeacher = () => {
       name: formData.name,
       teacher_code: formData.teacher_code,
       email: formData.email,
-      nip: formData.nip,
+      nip: String(formData.nip),
     };
 
     updateMutation.mutate(
       {
-        id: Number(teacherId),
+        id: teacherId,
         data: updateData,
       },
       {
@@ -239,7 +239,8 @@ const ViewProfileTeacher = () => {
           setIsEditing(false);
           refetch();
         },
-        onError: () => {
+        onError: (error) => {
+          console.error("Error updating data:", error);
           setSuccessMessage("Gagal memperbarui profil. Coba lagi.");
         },
       }
@@ -258,7 +259,7 @@ const ViewProfileTeacher = () => {
 
     updateMutation.mutate(
       {
-        id: Number(teacherId),
+        id: teacherId,
         data: { password } as any,
       },
       {

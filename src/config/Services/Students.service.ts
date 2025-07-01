@@ -9,8 +9,12 @@ export const ApiStudents = {
     ApiRequest({ url: `/students/class/${class_id}`, method: "GET" }),
   create: (data: IStudent) =>
     ApiRequest({ url: "/students", method: "POST", body: data }),
-  update: (id: number, data: IStudent) =>
-    ApiRequest({ url: `/students/${id}`, method: "PUT", body: data }),
+  update: (id: string, data: IStudent) =>
+    ApiRequest({
+      url: `/students/${id}`,
+      method: "POST",
+      body: { ...data, _method: "PUT" },
+    }),
   uploadPhoto: (id: string, file: File): Promise<any> => {
     const formData = new FormData();
     formData.append("profile_image", file);

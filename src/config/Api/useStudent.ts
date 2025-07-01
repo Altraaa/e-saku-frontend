@@ -48,11 +48,11 @@ export const useStudentUpdate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: IStudent }) =>
+    mutationFn: ({ id, data }: { id: string; data: IStudent }) =>
       ApiStudents.update(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
-      queryClient.invalidateQueries({ queryKey: ["student", id.toString()] });
+      queryClient.invalidateQueries({ queryKey: ["student", id] });
     },
     onError: (error) => {
       console.error("Error updating student:", error);

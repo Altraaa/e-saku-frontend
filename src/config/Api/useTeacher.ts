@@ -36,7 +36,7 @@ export const useTeacherUpdate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<ITeacher> }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<ITeacher> }) =>
       ApiTeachers.update(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["teachers"] });
