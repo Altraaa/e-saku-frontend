@@ -31,7 +31,7 @@ export const useTeacherCreate = () => {
   });
 };
 
-//upadate teacher
+//update teacher
 export const useTeacherUpdate = () => {
   const queryClient = useQueryClient();
 
@@ -41,6 +41,31 @@ export const useTeacherUpdate = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["teachers"] });
       queryClient.invalidateQueries({ queryKey: ["teacher", id] });
+    },
+  });
+};
+
+//upload profile image teacher
+export const useTeacherUpload = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) =>
+      ApiTeachers.uploadPhoto(id, file),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["teachers", id] });
+    },
+  });
+};
+
+// delete profile image teacher
+export const useTeacherDeleteProfile = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => ApiTeachers.deleteProfileImage(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ["teachers", id] });
     },
   });
 };

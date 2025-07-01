@@ -60,6 +60,33 @@ export const useStudentUpdate = () => {
   });
 };
 
+// Upload student profile
+export const useStudentUpload = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) => {
+      return ApiStudents.uploadPhoto(id, file);
+    },
+
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["student", id.toString()] });
+    },
+  });
+};
+
+// Delete student profile
+export const useStudentDeleteProfile = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => ApiStudents.deleteProfileImage(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ["student", id] });
+    },
+  });
+};
+
 // Delete student
 export const useStudentDelete = () => {
   const queryClient = useQueryClient();
