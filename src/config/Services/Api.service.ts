@@ -8,6 +8,7 @@ interface ApiRequestProps {
   headers?: any;
   authorization?: boolean;
   isMultipart?: boolean;
+  isFormData?: boolean;
 }
 
 export const DefaultHeaders = {
@@ -20,14 +21,12 @@ const axiosInstance = axios.create({
     ? `${import.meta.env.VITE_API_URL}`
     : "https://saku.dev.smkn1denpasar.sch.id/api/",
   timeout: 50000,
-  headers: DefaultHeaders,
 });
 
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
 
-    // Cek config.customAuth, bukan header.authorization
     const customAuth = (config as any).customAuth;
     if (token && customAuth !== false) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -54,26 +53,29 @@ export const ApiRequest = async ({
   method = "GET",
   body = null,
   params = {},
-  headers = DefaultHeaders,
+  headers = {},
   authorization = true,
   isMultipart = false,
+  isFormData = false,
 }: ApiRequestProps) => {
   try {
+    const isFileUpload = isFormData || isMultipart;
+
     const finalHeaders = {
-      ...headers,
       ...(authorization
         ? { Authorization: `Bearer ${localStorage.getItem("token")}` }
         : {}),
+      ...(isFileUpload ? {} : { "Content-Type": "application/json" }),
+      Accept: "application/json",
+      ...headers,
     };
-
-    const requestBody = isMultipart ? body : JSON.stringify(body);
 
     const config: AxiosRequestConfig = {
       url,
       method,
       headers: finalHeaders,
       params,
-      data: body && requestBody,
+      data: body ? (isFileUpload ? body : JSON.stringify(body)) : undefined,
     };
 
     const response = await axiosInstance.request(config);
