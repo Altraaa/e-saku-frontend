@@ -8,10 +8,17 @@ import {
   FormSelect,
 } from "@/components/ui/form";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useStudentById, useStudentUpdate } from "@/config/Api/useStudent";
+import {
+  useStudentById,
+  useStudentDeleteProfile,
+  useStudentUpdate,
+  useStudentUpload,
+} from "@/config/Api/useStudent";
 import { IStudent } from "@/config/Models/Student";
 import ConfirmationModal from "@/components/ui/confirmation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import toast from "react-hot-toast";
+import { Button } from "@/components/ui/button";
 
 const ViewEditStudentBio = () => {
   const { id } = useParams();
@@ -19,18 +26,22 @@ const ViewEditStudentBio = () => {
   const navigate = useNavigate();
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
 
-  // Fetch student data
   const { data: studentData, isLoading } = useStudentById(studentId);
 
-  // Setup mutation for updating student
   const updateMutation = useStudentUpdate();
+  const uploadMutation = useStudentUpload();
+  const deleteProfileMutation = useStudentDeleteProfile();
 
   const [formData, setFormData] = useState<IStudent>({
     id: 0,
     name: "",
     nisn: "",
     nis: "",
+    email: "",
     place_of_birth: "",
     birth_date: "",
     gender: "",
@@ -52,10 +63,19 @@ const ViewEditStudentBio = () => {
     created_at: "",
     updated_at: "",
     class_id: 0,
+    violations_sum_points: 0,
+    accomplishments_sum_points: 0,
   });
 
   useEffect(() => {
     if (studentData) {
+      if (studentData.profile_image) {
+        setPhotoUrl(
+          `${import.meta.env.VITE_API_URL?.replace("/api", "/public")}${
+            studentData.profile_image
+          }`
+        );
+      }
       setFormData((prev) => ({
         ...prev,
         ...studentData,
@@ -77,18 +97,22 @@ const ViewEditStudentBio = () => {
     if (!formData.nis) newErrors.nis = "NIS harus diisi";
     if (!formData.place_of_birth)
       newErrors.place_of_birth = "Tempat lahir harus diisi";
-    if (!formData.birth_date) newErrors.birth_date = "Tanggal lahir harus diisi";
+    if (!formData.birth_date)
+      newErrors.birth_date = "Tanggal lahir harus diisi";
     if (!formData.gender) newErrors.gender = "Jenis kelamin harus dipilih";
     if (!formData.religion) newErrors.religion = "Agama harus diisi";
     if (!formData.address) newErrors.address = "Alamat harus diisi";
-    if (!formData.sub_district) newErrors.sub_district = "Kecamatan harus diisi";
+    if (!formData.sub_district)
+      newErrors.sub_district = "Kecamatan harus diisi";
     if (!formData.district) newErrors.district = "Kabupaten harus diisi";
     if (!formData.height) newErrors.height = "Tinggi badan harus diisi";
     if (!formData.weight) newErrors.weight = "Berat badan harus diisi";
     if (!formData.father_name) newErrors.father_name = "Nama ayah harus diisi";
-    if (!formData.father_job) newErrors.father_job = "Pekerjaan ayah harus diisi";
+    if (!formData.father_job)
+      newErrors.father_job = "Pekerjaan ayah harus diisi";
     if (!formData.mother_name) newErrors.mother_name = "Nama ibu harus diisi";
-    if (!formData.mother_job) newErrors.mother_job = "Pekerjaan ibu harus diisi";
+    if (!formData.mother_job)
+      newErrors.mother_job = "Pekerjaan ibu harus diisi";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -100,16 +124,14 @@ const ViewEditStudentBio = () => {
       | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
       | undefined
   ) => {
-    if (!e) return; // Menghindari undefined
+    if (!e) return;
 
     if (e instanceof Date) {
-      // Jika event adalah Date (misalnya dari DatePicker)
       setFormData((prev) => ({
         ...prev,
-        birth_date: e.toISOString().split("T")[0], // Simpan format YYYY-MM-DD
+        birth_date: e.toISOString().split("T")[0],
       }));
     } else {
-      // Jika event berasal dari input biasa
       const { id, value } = e.target;
       setFormData((prev) => ({
         ...prev,
@@ -123,10 +145,10 @@ const ViewEditStudentBio = () => {
       e.preventDefault();
     }
 
-    // Buat salinan data yang akan dikirim
-    const updatedData: IStudent = { ...formData, id: studentId };
+    const updatedData: IStudent = { ...formData, id: Number(studentId) };
 
-    // Hapus field email jika kosong atau null
+      console.log(updatedData);
+
     if (!updatedData.email) {
       delete updatedData.email;
     }
@@ -135,29 +157,92 @@ const ViewEditStudentBio = () => {
       { id: studentId, data: updatedData },
       {
         onSuccess: () => {
-          alert("Student data updated successfully!");
+          toast.success("Data siswa berhasil diperbarui");
           navigate(`/studentbio/${studentId}`);
         },
         onError: (error) => {
+          toast.error("Data siswa gagal diperbarui");
           console.error("Error updating student:", error);
-          alert("Failed to update student data. Please try again.");
         },
       }
     );
   };
 
+  const handleChangeAvatar = () => {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+
+    fileInput.onchange = (e: any) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const localUrl = URL.createObjectURL(file);
+        setPhotoUrl(localUrl);
+        setSelectedFile(file);
+        console.log("File selected:", file);
+      } else {
+        console.log("No file selected");
+      }
+    };
+
+    fileInput.click();
+  };
+
+  const handleDeleteProfile = () => {
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setDeleteModalOpen(false);
+    if (!studentId) return;
+
+    deleteProfileMutation.mutate(studentId, {
+      onSuccess: () => {
+        toast.success("Foto profil berhasil dihapus!");
+        setPhotoUrl(undefined);
+        setSelectedFile(null);
+      },
+      onError: () => {
+        toast.error("Gagal menghapus foto profil!");
+      },
+    });
+  };
+
+  const handleSavePhoto = () => {
+    if (!selectedFile || !studentId) return;
+    console.log("studentId", studentId);
+
+    uploadMutation.mutate(
+      { id: studentId, file: selectedFile },
+      {
+        onSuccess: () => {
+          toast.success("Foto profil berhasil diubah!");
+          setSelectedFile(null);
+        },
+        onError: () => {
+          toast.error("Gagal mengubah foto profil!");
+        },
+      }
+    );
+  };
+
+  const imageSrc = photoUrl
+    ? photoUrl
+    : studentData?.profile_image
+    ? `${import.meta.env.VITE_API_URL?.replace("/api", "/public")}${
+        studentData.profile_image
+      }`
+    : "";
+
   const handleSaveClick = () => {
-    // Validate form first
     if (validateForm()) {
-      // Only open the confirmation modal if validation passes
       setEditModalOpen(true);
     }
-    // If validation fails, errors will be displayed but modal won't open
   };
 
   const confirmEdit = () => {
     setEditModalOpen(false);
-    handleSubmit(); // No event object is passed here
+    handleSubmit();
   };
 
   if (isLoading) {
@@ -171,18 +256,8 @@ const ViewEditStudentBio = () => {
   if (!studentData) {
     return <div className="p-4 md:p-6 text-red-500">Student not found</div>;
   }
-
   return (
     <>
-      <ConfirmationModal
-        isOpen={isEditModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        onConfirm={confirmEdit}
-        title="Confirm Edit"
-        description="Are you sure you want to save changes?"
-        confirmText="Save"
-        type="update"
-      />
       <div className="m-1">
         <div className="flex flex-col px-3 mt-4 gap-4 sm:px-4 md:px-8 md:mt-8 md:gap-6 lg:flex-row lg:items-start">
           {/* Left Sidebar */}
@@ -193,20 +268,24 @@ const ViewEditStudentBio = () => {
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 group-hover:border-green-500 group-hover:bg-green-50 transition-all">
                   <MoveLeft className="h-4 w-4" />
                 </div>
-                <span className="font-medium text-sm md:text-base">Back to Student</span>
+                <span className="font-medium text-sm md:text-base">
+                  Back to Student
+                </span>
               </div>
             </Link>
 
             {/* Title */}
-            <div className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">Edit Biodata Siswa</div>
-            
+            <div className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">
+              Edit Biodata Siswa
+            </div>
+
             {/* Profile Section */}
             <div className="flex flex-col gap-3 justify-center items-center">
               {/* Profile Image */}
               <div className="w-full max-w-xs mx-auto lg:max-w-none">
-                {formData.profile_image ? (
+                {photoUrl ? (
                   <img
-                    src={formData.profile_image}
+                    src={imageSrc}
                     alt={formData.name}
                     className="aspect-[3/4] w-full object-cover bg-gray-300 rounded-lg"
                   />
@@ -219,23 +298,44 @@ const ViewEditStudentBio = () => {
 
               {/* Action Buttons */}
               <div className="w-full max-w-xs mx-auto lg:max-w-none space-y-2 mt-4">
-                <button
+                {selectedFile ? (
+                  <Button
+                    onClick={handleSavePhoto}
+                    disabled={!selectedFile}
+                    type="button"
+                    className="w-full bg-blue-600 p-3 font-semibold text-white rounded-md hover:bg-blue-500 transition-all duration-200 text-sm md:text-base"
+                  >
+                    Save Profile Picture
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleChangeAvatar}
+                    type="button"
+                    className="w-full bg-blue-600 p-3 font-semibold text-white rounded-md hover:bg-blue-500 transition-all duration-200 text-sm md:text-base"
+                  >
+                    Update Profile Picture
+                  </Button>
+                )}
+                <Button
+                  onClick={handleDeleteProfile}
                   type="button"
-                  className="w-full bg-blue-600 p-3 font-semibold text-white rounded-md hover:bg-blue-500 transition-all duration-200 text-sm md:text-base"
+                  className="w-full bg-red-600 p-3 font-semibold text-white rounded-md hover:bg-red-500 transition-all duration-200 text-sm md:text-base"
                 >
-                  Update Profile Picture
-                </button>
-                
+                  Delete Profile Picture
+                </Button>
                 <div className="w-full">
                   <FormButton
                     disabled={updateMutation.isPending}
                     type="button"
                     onClick={handleSaveClick}
-                    className="w-full bg-green-600 hover:bg-green-500 p-3 font-semibold text-white rounded-md transition-all duration-200 text-sm md:text-base"
                   >
                     <div className="flex items-center justify-center gap-2">
                       <SaveAll className="h-4 w-4 md:h-5 md:w-5" />
-                      <span>{updateMutation.isPending ? "Saving..." : "Save Changes"}</span>
+                      <span>
+                        {updateMutation.isPending
+                          ? "Saving..."
+                          : "Save Changes"}
+                      </span>
                     </div>
                   </FormButton>
                 </div>
@@ -265,7 +365,7 @@ const ViewEditStudentBio = () => {
                         onChange={handleChange}
                         error={errors.name}
                       />
-                      
+
                       {/* NISN and NIS Row */}
                       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
                         <div className="flex flex-col gap-1 w-full sm:w-1/2">
@@ -289,7 +389,7 @@ const ViewEditStudentBio = () => {
                           />
                         </div>
                       </div>
-                      
+
                       {/* Place and Date of Birth Row */}
                       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
                         <div className="flex flex-col gap-1 w-full sm:w-1/2">
@@ -313,7 +413,7 @@ const ViewEditStudentBio = () => {
                           />
                         </div>
                       </div>
-                      
+
                       {/* Gender and Religion Row */}
                       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
                         <div className="flex flex-col gap-1 w-full sm:w-1/2">
@@ -346,7 +446,7 @@ const ViewEditStudentBio = () => {
                           />
                         </div>
                       </div>
-                      
+
                       <FormTextarea
                         id="address"
                         label="Address"
@@ -354,7 +454,7 @@ const ViewEditStudentBio = () => {
                         onChange={handleChange}
                         error={errors.address}
                       />
-                      
+
                       {/* Sub District and District Row */}
                       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
                         <div className="flex flex-col gap-1 w-full sm:w-1/2">
@@ -378,7 +478,7 @@ const ViewEditStudentBio = () => {
                           />
                         </div>
                       </div>
-                      
+
                       {/* Height and Weight Row */}
                       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
                         <div className="flex flex-col gap-1 w-full sm:w-1/2">
@@ -402,7 +502,7 @@ const ViewEditStudentBio = () => {
                           />
                         </div>
                       </div>
-                      
+
                       <FormInput
                         id="phone_number"
                         label="Phone Number"
@@ -449,7 +549,7 @@ const ViewEditStudentBio = () => {
                           />
                         </div>
                       </div>
-                      
+
                       {/* Mother's Information */}
                       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
                         <div className="flex flex-col gap-1 w-full sm:w-1/2">
@@ -516,6 +616,24 @@ const ViewEditStudentBio = () => {
             </Form>
           </div>
         </div>
+        <ConfirmationModal
+          isOpen={isEditModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          onConfirm={confirmEdit}
+          title="Confirm Edit"
+          description="Are you sure you want to save changes?"
+          confirmText="Save"
+          type="update"
+        />
+        <ConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setDeleteModalOpen(false)}
+          onConfirm={handleConfirmDelete}
+          description="Apa kamu yakin untuk menghapus foto profile ini?"
+          title="Hapus Foto Profil"
+          confirmText="Hapus"
+          type="delete"
+        />
       </div>
     </>
   );

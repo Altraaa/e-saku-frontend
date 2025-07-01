@@ -8,8 +8,33 @@ export const ApiTeachers = {
     ApiRequest({ url: `/teachers/${id}`, method: "GET" }),
   create: (data: Partial<ITeacher>): Promise<ITeacher> =>
     ApiRequest({ url: "/teachers", method: "POST", body: data }),
-  update: (id: number, data: Partial<ITeacher>): Promise<ITeacher> =>
-    ApiRequest({ url: `/teachers/${id}`, method: "PUT", body: data }),
+  update: (id: string, data: Partial<ITeacher>): Promise<ITeacher> =>
+    ApiRequest({
+      url: `/teachers/${id}`,
+      method: "POST",
+      body: { ...data, _method: "PUT" },
+    }),
+  uploadPhoto: (id: string, file: File): Promise<any> => {
+    const formData = new FormData();
+    formData.append("profile_image", file);
+
+    return ApiRequest({
+      url: `/teachers/${id}/upload-photo`,
+      method: "POST",
+      body: formData,
+      isFormData: true,
+    });
+  },
+  deleteProfileImage: (id: string): Promise<any> =>
+    ApiRequest({
+      url: `/teachers/${id}/photo`,
+      method: "POST",
+      body: { _method: "DELETE" },
+    }),
   delete: (id: number): Promise<{ message: string }> =>
-    ApiRequest({ url: `/teachers/${id}`, method: "POST", body: {_method: "DELETE"} }),
+    ApiRequest({
+      url: `/teachers/${id}`,
+      method: "POST",
+      body: { _method: "DELETE" },
+    }),
 };

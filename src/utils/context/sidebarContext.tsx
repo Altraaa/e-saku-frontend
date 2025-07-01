@@ -12,7 +12,7 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 export const SidebarProvider = ({ children }: { children: ReactNode }) => {
   const isDesktopSize = () => {
     if (typeof window === 'undefined') return true; 
-    return window.innerWidth >= 768; 
+    return window.innerWidth >= 836; 
   };
 
   const [isOpen, setIsOpen] = useState(() => isDesktopSize());

@@ -386,7 +386,7 @@ const ViewSchoolRules = () => {
           <nav className="flex border-b border-gray-200" ref={tabsRef}>
             <button
               ref={violationsTabRef}
-              className={`py-4 px-6 font-medium text-sm ${
+              className={`py-4 px-2 md:px-6 font-medium text-xs md:text-sm ${
                 activeTab === "violations"
                   ? "text-green-600"
                   : "text-gray-500 hover:text-gray-700"
@@ -400,7 +400,7 @@ const ViewSchoolRules = () => {
             </button>
             <button
               ref={sanctionsTabRef}
-              className={`py-4 px-6 font-medium text-sm ${
+              className={`py-4 px-2 md:px-6 font-medium text-xs md:text-sm ${
                 activeTab === "sanctions"
                   ? "text-amber-600"
                   : "text-gray-500 hover:text-gray-700"
@@ -414,7 +414,7 @@ const ViewSchoolRules = () => {
             </button>
             <button
               ref={rewardsTabRef}
-              className={`py-4 px-6 font-medium text-sm ${
+              className={`py-4 px-2 md:px-6 font-medium text-xs md:text-sm ${
                 activeTab === "rewards"
                   ? "text-emerald-600"
                   : "text-gray-500 hover:text-gray-700"
@@ -557,8 +557,8 @@ const ViewSchoolRules = () => {
             </CardHeader>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-5">
-            <Card className="border-green-100 shadow-sm md:col-span-1">
+          <div className="md:grid grid-cols-1 md:grid-cols-4 gap-5 mb-5">
+            <Card className="border-green-100 shadow-sm mb-6 lg:mb-0 lg:col-span-1">
               <CardHeader className="bg-green-50 border-b border-green-100 px-5 py-4">
                 <CardTitle className="text-md font-medium text-green-800 flex items-center gap-2">
                   <HelpCircle className="h-4 w-4 text-green-600" />
@@ -602,22 +602,43 @@ const ViewSchoolRules = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50">
-                      <TableHead className="w-36 px-5 py-3 text-center font-medium text-gray-700">Category</TableHead>
-                      <TableHead className="text-left px-5 py-3 font-medium text-gray-700">Rule</TableHead>
-                      <TableHead className="w-24 px-5 py-3 text-center font-medium text-gray-700">Point</TableHead>
+                      <TableHead className="hidden md:table-cell w-36 px-5 py-3 text-center font-medium text-gray-700">Category</TableHead>
+                      <TableHead className="text-left w-full px-5 py-3 font-medium text-gray-700">Rule</TableHead>
+                      <TableHead className="hidden md:table-cell w-24 px-5 py-3 text-center font-medium text-gray-700">Point</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {paginatedViolations.length > 0 ? (
                       paginatedViolations.map((rule) => (
                         <TableRow key={rule.id} className="border-b">
-                          <TableCell className="text-center px-5 py-3">
+                          <TableCell className="hidden md:table-cell text-center px-5 py-3">
                             <Badge variant="outline" className={getCategoryClass(rule.category)}>
                               {rule.category}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-left px-5 py-3">{rule.rule}</TableCell>
-                          <TableCell className="text-center px-5 py-3">
+                          <TableCell className="text-left flex flex-col gap-2 md:gap-0 md:justify-center  px-5 py-3">
+                            <div className='flex justify-between items-center md:hidden'>
+                              <Badge variant="outline" className={getCategoryClass(rule.category)}>
+                                {rule.category}
+                              </Badge>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <div className={`${getPointClass(rule.point)} inline-flex items-center justify-center h-7 w-7 md:w-10 md:h-10 rounded-full text-white text-sm font-semibold mx-auto`}>
+                                      {rule.point}
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-xs">{rule.point} point violation</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <div className='items-center'>
+                              {rule.rule}
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell text-center px-5 py-3">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger>
@@ -659,7 +680,7 @@ const ViewSchoolRules = () => {
 
               {filteredViolations.length > 0 && (
                 <CardFooter className="flex flex-col gap-2 md:gap-0 md:flex-row justify-between items-center border-t p-4">
-                  <div className="flex items-center space-x-4">
+                  <div className="flex flex-col md:flex-row items-center space-x-4">
                     <div className="text-sm text-gray-500">
                       Showing {paginatedViolations.length} of {filteredViolations.length} violations
                     </div>

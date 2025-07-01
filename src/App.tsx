@@ -19,8 +19,7 @@ import EditStudentBio from "./pages/EditStudentBio";
 import BioAccomplisments from "./pages/BioAccomplisments";
 import BioViolations from "./pages/BioViolations";
 import Help from "./pages/Help";
-import Settings from "./pages/Settings";
-import ProfileStudent from "./pages/ProfileStudent";
+// import Settings from "./pages/Settings";
 import { SidebarProvider } from "./utils/context/sidebarContext";
 import MainLayout from "./components/layouts/MainLayout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -28,6 +27,8 @@ import { ProtectedRoute } from "./config/Routes/ProtectedRoutes";
 import TeacherProfile from "./pages/TeacherProfile";
 import Rules from "./pages/Rules";
 import Report from "./pages/Report";
+import { Toaster } from "react-hot-toast";
+import StudentProfile from "./pages/ProfileStudent";
 // import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const LayoutWrapper = () => {
@@ -42,9 +43,9 @@ const LayoutWrapper = () => {
     class: "Class",
     studentbio: "Student Bio",
     help: "Help",
-    profile: "Profile",
+    profilestudent: "Profile",
     profileteacher: "Teacher Profile",
-    settings: "Settings",
+    // settings: "Settings",
     rules: "Rules Of Conduct",
     privacypolicy: "Privacy Policy",
     report: "Report",
@@ -86,14 +87,12 @@ export function AppContent() {
             element={<BioViolations />}
           />
           <Route path="/report" element={<Report />} />
-          <Route path="/settings" element={<Settings />} />
+          {/* <Route path="/settings" element={<Settings />} /> */}
           <Route path="/help" element={<Help />} />
-          <Route path="/profile" element={<ProfileStudent />} />
           <Route path="/profileteacher" element={<TeacherProfile />} />
-          <Route path="/settings" element={<Settings/>} />
-          <Route path="/rules" element={<Rules/>} />
+          <Route path="/profilestudent" element={<StudentProfile />} />
+          <Route path="/rules" element={<Rules />} />
           {/* <Route path="/privacypolicy" element={<PrivacyPolicy/>} /> */}
-
         </Route>
       </Route>
     </Routes>
@@ -108,6 +107,7 @@ function App() {
         <SidebarProvider>
           <Router>
             <AppContent />
+            <Toaster position="top-center" reverseOrder={false} />
           </Router>
         </SidebarProvider>
       </TooltipProvider>

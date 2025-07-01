@@ -4,14 +4,27 @@ import esakulogo from "../assets/skensa.png";
 import esakulogin from "../assets/esakulogin.jpg";
 import { useState } from "react";
 import { useLogin } from "@/config/Api/useAuth";
+import { AlertTriangle } from "lucide-react";
 
 export default function ViewLogin() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+
+  // Gunakan hook yang dimodifikasi
   const loginMutation = useLogin();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Reset error sebelum mencoba login baru
+    loginMutation.errorMessage = null;
+
+    // Validasi input
+    if (!identifier.trim() || !password.trim()) {
+      loginMutation.errorMessage = "Username dan password harus diisi";
+      return;
+    }
+
     loginMutation.mutate({ identifier, password });
   };
 
@@ -40,6 +53,15 @@ export default function ViewLogin() {
                   Enter your username for login to your account.
                 </p>
               </div>
+
+              {/* Tampilkan pesan error jika ada */}
+              {loginMutation.errorMessage && (
+                <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  {loginMutation.errorMessage}
+                </div>
+              )}
+
               <FormInput
                 id="identifier"
                 label="Username"
@@ -48,6 +70,7 @@ export default function ViewLogin() {
                 placeholder="Enter your username"
                 disabled={loginMutation.isPending}
               />
+
               <FormInput
                 id="password"
                 label="Password"
@@ -57,7 +80,9 @@ export default function ViewLogin() {
                 placeholder="Enter your password"
                 disabled={loginMutation.isPending}
               />
+
               <FormButton isLoading={loginMutation.isPending}>Login</FormButton>
+
               <div className="text-center text-sm">
                 By logging in, you agree to our{" "}
                 <a href="#" className="underline underline-offset-4">

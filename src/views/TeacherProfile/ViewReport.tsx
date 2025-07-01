@@ -7,6 +7,7 @@ import {
   ChevronRight,
   MoreHorizontal,
   SquarePen,
+  Trash2,
 } from "lucide-react";
 import {
   Table,
@@ -33,8 +34,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Link } from "react-router-dom"; // For navigation
-import { useReports } from "@/config/Api/useTeacherReport";
+import { Link, useNavigate } from "react-router-dom"; // For navigation
+import { useReportDelete, useReports } from "@/config/Api/useTeacherReport";
+import toast from "react-hot-toast";
+import ConfirmationModal from "@/components/ui/confirmation";
 
 const ViewReport = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -47,9 +50,14 @@ const ViewReport = () => {
     selectedDate: "",
     searchTerm: "",
   });
+  const navigate = useNavigate(); // Tambahkan ini
 
   // Fetch reports data using useReports hook
   const { data: reports, isLoading: isReportsLoading } = useReports();
+  const { mutate: deleteReport } = useReportDelete();
+  // Tambahkan state untuk konfirmasi delete
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState<any>(null);
 
   // Get logged-in teacher ID from localStorage
   const teacherId = Number(localStorage.getItem("teacher_id"));
@@ -92,19 +100,18 @@ const ViewReport = () => {
     (filter) => filter !== ""
   );
 
-  // Filter reports by teacher_id and applied filters (search term and date)
+  // Filter reports by teacher_id and applied filters
   const filteredReports = useMemo(() => {
     if (!reports) return [];
 
-    // Filter reports where teacher_id matches the logged-in teacher
     const teacherReports = reports.filter(
       (report) => report.teacher_id === teacherId
     );
 
-    return teacherReports.filter((violation) => {
+    return teacherReports.filter((report) => {
       if (
         filters.searchTerm &&
-        !violation.violation_details
+        !report.violation_details
           .toLowerCase()
           .includes(filters.searchTerm.toLowerCase())
       ) {
@@ -112,10 +119,10 @@ const ViewReport = () => {
       }
 
       if (filters.selectedDate) {
-        const violationDate = new Date(violation.violation_date);
+        const reportDate = new Date(report.violation_date);
         const selectedDate = new Date(filters.selectedDate);
 
-        if (violationDate.toDateString() !== selectedDate.toDateString()) {
+        if (reportDate.toDateString() !== selectedDate.toDateString()) {
           return false;
         }
       }
@@ -146,9 +153,29 @@ const ViewReport = () => {
     }));
   }, []);
 
+  const handleDeleteClick = (report: any) => {
+    setReportToDelete(report);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (reportToDelete) {
+      deleteReport(reportToDelete.id, {
+        onSuccess: () => {
+          toast.success("Laporan berhasil dihapus");
+          setIsDeleteModalOpen(false);
+        },
+        onError: (error) => {
+          toast.error("Gagal menghapus laporan");
+          console.error("Gagal menghapus laporan:", error);
+        },
+      });
+    }
+  };
+
   const HistorySkeleton = () => {
     return (
-      <div className="animate-pulse">{/* Add skeleton loading UI here */}</div>
+      <div className="animate-pulse bg-gray-200 rounded-xl p-6 h-64 w-full"></div>
     );
   };
 
@@ -174,54 +201,55 @@ const ViewReport = () => {
       </div>
 
       {/* Filters and Search */}
-        <div className="bg-white rounded-xl overflow-hidden shadow-sm">
-          <div className="px-4 sm:px-6 pt-4 pb-4 border-b-2 border-red-500">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-red-500" />
-                <h2 className="text-xl font-bold text-gray-900">
-                  Laporan Pelanggaran Siswa
-                </h2>
+      <div className="bg-white rounded-xl overflow-hidden shadow-sm">
+        <div className="px-4 sm:px-6 pt-4 pb-4 border-b-2 border-red-500">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              <h2 className="text-xl font-bold text-gray-900">
+                Laporan Pelanggaran Siswa
+              </h2>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+              <div className="flex items-center space-x-2">
+                <DatePicker
+                  value={
+                    filters.selectedDate
+                      ? new Date(filters.selectedDate)
+                      : undefined
+                  }
+                  onChange={handleDateChange}
+                  isForm={false}
+                />
+                {hasActiveFilters && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="text-gray-600 hover:text-gray-800 h-8"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Clear Filters
+                  </Button>
+                )}
               </div>
-              <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-                <div className="relative w-full sm:w-72">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Search className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <Input
-                    type="text"
-                    className="pl-10 pr-4 py-2 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="Cari pelanggaran..."
-                    value={filters.searchTerm}
-                    onChange={handleSearchChange}
-                  />
+              <div className="relative w-full sm:w-72">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Search className="h-4 w-4 text-gray-400" />
                 </div>
-
-              <DatePicker
-                value={
-                  filters.selectedDate
-                    ? new Date(filters.selectedDate)
-                    : undefined
-                }
-                onChange={handleDateChange}
-                isForm={false}
-              />
-              {hasActiveFilters && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearFilters}
-                  className="text-gray-600 hover:text-gray-800 h-8"
-                >
-                  <X className="h-3 w-3 mr-1" />
-                  Clear Filters
-                </Button>
-              )}
+                <Input
+                  type="text"
+                  className="pl-10 pr-4 py-2 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  placeholder="Cari pelanggaran..."
+                  value={filters.searchTerm}
+                  onChange={handleSearchChange}
+                />
+              </div>
             </div>
           </div>
         </div>
 
-          <div className="overflow-x-auto pt-3 relative scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+        <div className="overflow-x-auto pt-3 relative scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {/* Desktop Table */}
           <div className="hidden md:block">
             <Table>
@@ -237,9 +265,6 @@ const ViewReport = () => {
                     Nama
                   </TableHead>
                   <TableHead className="text-center font-medium text-black hidden lg:table-cell">
-                    Kelas
-                  </TableHead>
-                  <TableHead className="text-center font-medium text-black hidden lg:table-cell">
                     Pelapor
                   </TableHead>
                   <TableHead className="text-center font-medium text-black hidden lg:table-cell">
@@ -251,46 +276,59 @@ const ViewReport = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedViolations.length > 0 ? (
-                  paginatedViolations.map((violation, index) => (
+                {paginatedReports.length > 0 ? (
+                  paginatedReports.map((report, index) => (
                     <TableRow
-                      key={violation.id}
+                      key={report.id}
                       className="border-b hover:bg-gray-50"
                     >
                       <TableCell className="text-center px-6 font-normal">
                         {startIndex + index + 1}
                       </TableCell>
                       <TableCell className="text-center font-normal">
-                        {violation.student?.nis}
+                        {report.student?.nis || "N/A"}
                       </TableCell>
                       <TableCell className="text-left font-normal">
-                        {violation.student?.name}
+                        <Link
+                          to={`/studentbio/${report.student?.id}`}
+                          className="hover:text-green-500 transition-colors"
+                        >
+                          {report.student?.name || "N/A"}
+                        </Link>
                       </TableCell>
                       <TableCell className="text-center font-normal hidden lg:table-cell">
-                        {violation.student?.classroom?.name}
-                      </TableCell>
-                      <TableCell className="text-center font-normal hidden lg:table-cell">
-                        {violation.reporter?.name}
+                        {report.reporter?.name || "N/A"}
                       </TableCell>
                       <TableCell className="text-center font-normal hidden lg:table-cell">
                         <Button
                           variant="link"
-                          onClick={() => handleShowViolationDetails(violation)}
+                          onClick={() => handleShowViolationDetails(report)}
                           className="text-gray-500 hover:text-gray-600"
-                          aria-label={`Show details for violation ${violation.id}`}
                         >
                           <MoreHorizontal className="h-5 w-5" />
                         </Button>
                       </TableCell>
                       <TableCell className="text-center font-normal">
                         <div className="flex justify-center gap-2">
-                          <Link
-                            to={`/violation-details/${violation.id}`}
+                          <Button
+                            variant="outline"
+                            onClick={() =>
+                              navigate("/esakuform", {
+                                state: { editData: report },
+                              })
+                            }
                             className="text-blue-500 hover:text-blue-600 transition-colors p-2 rounded-lg"
-                            aria-label={`Edit violation ${violation.id}`}
                           >
                             <SquarePen className="h-6 w-6" />
-                          </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleDeleteClick(report)}
+                            className="text-red-500 hover:text-red-600 transition-colors p-2 rounded-lg"
+                          >
+                            <Trash2 className="h-6 w-6" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -311,42 +349,73 @@ const ViewReport = () => {
 
           {/* Mobile Card List */}
           <div className="md:hidden space-y-4 px-4">
-            {paginatedViolations.length > 0 ? (
-              paginatedViolations.map((violation, index) => (
+            {paginatedReports.length > 0 ? (
+              paginatedReports.map((report, index) => (
                 <div
-                  key={violation.id}
+                  key={report.id}
                   className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                          #{startIndex + index + 1}
+                          {startIndex + index + 1}
                         </span>
                         <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
-                          {violation.student?.nis || "N/A"}
+                          {report.student?.nis || "N/A"}
                         </span>
                       </div>
                       <div className="text-lg font-semibold text-gray-900">
-                        {violation.student?.name || "Nama tidak tersedia"}
+                        <Link
+                          to={`/studentbio/${report.student?.id}`}
+                          className="hover:text-green-500 transition-colors"
+                        >
+                          {report.student?.name || "N/A"}
+                        </Link>
                       </div>
                       <div className="text-sm text-gray-500">
-                        Kelas: {violation.student?.classroom?.name || "-"}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Pelapor: {violation.reporter?.name || "-"}
+                        Pelapor: {report.reporter?.name || "-"}
                       </div>
                       <div className="text-sm text-gray-500 mt-2">
-                        Detail Pelanggaran: {violation.violation_details || "-"}
+                        <span className="font-medium">Pelanggaran:</span>{" "}
+                        {report.violation_details || "-"}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        <span className="font-medium">Tindak Lanjut:</span>{" "}
+                        {report.action || "-"}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        <span className="font-medium">Tanggal:</span>{" "}
+                        {formatDisplayDate(report.violation_date)}
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Link
-                        to={`/violation-details/${violation.id}`}
-                        className="text-blue-500 hover:text-blue-600 transition-colors p-2"
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleShowViolationDetails(report)}
+                        className="text-gray-500 hover:text-gray-600"
                       >
-                        <SquarePen className="h-4 w-4" />
-                      </Link>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          navigate("/esakuform", {
+                            state: { editData: report },
+                          })
+                        }
+                        className="text-blue-500 hover:text-blue-600 transition-colors p-2 rounded-lg"
+                      >
+                        <SquarePen className="h-6 w-6" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteClick(report)}
+                        className="text-red-500 hover:text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -363,8 +432,9 @@ const ViewReport = () => {
         <div className="pl-6 pt-4 pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center border-t gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
             <div className="text-sm text-gray-500 text-center sm:text-left">
-              Menampilkan {paginatedViolations.length} dari{" "}
-              {filteredViolations.length} pelanggaran
+              Menampilkan {startIndex + 1} -{" "}
+              {Math.min(endIndex, filteredReports.length)} dari{" "}
+              {filteredReports.length} data
             </div>
             <div className="flex items-center justify-center sm:justify-start space-x-2">
               <span className="text-sm text-gray-600">Rows:</span>
@@ -413,40 +483,56 @@ const ViewReport = () => {
       </div>
 
       {/* Modal */}
-      {isViolationDetailModalOpen && (
-        <Dialog
-          open={isViolationDetailModalOpen}
-          onOpenChange={setIsViolationDetailModalOpen}
-        >
-          <DialogContent className="sm:max-w-[480px] max-w-full max-h-[90vh] overflow-y-auto p-6 rounded-lg shadow-md border border-gray-300 bg-white">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-semibold text-gray-900">
-                Detail Pelanggaran Siswa
-              </DialogTitle>
-              <DialogDescription className="text-sm text-gray-600 mb-4">
-                Informasi lengkap pelanggaran
-              </DialogDescription>
-            </DialogHeader>
+      <Dialog
+        open={isViolationDetailModalOpen}
+        onOpenChange={setIsViolationDetailModalOpen}
+      >
+        <DialogContent className="sm:max-w-[480px] max-w-full max-h-[90vh] overflow-y-auto p-6 rounded-lg shadow-md border border-gray-300 bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-gray-900">
+              Detail Pelanggaran Siswa
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600 mb-4">
+              Informasi lengkap pelanggaran
+            </DialogDescription>
+          </DialogHeader>
+          {violationDetails && (
             <div className="space-y-4 text-sm text-gray-700">
               <p>
-                <strong>Nama:</strong> {violationDetails?.student?.name}
+                <strong>NIS:</strong> {violationDetails.student?.nis || "N/A"}
+              </p>
+              <p>
+                <strong>Nama:</strong> {violationDetails.student?.name || "N/A"}
+              </p>
+              <p>
+                <strong>Pelapor:</strong>{" "}
+                {violationDetails.reporter?.name || "N/A"}
               </p>
               <p>
                 <strong>Tanggal:</strong>{" "}
-                {formatDisplayDate(violationDetails?.violation_date)}
+                {formatDisplayDate(violationDetails.violation_date)}
               </p>
               <p>
-                <strong>Deskripsi:</strong>{" "}
-                {violationDetails?.violation_details}
+                <strong>Deskripsi Pelanggaran:</strong>{" "}
+                {violationDetails.violation_details}
               </p>
               <p>
-                <strong>Tindak Lanjut:</strong>{" "}
-                {violationDetails?.action}
+                <strong>Tindak Lanjut:</strong> {violationDetails.action}
               </p>
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Laporan?"
+        description="Apakah anda yakin ingin menghapus laporan ini? Data yang dihapus tidak dapat dikembalikan."
+        confirmText="Hapus"
+        cancelText="Batal"
+        type="delete"
+      />
     </div>
   );
 };

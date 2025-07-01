@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { useState, useEffect } from "react";
 import {
+  useClassroomById,
   useClassroomByTeacherId,
   useClassroomCreate,
 } from "@/config/Api/useClasroom";
@@ -26,6 +27,7 @@ import { Link } from "react-router-dom";
 import { IClassroom } from "@/config/Models/Classroom";
 import { IMajor } from "@/config/Models/Major";
 import StudentSkeleton from "@/components/shared/component/StudentSekeleton";
+import { useStudentById } from "@/config/Api/useStudent";
 
 const ViewStudent = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -34,12 +36,45 @@ const ViewStudent = () => {
   const [isAddClassModalOpen, setIsAddClassModalOpen] = useState<boolean>(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [submitError, setSubmitError] = useState<string>("");
+  const [userType, setUserType] = useState<"teacher" | "student">("teacher");
 
-  const { data: classrooms, isLoading: classroomsLoading, error } = useClassroomByTeacherId();
+  // Get user type from localStorage
+  useEffect(() => {
+    const userType = localStorage.getItem("user_type");
+    if (userType === "student") {
+      setUserType("student");
+    } else {
+      setUserType("teacher");
+    }
+  }, []);
+
+  // Unconditionally call hooks
+  const { data: classrooms, isLoading: classroomsLoading, error } = useClassroomByTeacherId({
+    enabled: userType === "teacher"
+  });
+  
   const { data: majors, isLoading: majorsLoading, error: majorsError } = useMajors();
 
-  const teacherName = classrooms?.[0]?.teacher?.name || "Teacher name not available";
-  const teacherId = classrooms?.[0]?.teacher?.id || 0;
+  const studentId = localStorage.getItem("student_id");
+  const { data: studentData } = useStudentById(studentId || "", {
+    enabled: userType === "student"
+  });
+  
+  const { data: studentClassroom, isLoading: studentClassLoading } = useClassroomById(
+    studentData?.class_id || 0, 
+    {
+      enabled: userType === "student" && !!studentData?.class_id
+    }
+  );
+
+  // Determine teacher name based on user type
+  const teacherName = userType === "teacher" 
+    ? (classrooms?.[0]?.teacher?.name || "Teacher name not available") 
+    : (studentData?.name || "Student name not available");
+  
+  const teacherId = userType === "teacher" 
+    ? (classrooms?.[0]?.teacher?.id || 0) 
+    : 0;
 
   const { mutate: createClassroom } = useClassroomCreate();
 
@@ -58,13 +93,13 @@ const ViewStudent = () => {
   }, []);
 
   useEffect(() => {
-    if (classrooms?.length) {
+    if (userType === "teacher" && classrooms?.length) {
       const currentTeacherId = classrooms[0]?.teacher?.id;
       if (currentTeacherId) {
         setNewClass((prev) => ({ ...prev, teacherId: currentTeacherId }));
       }
     }
-  }, [classrooms]);
+  }, [classrooms, userType]);
 
   const handleInputChange = (field: string, value: string | number) => {
     setNewClass((prev) => ({ ...prev, [field]: value }));
@@ -87,9 +122,7 @@ const ViewStudent = () => {
 
   const handleSubmitClass = () => {
     if (!validateForm()) return;
-
     setSubmitStatus("submitting");
-    console.log(newClass);
 
     createClassroom(
       {
@@ -145,18 +178,26 @@ const ViewStudent = () => {
     );
   };
 
-  const filteredClassrooms = classrooms?.filter((classroom: IClassroom) => {
-    const matchesSearch = classroom.name.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredClassrooms =
+    userType === "teacher"
+      ? classrooms?.filter((classroom: IClassroom) => {
+          const matchesSearch = classroom.name
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
 
-    if (programFilter === "all") {
-      return matchesSearch;
-    }
+          if (programFilter === "all") {
+            return matchesSearch;
+          }
 
-    const classroomMajor = findMajorByNamePattern(classroom.name);
-    const matchesProgram = classroomMajor?.id?.toString() === programFilter;
+          const classroomMajor = findMajorByNamePattern(classroom.name);
+          const matchesProgram =
+            classroomMajor?.id?.toString() === programFilter;
 
-    return matchesSearch && matchesProgram;
-  });
+          return matchesSearch && matchesProgram;
+        })
+      : studentClassroom
+      ? [studentClassroom]
+      : [];
 
   const getProgramInitial = (className: string): string => {
     const major = findMajorByNamePattern(className);
@@ -177,7 +218,11 @@ const ViewStudent = () => {
     return major?.name || "Program Studi";
   };
 
-  if (isLoading || classroomsLoading) {
+  if (
+    isLoading ||
+    (userType === "teacher" && classroomsLoading) ||
+    (userType === "student" && studentClassLoading)
+  ) {
     return <StudentSkeleton />;
   }
 
@@ -195,248 +240,266 @@ const ViewStudent = () => {
             </h1>
           </div>
           <p className="text-sm sm:text-base md:text-lg font-semibold mb-2">
-            Kelas yang diampu :
+            {userType === "teacher" ? "Kelas yang diampu :" : "Kelas Anda :"}
           </p>
         </CardContent>
       </Card>
 
       {/* Controls Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 sm:mb-6 gap-3 sm:gap-4">
-        <Dialog
-          open={isAddClassModalOpen}
-          onOpenChange={(open) => {
-            setIsAddClassModalOpen(open);
-            if (!open) {
-              resetForm();
-            }
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button variant="default" className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto text-sm sm:text-base">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Class
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-3 sm:p-4 md:p-6 max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-base sm:text-lg md:text-xl">Add New Class</DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm md:text-base">
-                Create a new class by filling in the information below
-              </DialogDescription>
-            </DialogHeader>
+      {userType === "teacher" && (
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 sm:mb-6 gap-3 sm:gap-4">
+          <Dialog
+            open={isAddClassModalOpen}
+            onOpenChange={(open) => {
+              setIsAddClassModalOpen(open);
+              if (!open) {
+                resetForm();
+              }
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button
+                variant="default"
+                className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto text-sm sm:text-base"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Class
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-3 sm:p-4 md:p-6 max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-base sm:text-lg md:text-xl">
+                  Add New Class
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm md:text-base">
+                  Create a new class by filling in the information below
+                </DialogDescription>
+              </DialogHeader>
 
-            <div className="grid gap-3 sm:gap-4 py-2 sm:py-4">
-              <div className="space-y-3 sm:space-y-4">
-                <div className="space-y-2">
-                  <label htmlFor="className" className="text-xs sm:text-sm md:text-base font-medium text-gray-900">
-                    Class Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="className"
-                    placeholder="Enter class name (e.g., XI TKR 1)"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200 text-xs sm:text-sm md:text-base"
-                    value={newClass.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    disabled={submitStatus === "submitting"}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label
-                    htmlFor="majorSelect"
-                    className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
-                  >
-                    Major <span className="text-red-500">*</span>
-                  </label>
-                  <Select
-                    value={newClass.majorId?.toString()}
-                    onValueChange={(value) =>
-                      handleInputChange("majorId", parseInt(value))
-                    }
-                  >
-                    <SelectTrigger className="border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-lg h-9 sm:h-10 bg-white text-xs sm:text-sm md:text-base">
-                      <SelectValue placeholder="Select a major" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {majors?.map((major) => (
-                        <SelectItem
-                          key={major.id}
-                          value={major.id.toString()}
-                          className="text-xs sm:text-sm md:text-base"
-                        >
-                          {major.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="teacherSelect" className="text-xs sm:text-sm md:text-base font-medium text-gray-500">
-                    Teacher (Auto-assigned)
-                  </label>
-                  <div className="relative">
+              <div className="grid gap-3 sm:gap-4 py-2 sm:py-4">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="className"
+                      className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
+                    >
+                      Class Name <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="text"
-                      value={teacherName}
-                      disabled
-                      className="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-600 cursor-not-allowed text-xs sm:text-sm md:text-base"
+                      id="className"
+                      placeholder="Enter class name (e.g., XI TKR 1)"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200 text-xs sm:text-sm md:text-base"
+                      value={newClass.name}
+                      onChange={(e) =>
+                        handleInputChange("name", e.target.value)
+                      }
+                      disabled={submitStatus === "submitting"}
                     />
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                    </div>
                   </div>
-                  <p className="text-xs text-gray-500">
-                    Classes will be assigned to the current teacher automatically
-                  </p>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="majorSelect"
+                      className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
+                    >
+                      Major <span className="text-red-500">*</span>
+                    </label>
+                    <Select
+                      value={newClass.majorId?.toString()}
+                      onValueChange={(value) =>
+                        handleInputChange("majorId", parseInt(value))
+                      }
+                    >
+                      <SelectTrigger className="border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-lg h-9 sm:h-10 bg-white text-xs sm:text-sm md:text-base">
+                        <SelectValue placeholder="Select a major" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {majors?.map((major) => (
+                          <SelectItem
+                            key={major.id}
+                            value={major.id.toString()}
+                            className="text-xs sm:text-sm md:text-base"
+                          >
+                            {major.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="teacherSelect"
+                      className="text-xs sm:text-sm md:text-base font-medium text-gray-500"
+                    >
+                      Teacher (Auto-assigned)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={teacherName}
+                        disabled
+                        className="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-600 cursor-not-allowed text-xs sm:text-sm md:text-base"
+                      />
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Classes will be assigned to the current teacher
+                      automatically
+                    </p>
+                  </div>
+
+                  {submitError && (
+                    <Card className="border-red-200 bg-red-50">
+                      <CardContent className="p-3">
+                        <div className="flex items-center space-x-2 text-xs sm:text-sm text-red-600">
+                          <X className="w-4 h-4 flex-shrink-0" />
+                          <span>{submitError}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {submitStatus === "success" && (
+                    <Card className="border-green-200 bg-green-50">
+                      <CardContent className="p-3">
+                        <div className="flex items-center space-x-2 text-xs sm:text-sm text-green-600">
+                          <div className="w-4 h-4 flex-shrink-0">✓</div>
+                          <span>Class created successfully!</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {submitStatus === "submitting" && (
+                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div className="bg-green-500 h-2 rounded-full transition-all duration-1000 animate-pulse w-3/4"></div>
+                    </div>
+                  )}
                 </div>
 
-                {submitError && (
-                  <Card className="border-red-200 bg-red-50">
-                    <CardContent className="p-3">
-                      <div className="flex items-center space-x-2 text-xs sm:text-sm text-red-600">
-                        <X className="w-4 h-4 flex-shrink-0" />
-                        <span>{submitError}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                {/* Guidelines Card - Made Responsive */}
+                <Card className="bg-gray-50 border-gray-200">
+                  <CardContent className="p-3 sm:p-4">
+                    <h4 className="text-xs sm:text-sm md:text-base font-medium mb-2">
+                      Class Creation Guidelines:
+                    </h4>
+                    <ul className="space-y-1 text-xs sm:text-sm">
+                      <li className="flex items-start">
+                        <span className="mr-1">•</span>
+                        <span>
+                          Class name should follow format:
+                          <p className="font-medium">
+                            Grade + Program + Number (e.g., XI TKR 1)
+                          </p>
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="mr-1">•</span>
+                        <span>
+                          The major must be in accordance with the class that
+                          will be created
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="mr-1">•</span>
+                        <span>
+                          Teacher assignment is automatic based on current user
+                        </span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="mr-1">•</span>
+                        <span>
+                          Students can be added to the class after creation
+                        </span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
 
-                {submitStatus === "success" && (
-                  <Card className="border-green-200 bg-green-50">
-                    <CardContent className="p-3">
-                      <div className="flex items-center space-x-2 text-xs sm:text-sm text-green-600">
-                        <div className="w-4 h-4 flex-shrink-0">✓</div>
-                        <span>Class created successfully!</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {submitStatus === "submitting" && (
-                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                    <div className="bg-green-500 h-2 rounded-full transition-all duration-1000 animate-pulse w-3/4"></div>
-                  </div>
-                )}
+                <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsAddClassModalOpen(false)}
+                    disabled={submitStatus === "submitting"}
+                    className="w-full sm:w-auto text-xs sm:text-sm"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSubmitClass}
+                    disabled={submitStatus === "submitting"}
+                    className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto text-xs sm:text-sm"
+                  >
+                    {submitStatus === "submitting" ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Creating Class...
+                      </>
+                    ) : submitStatus === "success" ? (
+                      <>
+                        <div className="w-4 h-4 mr-2">✓</div>
+                        Class Created!
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Class
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
+            </DialogContent>
+          </Dialog>
 
-              {/* Guidelines Card - Made Responsive */}
-              <Card className="bg-gray-50 border-gray-200">
-                <CardContent className="p-3 sm:p-4">
-                  <h4 className="text-xs sm:text-sm md:text-base font-medium mb-2">
-                    Class Creation Guidelines:
-                  </h4>
-                  <ul className="space-y-1 text-xs sm:text-sm">
-                    <li className="flex items-start">
-                      <span className="mr-1">•</span>
-                      <span>
-                        Class name should follow format:
-                        <p className="font-medium">Grade + Program + Number (e.g., XI TKR 1)</p>
-                      </span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="mr-1">•</span>
-                      <span>
-                        The major must be in accordance with the class that will
-                        be created
-                      </span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="mr-1">•</span>
-                      <span>
-                        Teacher assignment is automatic based on current user
-                      </span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="mr-1">•</span>
-                      <span>
-                        Students can be added to the class after creation
-                      </span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsAddClassModalOpen(false)}
-                  disabled={submitStatus === "submitting"}
-                  className="w-full sm:w-auto text-xs sm:text-sm"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSubmitClass}
-                  disabled={submitStatus === "submitting"}
-                  className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto text-xs sm:text-sm"
-                >
-                  {submitStatus === "submitting" ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Creating Class...
-                    </>
-                  ) : submitStatus === "success" ? (
-                    <>
-                      <div className="w-4 h-4 mr-2">✓</div>
-                      Class Created!
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Class
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Filter Controls */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full lg:w-auto">
-          <div className="w-full sm:w-40 md:w-48">
-            <Select
-              value={programFilter}
-              onValueChange={setProgramFilter}
-              disabled={majorsLoading}
-            >
-              <SelectTrigger className="border-green-300 focus:ring-green-400 focus:border-green-500 rounded-lg h-9 sm:h-10 bg-white shadow-sm text-xs sm:text-sm md:text-base">
-                <SelectValue
-                  placeholder={majorsLoading ? "Loading..." : "Pilih Jurusan"}
-                />
-              </SelectTrigger>
-              <SelectContent className="max-h-60 overflow-y-auto z-10 text-xs sm:text-sm md:text-base">
-                <SelectItem value="all">Semua Jurusan</SelectItem>
-                {majorsError ? (
-                  <SelectItem value="error" disabled>
-                    Error loading majors
-                  </SelectItem>
-                ) : (
-                  majors?.map((major: IMajor) => (
-                    <SelectItem key={major.id} value={major.id.toString()}>
-                      {major.name}
+          {/* Filter Controls */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full lg:w-auto">
+            <div className="w-full sm:w-40 md:w-48">
+              <Select
+                value={programFilter}
+                onValueChange={setProgramFilter}
+                disabled={majorsLoading}
+              >
+                <SelectTrigger className="border-green-300 focus:ring-green-400 focus:border-green-500 rounded-lg h-9 sm:h-10 bg-white shadow-sm text-xs sm:text-sm md:text-base">
+                  <SelectValue
+                    placeholder={majorsLoading ? "Loading..." : "Pilih Jurusan"}
+                  />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto z-10 text-xs sm:text-sm md:text-base">
+                  <SelectItem value="all">Semua Jurusan</SelectItem>
+                  {majorsError ? (
+                    <SelectItem value="error" disabled>
+                      Error loading majors
                     </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+                  ) : (
+                    majors?.map((major: IMajor) => (
+                      <SelectItem key={major.id} value={major.id.toString()}>
+                        {major.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="relative w-full sm:w-64 md:w-72">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              id="searchName"
-              placeholder="Search by class name..."
-              className="pl-9 pr-4 py-2 bg-white border border-gray-300 w-full rounded-lg h-9 sm:h-10 text-xs sm:text-sm md:text-base outline-none placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 shadow-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <div className="relative w-full sm:w-64 md:w-72">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                id="searchName"
+                placeholder="Search by class name..."
+                className="pl-9 pr-4 py-2 bg-white border border-gray-300 w-full rounded-lg h-9 sm:h-10 text-xs sm:text-sm md:text-base outline-none placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 shadow-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Classes Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
@@ -464,22 +527,28 @@ const ViewStudent = () => {
                   <Search className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                 </div>
                 <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-                  No Classes Found
+                  {userType === "teacher"
+                    ? "No Classes Found"
+                    : "No Class Assigned"}
                 </h3>
                 <p className="text-sm sm:text-base text-gray-500 mb-4">
-                  {searchTerm || programFilter !== "all"
-                    ? "No classes match your current filters."
-                    : "You haven't created any classes yet."}
+                  {userType === "teacher"
+                    ? searchTerm || programFilter !== "all"
+                      ? "No classes match your current filters."
+                      : "You haven't created any classes yet."
+                    : "You haven't been assigned to any class yet."}
                 </p>
-                {!searchTerm && programFilter === "all" && (
-                  <Button
-                    onClick={() => setIsAddClassModalOpen(true)}
-                    className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto text-sm"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Class
-                  </Button>
-                )}
+                {userType === "teacher" &&
+                  !searchTerm &&
+                  programFilter === "all" && (
+                    <Button
+                      onClick={() => setIsAddClassModalOpen(true)}
+                      className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto text-sm"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Your First Class
+                    </Button>
+                  )}
               </CardContent>
             </Card>
           </div>

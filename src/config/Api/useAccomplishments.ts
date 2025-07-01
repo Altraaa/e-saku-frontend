@@ -100,8 +100,9 @@ export const useAccomplishmentDelete = () => {
       );
     },
     onSuccess: () => {
-      // Invalidate the cache to ensure we get the updated data from the API
+      // Invalidate the cache to ensure we get the updated data from the APIz
       queryClient.invalidateQueries({ queryKey: ["accomplishmentsByStudent"] });
+      queryClient.invalidateQueries({ queryKey: ["accomplishmentsByTeacher"] });
     },
     onError: (error) => {
       console.error("Error deleting accomplishment:", error);

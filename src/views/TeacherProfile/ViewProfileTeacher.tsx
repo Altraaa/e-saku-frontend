@@ -12,23 +12,20 @@ import {
   EyeOff,
   BookOpen,
   Users,
+  Trash2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useTeacherById, useTeacherUpdate } from "@/config/Api/useTeacher";
+import {
+  useTeacherById,
+  useTeacherDeleteProfile,
+  useTeacherUpdate,
+  useTeacherUpload,
+} from "@/config/Api/useTeacher";
 import { useClassroomByTeacherId } from "@/config/Api/useClasroom";
 import { Button } from "@/components/ui/button";
-
-interface ITeacher {
-  id: number;
-  teacher_code: string;
-  name: string;
-  nip: number | null;
-  email: string | null;
-  created_at: string;
-  updated_at: string;
-  last_active?: string;
-  classes?: Array<{ id: string | number; name?: string }>;
-}
+import { ITeacher } from "@/config/Models/Teacher";
+import toast from "react-hot-toast";
+import ConfirmationModal from "@/components/ui/confirmation";
 
 type InputValueType = string | number | null;
 
@@ -60,16 +57,19 @@ const ViewProfileTeacher = () => {
   const [passwordError, setPasswordError] = useState<string>("");
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
   const [lastActive, setLastActive] = useState<string>("14.50 di Menu Siswa");
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const teacherId = localStorage.getItem("teacher_id");
 
   const updateMutation = useTeacherUpdate();
+  const uploadMutation = useTeacherUpload();
+  const deleteProfileMutation = useTeacherDeleteProfile();
 
-  // Fetch the teacher and their classrooms using the hooks
   const {
     data: teacher,
     isLoading,
@@ -82,6 +82,13 @@ const ViewProfileTeacher = () => {
   useEffect(() => {
     if (teacher) {
       setFormData(teacher);
+      if (teacher.profile_image) {
+        setPhotoUrl(
+          `${import.meta.env.VITE_API_URL?.replace("/api", "/public")}${
+            teacher.profile_image
+          }`
+        );
+      }
       if (teacher.last_active) {
         setLastActive(teacher.last_active);
       }
@@ -111,31 +118,65 @@ const ViewProfileTeacher = () => {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.accept = "image/*";
-    fileInput.onchange = (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      if (target && target.files && target.files.length > 0) {
-        try {
-          const file = target.files[0];
-          const localUrl = URL.createObjectURL(file);
-          setPhotoUrl(localUrl);
-          setSuccessMessage("Foto profil berhasil diperbarui!");
-        } catch (error) {
-          console.error("Error memperbarui foto:", error);
-        }
+
+    fileInput.onchange = (e: any) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const localUrl = URL.createObjectURL(file);
+        setPhotoUrl(localUrl);
+        setSelectedFile(file);
+        console.log("File selected:", file);
+      } else {
+        console.log("No file selected");
       }
     };
+
     fileInput.click();
   };
 
-  const handleDeleteAvatar = () => {
-    if (window.confirm("Yakin ingin menghapus foto profil?")) {
-      try {
-        setPhotoUrl(undefined);
-        setSuccessMessage("Foto profil berhasil dihapus!");
-      } catch (error) {
-        console.error("Error menghapus foto:", error);
+  const handleSavePhoto = () => {
+    if (!selectedFile || !teacherId) return;
+
+    uploadMutation.mutate(
+      { id: teacherId, file: selectedFile },
+      {
+        onSuccess: () => {
+          toast.success("Foto profil berhasil diubah!");
+          setSelectedFile(null);
+        },
+        onError: () => {
+          toast.error("Gagal mengubah foto profil!");
+        },
       }
-    }
+    );
+  };
+
+  const imageSrc = photoUrl
+    ? photoUrl
+    : teacher?.profile_image
+    ? `${import.meta.env.VITE_API_URL?.replace("/api", "/public")}${
+        teacher.profile_image
+      }`
+    : "";
+
+  const handleDeleteProfile = () => {
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setDeleteModalOpen(false);
+    if (!teacherId) return;
+
+    deleteProfileMutation.mutate(teacherId, {
+      onSuccess: () => {
+        toast.success("Foto profil berhasil dihapus!");
+        setPhotoUrl(undefined);
+        setSelectedFile(null);
+      },
+      onError: () => {
+        toast.error("Gagal menghapus foto profil!");
+      },
+    });
   };
 
   const handleInputChange = (field: string, value: InputValueType) => {
@@ -184,12 +225,12 @@ const ViewProfileTeacher = () => {
       name: formData.name,
       teacher_code: formData.teacher_code,
       email: formData.email,
-      nip: formData.nip,
+      nip: String(formData.nip),
     };
 
     updateMutation.mutate(
       {
-        id: Number(teacherId),
+        id: teacherId,
         data: updateData,
       },
       {
@@ -198,7 +239,8 @@ const ViewProfileTeacher = () => {
           setIsEditing(false);
           refetch();
         },
-        onError: () => {
+        onError: (error) => {
+          console.error("Error updating data:", error);
           setSuccessMessage("Gagal memperbarui profil. Coba lagi.");
         },
       }
@@ -217,7 +259,7 @@ const ViewProfileTeacher = () => {
 
     updateMutation.mutate(
       {
-        id: Number(teacherId),
+        id: teacherId,
         data: { password } as any,
       },
       {
@@ -297,7 +339,7 @@ const ViewProfileTeacher = () => {
               <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full bg-gray-200 flex items-center justify-center mb-4 sm:mb-6 border-4 border-green-100 overflow-hidden">
                 {photoUrl ? (
                   <img
-                    src={photoUrl}
+                    src={imageSrc}
                     alt="Teacher profile"
                     className="w-full h-full object-cover"
                   />
@@ -310,19 +352,32 @@ const ViewProfileTeacher = () => {
               </div>
 
               <div className="space-y-2 w-full">
+                {selectedFile ? (
+                  <Button
+                    onClick={handleSavePhoto}
+                    disabled={!selectedFile}
+                    variant="default"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-all"
+                  >
+                    Simpan Foto
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleChangeAvatar}
+                    variant="default"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white transition-all"
+                  >
+                    <Camera size={16} className="mr-2" />
+                    Ubah Foto
+                  </Button>
+                )}
+
                 <Button
-                  onClick={handleChangeAvatar}
+                  onClick={handleDeleteProfile}
                   variant="default"
-                  className="w-full bg-green-600 hover:bg-green-700 text-white transition-all"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white transition-all"
                 >
-                  <Camera size={16} className="mr-2" />
-                  Ubah Foto
-                </Button>
-                <Button
-                  onClick={handleDeleteAvatar}
-                  variant="destructive"
-                  className="w-full hover:bg-red-600 transition-all"
-                >
+                  <Trash2 size={16} className="mr-2" />
                   Hapus Foto
                 </Button>
               </div>
@@ -677,6 +732,15 @@ const ViewProfileTeacher = () => {
           )}
         </div>
       </div>
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        description="Apa kamu yakin untuk menghapus foto profile ini?"
+        title="Hapus Foto Profil"
+        confirmText="Hapus"
+        type="delete"
+      />
     </div>
   );
 };
