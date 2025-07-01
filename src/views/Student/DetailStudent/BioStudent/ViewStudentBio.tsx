@@ -1,4 +1,4 @@
-import { MoveLeft, Edit } from "lucide-react";
+import { MoveLeft, Edit, User } from "lucide-react";
 import { FormInput } from "@/components/ui/form";
 import { useParams, Link } from "react-router-dom";
 import { useStudentById } from "@/config/Api/useStudent";
@@ -10,12 +10,33 @@ const ViewStudentBio = () => {
   const studentId = id ?? "";
   const { data: student, isLoading } = useStudentById(studentId);
   const [loading, setLoading] = useState(true);
+  const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (!isLoading) {
       setLoading(false);
     }
   }, [isLoading]);
+
+  useEffect(() => {
+    if (student) {
+      if (student.profile_image) {
+        setPhotoUrl(
+          `${import.meta.env.VITE_API_URL?.replace("/api", "/public")}${
+            student.profile_image
+          }`
+        );
+      }
+    }
+  }, [student]);
+
+  const imageSrc = photoUrl
+    ? photoUrl
+    : student?.profile_image
+    ? `${import.meta.env.VITE_API_URL?.replace("/api", "/public")}${
+        student.profile_image
+      }`
+    : "";
 
   if (!id) {
     return <div className="p-4 md:p-6 text-red-500">Invalid student ID</div>;
@@ -45,25 +66,31 @@ const ViewStudentBio = () => {
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 group-hover:border-green-500 group-hover:bg-green-50 transition-all">
                   <MoveLeft className="h-4 w-4" />
                 </div>
-                <span className="font-medium text-sm md:text-base">Back to Class</span>
+                <span className="font-medium text-sm md:text-base">
+                  Back to Class
+                </span>
               </div>
             </Link>
 
             {/* Title */}
-            <div className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">Biodata Siswa</div>
-            
+            <div className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">
+              Biodata Siswa
+            </div>
+
             {/* Profile Section */}
             <div className="flex flex-col gap-3 justify-center items-center">
               {/* Profile Image */}
               <div className="w-full max-w-xs mx-auto lg:max-w-none">
-                {student.profile_image ? (
+                {photoUrl ? (
                   <img
-                    src={student.profile_image}
+                    src={imageSrc}
                     alt={student.name}
                     className="aspect-[3/4] w-full object-cover bg-gray-300 rounded-lg"
                   />
                 ) : (
-                  <div className="aspect-[3/4] w-full bg-gray-300 rounded-lg"></div>
+                  <div className="aspect-[3/4] w-full bg-gray-300 rounded-lg flex items-center justify-center">
+                    <User className="h-16 w-16 text-gray-500" />
+                  </div>
                 )}
               </div>
 
@@ -78,14 +105,14 @@ const ViewStudentBio = () => {
                     <span>Edit Student Data</span>
                   </div>
                 </Link>
-                
+
                 <Link
                   to={`/studentbio/accomplishments/${student.id}`}
                   className="w-full bg-primary p-3 font-semibold text-white rounded-md hover:bg-primary/90 transition-all duration-200 text-center block text-sm md:text-base"
                 >
                   Student Accomplishments
                 </Link>
-                
+
                 <Link
                   to={`/studentbio/violations/${student.id}`}
                   className="w-full bg-destructive p-3 font-semibold text-white rounded-md hover:bg-destructive/90 transition-all duration-200 text-center block text-sm md:text-base"
@@ -116,7 +143,7 @@ const ViewStudentBio = () => {
                     disabled
                     className="bg-gray-300"
                   />
-                  
+
                   {/* NISN and NIS Row */}
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
                     <div className="flex flex-col gap-1 w-full sm:w-1/2">
@@ -142,7 +169,7 @@ const ViewStudentBio = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <FormInput
                     id="placedatebirth"
                     label="Place, Date of Birth"
@@ -152,7 +179,7 @@ const ViewStudentBio = () => {
                     disabled
                     className="bg-gray-300"
                   />
-                  
+
                   {/* Gender, Religion, and Phone Row */}
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6 lg:gap-12">
                     <div className="flex flex-col gap-1 w-full sm:w-1/3">
@@ -189,7 +216,7 @@ const ViewStudentBio = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <FormInput
                     id="address"
                     label="Address"
@@ -261,7 +288,7 @@ const ViewStudentBio = () => {
                       />
                     </div>
                   </div>
-                  
+
                   {/* Mother's Information */}
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
                     <div className="flex flex-col gap-1 w-full sm:w-1/2">
