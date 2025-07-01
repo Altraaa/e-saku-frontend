@@ -23,19 +23,21 @@ import {
   ChevronLeft,
   ChevronRight,
   History,
+  Loader2,
   Search,
-  SquarePen,
   Trash2,
   X,
 } from "lucide-react";
 import { DatePicker } from "@/components/shared/component/DatePicker";
 import { useEffect, useMemo, useState } from "react";
-import { useViolationsByTeacherId } from "@/config/Api/useViolation";
+import { useViolationDelete, useViolationsByTeacherId } from "@/config/Api/useViolation";
 import { IViolation } from "@/config/Models/Violation";
-import { useAccomplishmentsByTeacherId } from "@/config/Api/useAccomplishments";
+import { useAccomplishmentDelete, useAccomplishmentsByTeacherId } from "@/config/Api/useAccomplishments";
 import { IAccomplishments } from "@/config/Models/Accomplishments";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LevelLabel } from "@/config/Models/LevelMap";
+import toast from "react-hot-toast";
+import ConfirmationModal from "@/components/ui/confirmation";
 
 // Helper function to format date as YYYY-MM-DD in local time
 const formatDate = (date: Date) => {
@@ -69,6 +71,19 @@ const ViewHistory = () => {
   // Get the logged-in teacher's ID from localStorage
   const teacherId = localStorage.getItem("teacher_id") || "";
 
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{
+    id: number;
+    type: "violation" | "accomplishment";
+  } | null>(null);
+
+  // Delete mutations
+  const deleteViolation = useViolationDelete();
+  const deleteAccomplishment = useAccomplishmentDelete();
+
+  const { refetch: refetchViolations } = useViolationsByTeacherId(teacherId);
+  const { refetch: refetchAccomplishments } = useAccomplishmentsByTeacherId(teacherId);
+
   // Fetch data hooks
   const {
     data: violationsData,
@@ -92,6 +107,38 @@ const ViewHistory = () => {
   const handleDateChange = (date: Date | undefined) => {
     setSelectedDate(date || null);
     setCurrentPage(1);
+  };
+
+  const handleDeleteClick = (id: number, type: "violation" | "accomplishment") => {
+    setItemToDelete({ id, type });
+    setIsDeleteModalOpen(true);
+  };
+
+  // Fungsi untuk konfirmasi delete
+const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      if (itemToDelete.type === "violation") {
+        await deleteViolation.mutateAsync(itemToDelete.id);
+        toast.success("Data pelanggaran berhasil dihapus");
+        
+        // Panggil refetch untuk memperbarui data
+        await refetchViolations();
+      } else {
+        await deleteAccomplishment.mutateAsync(itemToDelete.id);
+        toast.success("Data prestasi berhasil dihapus");
+        
+        // Panggil refetch untuk memperbarui data
+        await refetchAccomplishments();
+      }
+    } catch (error) {
+      toast.error("Gagal menghapus data");
+      console.error("Delete error:", error);
+    } finally {
+      setIsDeleteModalOpen(false);
+      setItemToDelete(null);
+    }
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -453,13 +500,29 @@ const ViewHistory = () => {
                             )}
                       </TableCell>
                       <TableCell className="text-center font-normal">
-                        <div className="flex justify-center gap-3 items-center">
-                          <a href="">
-                            <SquarePen className="text-green-500 size-5" />
-                          </a>
-                          <a href="">
-                            <Trash2 className="text-[#FF0000] size-5" />
-                          </a>
+                        <div className="flex justify-center">
+                          <button
+                            onClick={() =>
+                              handleDeleteClick(
+                                item.id,
+                                selectedHistory === "violationhistory"
+                                  ? "violation"
+                                  : "accomplishment"
+                              )
+                            }
+                            disabled={
+                              deleteViolation.isPending ||
+                              deleteAccomplishment.isPending
+                            }
+                            className="p-2 text-red-500 hover:text-red-600 disabled:opacity-50"
+                          >
+                            {deleteViolation.isPending ||
+                            deleteAccomplishment.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -525,11 +588,27 @@ const ViewHistory = () => {
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <button className="p-1 text-green-500 hover:text-green-600">
-                        <SquarePen className="h-4 w-4" />
-                      </button>
-                      <button className="p-1 text-red-500 hover:text-red-600">
-                        <Trash2 className="h-4 w-4" />
+                      <button
+                        onClick={() =>
+                          handleDeleteClick(
+                            item.id,
+                            selectedHistory === "violationhistory"
+                              ? "violation"
+                              : "accomplishment"
+                          )
+                        }
+                        disabled={
+                          deleteViolation.isPending ||
+                          deleteAccomplishment.isPending
+                        }
+                        className="p-1 text-red-500 hover:text-red-600 disabled:opacity-50"
+                      >
+                        {deleteViolation.isPending ||
+                        deleteAccomplishment.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -640,6 +719,16 @@ const ViewHistory = () => {
           </div>
         </div>
       </Card>
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Konfirmasi Hapus"
+        description="Apakah Anda yakin ingin menghapus data ini?"
+        confirmText="Hapus"
+        cancelText="Batal"
+        type="delete"
+      />
     </>
   );
 };

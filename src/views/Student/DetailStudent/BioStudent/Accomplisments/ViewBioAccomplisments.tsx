@@ -78,6 +78,7 @@ const ViewBioAccomplishments = () => {
   const handleConfirmDelete = async () => {
     if (accomplishmentsDelete) {
       try {
+        toast.loading("Menghapus data...", { id: "delete-loading" });
         await deleteAccomplishment.mutateAsync(accomplishmentsDelete);
         toast.success("Data prestasi berhasil dihapus");
         setIsModalOpen(false);

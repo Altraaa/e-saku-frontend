@@ -79,7 +79,10 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
     { label: "Report", icon: MessageSquareWarning, path: "/report" },
   ];
 
-  const accountItems = [{ label: "Help", icon: CircleHelp, path: "/help" }];
+  const accountItems = [
+    // { label: "Settings", icon: Settings, path: "/settings" },
+    { label: "Help", icon: CircleHelp, path: "/help" },
+  ];
 
   const teacherProfile = [
     { label: "Profile", icon: User, path: "/profileteacher" },

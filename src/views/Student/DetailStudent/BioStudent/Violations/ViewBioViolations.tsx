@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { useStudentById } from "@/config/Api/useStudent";
 import { Link, useParams } from "react-router-dom";
 import ConfirmationModal from "@/components/ui/confirmation";
+import toast from "react-hot-toast";
 
 const ViewBioViolations = () => {
   const [rowsPerPage, setRowsPerPage] = useState("10");
@@ -72,11 +73,16 @@ const ViewBioViolations = () => {
   const handleConfirmDelete = async () => {
     if (violationToDelete) {
       try {
+        toast.loading("Menghapus data...", { id: "delete-loading" });
         await deleteViolation.mutateAsync(violationToDelete);
-        setIsModalOpen(false); 
+        toast.success("Data pelanggaran berhasil dihapus");
+        setIsModalOpen(false);
         setViolationToDelete(null);
       } catch (error) {
+        toast.error("Data pelanggaran gagal dihapus");
         console.error("Failed to delete violation:", error);
+      } finally {
+        toast.dismiss("delete-loading");
       }
     }
   };
