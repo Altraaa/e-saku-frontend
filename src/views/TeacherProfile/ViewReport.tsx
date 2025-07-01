@@ -34,7 +34,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useNavigate } from "react-router-dom"; // For navigation
+import { Link, useNavigate } from "react-router-dom"; // For navigation
 import { useReportDelete, useReports } from "@/config/Api/useTeacherReport";
 import toast from "react-hot-toast";
 import ConfirmationModal from "@/components/ui/confirmation";
@@ -55,7 +55,6 @@ const ViewReport = () => {
   // Fetch reports data using useReports hook
   const { data: reports, isLoading: isReportsLoading } = useReports();
   const { mutate: deleteReport } = useReportDelete();
-
   // Tambahkan state untuk konfirmasi delete
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<any>(null);
@@ -290,7 +289,12 @@ const ViewReport = () => {
                         {report.student?.nis || "N/A"}
                       </TableCell>
                       <TableCell className="text-left font-normal">
-                        {report.student?.name || "N/A"}
+                        <Link
+                          to={`/studentbio/${report.student?.id}`}
+                          className="hover:text-green-500 transition-colors"
+                        >
+                          {report.student?.name || "N/A"}
+                        </Link>
                       </TableCell>
                       <TableCell className="text-center font-normal hidden lg:table-cell">
                         {report.reporter?.name || "N/A"}
