@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   Home,
   DiamondMinusIcon,
-  Settings,
   User,
   FileText,
   History,
@@ -81,7 +80,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
   ];
 
   const accountItems = [
-    { label: "Settings", icon: Settings, path: "/settings" },
+    // { label: "Settings", icon: Settings, path: "/settings" },
     { label: "Help", icon: CircleHelp, path: "/help" },
   ];
 

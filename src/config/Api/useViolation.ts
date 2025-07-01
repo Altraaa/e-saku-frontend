@@ -86,7 +86,10 @@ export const useViolationDelete = () => {
   return useMutation({
     mutationFn: (id: number) => ApiViolations.delete(id),
     onSuccess: () => {
+      // Invalidate semua query yang terkait violations
+      queryClient.invalidateQueries({ queryKey: ["violationsByTeacher"] });
       queryClient.invalidateQueries({ queryKey: ["violationsByStudent"] });
+      queryClient.invalidateQueries({ queryKey: ["studentViolations"] });
     },
     onError: (error) => {
       console.error("Error deleting violation:", error);

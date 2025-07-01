@@ -39,7 +39,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Tooltip,
   TooltipContent,
@@ -133,7 +132,6 @@ const ESakuForm: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [errors, setErrors] = useState<ESakuFormErrorState>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
   const [isClassTaughtByTeacher, setIsClassTaughtByTeacher] = useState<
     boolean | null
@@ -450,7 +448,6 @@ const ESakuForm: React.FC = () => {
         },
         {
           onSuccess: () => {
-            setShowSuccess(true);
             resetForm();
             setIsEditMode(false);
             navigate(location.pathname, { replace: true });
@@ -462,7 +459,6 @@ const ESakuForm: React.FC = () => {
                 ? "Data pelanggaran berhasil disimpan"
                 : "Data prestasi berhasil disimpan"
             );
-            setTimeout(() => setShowSuccess(false), 3000);
           },
           onError: (err) => {
             toast.error("Data pelanggaran gagal disimpan");
@@ -494,11 +490,9 @@ const ESakuForm: React.FC = () => {
         },
         {
           onSuccess: () => {
-            setShowSuccess(true);
             resetForm();
             window.scrollTo({ top: 0, behavior: "smooth" });
             toast.success("Data prestasi berhasil disimpan");
-            setTimeout(() => setShowSuccess(false), 3000);
           },
           onError: (err) => {
             toast.error("Data prestasi gagal disimpan");
@@ -570,11 +564,9 @@ const ESakuForm: React.FC = () => {
 
     createReport(reportData, {
       onSuccess: () => {
-        setShowSuccess(true);
         resetForm();
         window.scrollTo({ top: 0, behavior: "smooth" });
         toast.success("Laporan berhasil dikirim");
-        setTimeout(() => setShowSuccess(false), 3000);
       },
       onError: (error) => {
         toast.error("Gagal mengirim laporan");
@@ -726,14 +718,6 @@ const ESakuForm: React.FC = () => {
           Masukkan data pelanggaran atau prestasi siswa
         </p>
       </div>
-
-      {showSuccess && (
-        <Alert className="bg-green-50 border border-green-200 text-green-800">
-          <CheckCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription>Data berhasil disimpan!</AlertDescription>
-        </Alert>
-      )}
-
       <Card className="rounded-xl overflow-hidden border-green-100 shadow-md">
         <CardHeader className="border-b bg-green-600 text-white p-4">
           <div className="flex items-center gap-2">
