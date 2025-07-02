@@ -118,6 +118,7 @@ const ViewBioAccomplishments = () => {
       points: accomplishment.points,
       created_at: accomplishment.created_at,
       updated_at: accomplishment.updated_at,
+      // documentation_image: "/docs/sample-doc.png",
     })
   );
 
@@ -460,6 +461,7 @@ const ViewBioAccomplishments = () => {
                     <TableHead className="font-semibold text-gray-900 py-4">Tipe Prestasi</TableHead>
                     <TableHead className="text-center font-semibold text-gray-900 py-4">Peringkat</TableHead>
                     <TableHead className="text-center font-semibold text-gray-900 py-4">Deskripsi</TableHead>
+                    <TableHead className="text-center font-semibold text-gray-900 py-4">Documentation</TableHead>
                     <TableHead className="text-center font-semibold text-gray-900 py-4">Tanggal</TableHead>
                     <TableHead className="text-center font-semibold text-gray-900 py-4">Level Kompetisi</TableHead>
                     <TableHead className="text-center font-semibold text-gray-900 py-4">Poin</TableHead>
@@ -490,6 +492,20 @@ const ViewBioAccomplishments = () => {
                         <TableCell className="text-center py-4">
                           {accomplishment.description}
                         </TableCell>
+                        {/* <TableCell className="text-center py-4">
+                          <img
+                            src={
+                              accomplishment.documentation_image
+                                ? `${import.meta.env.VITE_API_URL?.replace(
+                                    "/api",
+                                    "/public"
+                                  )}${accomplishment.documentation_image}`
+                                : "https://via.placeholder.com/40x30?text=Doc"
+                            }
+                            alt="Documentation"
+                            className="mx-auto max-h-8 max-w-full object-contain"
+                          />
+                        </TableCell> */}
                         <TableCell className="text-center py-4">
                           {accomplishment.date}
                         </TableCell>

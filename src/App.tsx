@@ -26,6 +26,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ProtectedRoute } from "./config/Routes/ProtectedRoutes";
 import TeacherProfile from "./pages/TeacherProfile";
 import Rules from "./pages/Rules";
+import ManageRules from "./pages/ManageRules";
 import Report from "./pages/Report";
 import { Toaster } from "react-hot-toast";
 import StudentProfile from "./pages/ProfileStudent";
@@ -49,6 +50,7 @@ const LayoutWrapper = () => {
     rules: "Rules Of Conduct",
     privacypolicy: "Privacy Policy",
     report: "Report",
+    managerules: "Manage Rules",
   };
 
   const title = pageTitles[path] || "Unknown Page";
@@ -91,6 +93,7 @@ export function AppContent() {
           <Route path="/help" element={<Help />} />
           <Route path="/profileteacher" element={<TeacherProfile />} />
           <Route path="/profilestudent" element={<StudentProfile />} />
+          <Route path="/managerules" element={<ManageRules />} />
           <Route path="/rules" element={<Rules />} />
           {/* <Route path="/privacypolicy" element={<PrivacyPolicy/>} /> */}
         </Route>

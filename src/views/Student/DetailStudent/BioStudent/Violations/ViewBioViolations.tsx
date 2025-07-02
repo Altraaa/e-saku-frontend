@@ -19,6 +19,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useViolationDelete, useViolationsByStudentId } from "@/config/Api/useViolation";
 import { DatePicker } from "@/components/shared/component/DatePicker";
 import { format } from "date-fns";
@@ -134,6 +135,7 @@ const ViewBioViolations = () => {
     points: violation.points,
     created_at: violation.created_at,
     updated_at: violation.updated_at,
+    // documentation_image: "/docs/sample-doc.png",
   }));
 
   const filteredViolations = mappedViolations.filter((violation) => {
@@ -365,31 +367,32 @@ const ViewBioViolations = () => {
         <CardContent className="p-0">
           {/* Desktop Table View */}
           <div className="hidden lg:block overflow-x-auto p-4">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 hover:bg-gray-50 border-b-2 border-gray-200">
-                  <th className="text-center font-semibold text-gray-900 py-4 px-4">No</th>
-                  <th className="font-semibold text-gray-900 py-4 px-4 text-left">Jenis Pelanggaran</th>
-                  <th className="text-center font-semibold text-gray-900 py-4 px-4">Deskripsi</th>
-                  <th className="text-center font-semibold text-gray-900 py-4 px-4">Tindak Lanjut</th>
-                  <th className="text-center font-semibold text-gray-900 py-4 px-4">Tanggal & Waktu</th>
-                  <th className="text-center font-semibold text-gray-900 py-4 px-4">Poin</th>
-                  <th className="text-center font-semibold text-gray-900 py-4 px-4">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow className="bg-gray-50 hover:bg-gray-50 border-b-2 border-gray-200">
+                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">No</TableHead>
+                  <TableHead className="font-semibold text-gray-900 py-4 px-4 text-left">Jenis Pelanggaran</TableHead>
+                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">Deskripsi</TableHead>
+                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">Tindak Lanjut</TableHead>
+                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">Documentation</TableHead>
+                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">Tanggal &amp; Waktu</TableHead>
+                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">Poin</TableHead>
+                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {paginatedViolations.length > 0 ? (
                   paginatedViolations.map((violation, index) => (
-                    <tr
+                    <TableRow
                       key={violation.id}
                       className="hover:bg-gray-50/50 transition-colors border-b"
                     >
-                      <td className="text-center py-4 px-4">{startIndex + index + 1}</td>
-                      <td className="py-4 px-4">{violation.type}</td>
-                      <td className="text-center py-4 px-4">
+                      <TableCell className="text-center py-4 px-4">{startIndex + index + 1}</TableCell>
+                      <TableCell className="py-4 px-4">{violation.type}</TableCell>
+                      <TableCell className="text-center py-4 px-4">
                         <span className="text-gray-600">{violation.description}</span>
-                      </td>
-                      <td className="text-center py-4 px-4">
+                      </TableCell>
+                      <TableCell className="text-center py-4 px-4">
                         <Badge
                           variant="outline"
                           className={
@@ -400,24 +403,38 @@ const ViewBioViolations = () => {
                         >
                           {violation.followUp}
                         </Badge>
-                      </td>
-                      <td className="text-center py-4 px-4">
+                      </TableCell>
+                      <TableCell className="text-center py-4 px-4">
                         <div className="flex flex-col items-center gap-1">
                           <div className="flex items-center gap-1 text-sm">
                             <Calendar className="h-3 w-3 text-gray-400" />
                             <span>{formatDisplayDate(violation.date)}</span>
                           </div>
                         </div>
-                      </td>
-                      <td className="text-center py-4 px-4">
+                      </TableCell>
+                      <TableCell className="text-center py-4 px-4">
                         <Badge
                           variant="destructive"
                           className="bg-red-100 text-red-700 border-red-200"
                         >
                           {violation.points}
                         </Badge>
-                      </td>
-                      <td className="text-center py-4 px-4">
+                      </TableCell>
+                      {/* <TableCell className="text-center py-4 px-4">
+                        <img
+                          src={
+                            violation.documentation_image
+                              ? `${import.meta.env.VITE_API_URL?.replace(
+                                  "/api",
+                                  "/public"
+                                )}${violation.documentation_image}`
+                              : "https://via.placeholder.com/40x30?text=Doc"
+                          }
+                          alt="Documentation"
+                          className="mx-auto max-h-8 max-w-full object-contain"
+                        />
+                      </TableCell> */}
+                      <TableCell className="text-center py-4 px-4">
                         <div className="flex justify-center gap-2">
                           <Button
                             variant="outline"
@@ -443,12 +460,12 @@ const ViewBioViolations = () => {
                             )}
                           </Button>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))
                 ) : (
-                  <tr>
-                    <td colSpan={7} className="text-center py-12 px-4">
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-12 px-4">
                       <div className="flex flex-col items-center gap-2 text-gray-500">
                         <AlertTriangle className="h-8 w-8 text-gray-300" />
                         <p>
@@ -467,11 +484,11 @@ const ViewBioViolations = () => {
                           </Button>
                         )}
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
           {/* Mobile Card View */}
