@@ -356,7 +356,7 @@ const ViewEditStudentBio = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="py-3 md:py-4 flex flex-col gap-3 md:gap-4 max-h-full overflow-y-auto">
+                    <div className="py-3 md:py-4 flex flex-col gap-3 md:gap-4 max-h-full">
                       <FormInput
                         id="name"
                         label="Student Name"
@@ -413,7 +413,6 @@ const ViewEditStudentBio = () => {
                           />
                         </div>
                       </div>
-
                       {/* Gender and Religion Row */}
                       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
                         <div className="flex flex-col gap-1 w-full sm:w-1/2">
@@ -525,7 +524,7 @@ const ViewEditStudentBio = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="py-3 md:py-4 flex flex-col gap-3 md:gap-4 max-h-full overflow-y-auto">
+                    <div className="py-3 md:py-4 flex flex-col gap-3 md:gap-4 max-h-full">
                       {/* Father's Information */}
                       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
                         <div className="flex flex-col gap-1 w-full sm:w-1/2">
@@ -586,7 +585,7 @@ const ViewEditStudentBio = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="py-3 md:py-4 flex flex-col gap-3 md:gap-4 max-h-full overflow-y-auto">
+                    <div className="py-3 md:py-4 flex flex-col gap-3 md:gap-4 max-h-full">
                       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
                         <div className="flex flex-col gap-1 w-full sm:w-1/2">
                           <FormInput

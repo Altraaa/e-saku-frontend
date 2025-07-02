@@ -642,8 +642,8 @@ const ViewBioAccomplishments = () => {
           type="delete"
         />
       </div>
-    </div>
-  );
-};
+    );
+  };
+
 
 export default ViewBioAccomplishments;

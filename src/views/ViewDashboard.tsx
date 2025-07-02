@@ -455,6 +455,10 @@ const ViewDashboard = () => {
     });
   }, [violationData, overallTimeRange, searchText, getClassName]);
 
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(filteredViolationData.length / parseInt(rowsPerPage)));
+  }, [filteredViolationData.length, rowsPerPage]);
+
   // Pagination
   const displayedViolationData = useMemo(() => {
     const startIndex = (currentPage - 1) * parseInt(rowsPerPage);
@@ -462,11 +466,21 @@ const ViewDashboard = () => {
     return filteredViolationData.slice(startIndex, endIndex);
   }, [filteredViolationData, currentPage, rowsPerPage]);
 
-  const startIndex = (currentPage - 1) * parseInt(rowsPerPage);
+  const startIndex = useMemo(() => {
+    return (currentPage - 1) * parseInt(rowsPerPage);
+  }, [currentPage, rowsPerPage]);
 
   const handleRowsPerPageChange = (value: string) => {
     setRowsPerPage(value);
     setCurrentPage(1);
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
   if (isLoading || isViolationsLoading) {
@@ -976,42 +990,22 @@ const ViewDashboard = () => {
                 variant="outline"
                 size="icon"
                 className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                onClick={handlePreviousPage}
                 disabled={currentPage === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
 
               <div className="text-xs sm:text-sm text-gray-600 px-2">
-                {currentPage} /{" "}
-                {Math.max(
-                  1,
-                  Math.ceil(
-                    filteredViolationData.length / parseInt(rowsPerPage)
-                  )
-                )}
+                {currentPage} / {totalPages}
               </div>
 
               <Button
                 variant="outline"
                 size="icon"
                 className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-                onClick={() =>
-                  setCurrentPage((prev) =>
-                    Math.min(
-                      prev + 1,
-                      Math.ceil(
-                        filteredViolationData.length / parseInt(rowsPerPage)
-                      )
-                    )
-                  )
-                }
-                disabled={
-                  currentPage >=
-                  Math.ceil(
-                    filteredViolationData.length / parseInt(rowsPerPage)
-                  )
-                }
+                onClick={handleNextPage}
+                disabled={currentPage >= totalPages}
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
