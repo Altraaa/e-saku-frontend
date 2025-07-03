@@ -8,6 +8,7 @@ import {
   LogOut,
   Users,
   CircleHelp,
+  FolderKanban,
   MessageSquareWarning,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -87,6 +88,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
     { label: "E-saku Form", icon: FileText, path: "/esakuform" },
     { label: "History", icon: History, path: "/history" },
     { label: "Report", icon: MessageSquareWarning, path: "/report" },
+    { label: "Manage Rules", icon: FolderKanban, path: "/managerules" },
   ];
 
   // Student-only items

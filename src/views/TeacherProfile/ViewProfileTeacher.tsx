@@ -89,7 +89,25 @@ const ViewProfileTeacher = () => {
           }`
         );
       }
-      if (teacher.last_active) {
+      // Read last_activity from localStorage and format it
+      const lastActivityRaw = localStorage.getItem("last_activity");
+      if (lastActivityRaw) {
+        try {
+          const date = new Date(lastActivityRaw);
+          const formatted = date.toLocaleString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          });
+          setLastActive(formatted);
+        } catch (error) {
+          console.error("Error formatting last_activity:", error);
+          setLastActive(teacher.last_active || "N/A");
+        }
+      } else if (teacher.last_active) {
         setLastActive(teacher.last_active);
       }
     }
