@@ -1,16 +1,38 @@
-import { MoveLeft, Edit, User } from "lucide-react";
-import { FormInput } from "@/components/ui/form";
-import { useParams, Link } from "react-router-dom";
-import { useStudentById } from "@/config/Api/useStudent";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import {
+  User,
+  Award,
+  AlertTriangle,
+  SquarePen,
+  Camera,
+  Trash2,
+  MoveLeft,
+  BookOpen,
+  Users,
+  Save,
+  X,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FormInput } from "@/components/ui/form";
+import { useStudentById } from "@/config/Api/useStudent";
+import { useClassroomById } from "@/config/Api/useClasroom";
+import { IStudent } from "@/config/Models/Student";
+import { IClassroom } from "@/config/Models/Classroom";
+import toast from "react-hot-toast";
 
 const ViewStudentBio = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const studentId = id ?? "";
-  const { data: student, isLoading } = useStudentById(studentId);
+  const { data: student, isLoading, refetch } = useStudentById(studentId);
   const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState<IStudent | null>(null);
+  const [classroomData, setClassroomData] = useState<IClassroom | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!isLoading) {
@@ -20,23 +42,73 @@ const ViewStudentBio = () => {
 
   useEffect(() => {
     if (student) {
+      setFormData(student);
       if (student.profile_image) {
         setPhotoUrl(
-          `${import.meta.env.VITE_API_URL?.replace("/api", "/public")}${
+          (import.meta.env.VITE_API_URL?.replace("/api", "/public") || "") +
             student.profile_image
-          }`
         );
       }
     }
   }, [student]);
 
-  const imageSrc = photoUrl
-    ? photoUrl
-    : student?.profile_image
-    ? `${import.meta.env.VITE_API_URL?.replace("/api", "/public")}${
-        student.profile_image
-      }`
-    : "";
+  // Fetch classroom data separately
+  const classId = formData?.class_id || 0;
+  const { data: classroom } = useClassroomById(classId);
+
+  useEffect(() => {
+    if (classroom) {
+      setClassroomData(classroom);
+    }
+  }, [classroom]);
+
+  const handleInputChange = (field: keyof IStudent, value: unknown) => {
+    if (formData) {
+      setFormData({
+        ...formData,
+        [field]: value,
+      });
+    }
+  };
+
+  const toggleEditMode = () => {
+    if (isEditing) {
+      // Cancel editing - reset to original data
+      if (student) {
+        setFormData(student);
+      }
+    }
+    setIsEditing(!isEditing);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const localUrl = URL.createObjectURL(file);
+      setPhotoUrl(localUrl);
+      setSelectedFile(file);
+    }
+  };
+
+  const handleSavePhoto = () => {
+    // Placeholder: Implement photo upload API call if available
+    toast.success("Foto profil berhasil diubah! (Simulasi)");
+    setSelectedFile(null);
+  };
+
+  const handleDeletePhoto = () => {
+    // Placeholder: Implement photo delete API call if available
+    setPhotoUrl(undefined);
+    setSelectedFile(null);
+    toast.success("Foto profil berhasil dihapus! (Simulasi)");
+  };
+
+  const handleSaveChanges = () => {
+    // Placeholder: Implement student update API call
+    toast.success("Data profil berhasil diperbarui! (Simulasi)");
+    setIsEditing(false);
+    refetch();
+  };
 
   if (!id) {
     return <div className="p-4 md:p-6 text-red-500">Invalid student ID</div>;
@@ -50,312 +122,458 @@ const ViewStudentBio = () => {
     );
   }
 
-  if (!student) {
+  if (!formData) {
     return <div className="p-4 md:p-6 text-red-500">Student not found</div>;
   }
 
+  const imageSrc = photoUrl
+    ? photoUrl
+    : formData?.profile_image
+    ? `${import.meta.env.VITE_API_URL?.replace("/api", "/public")}${formData.profile_image}`
+    : "";
+
   return (
-    <>
-      <div className="m-1">
-        <div className="flex flex-col px-3 mt-4 gap-4 sm:px-4 md:px-8 md:mt-8 md:gap-6 lg:flex-row lg:items-start">
-          {/* Left Sidebar */}
-          <div className="w-full lg:w-[25%] lg:max-w-[25%]">
-            {/* Back Button */}
-            <Link to={`/student/class/${student.class_id}`} className="group">
-              <div className="flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors cursor-pointer mb-4 md:mb-6">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 group-hover:border-green-500 group-hover:bg-green-50 transition-all">
-                  <MoveLeft className="h-4 w-4" />
-                </div>
-                <span className="font-medium text-sm md:text-base">
-                  Back to Class
-                </span>
-              </div>
-            </Link>
-
-            {/* Title */}
-            <div className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6">
-              Biodata Siswa
+    <div className="container mx-auto py-4 sm:py-6 px-3 sm:px-4 text-black">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 sm:mb-4 gap-3">
+        <div className="items-center gap-4">
+          <button
+            onClick={() => navigate(`/student/class/${formData.class_id}`)}
+            className="group flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors cursor-pointer"
+          >
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 group-hover:border-green-500 group-hover:bg-green-50 transition-all">
+              <MoveLeft className="h-4 w-4" />
             </div>
-
-            {/* Profile Section */}
-            <div className="flex flex-col gap-3 justify-center items-center">
-              {/* Profile Image */}
-              <div className="w-full max-w-xs mx-auto lg:max-w-none">
-                {photoUrl ? (
-                  <img
-                    src={imageSrc}
-                    alt={student.name}
-                    className="aspect-[3/4] w-full object-cover bg-gray-300 rounded-lg"
-                  />
-                ) : (
-                  <div className="aspect-[3/4] w-full bg-gray-300 rounded-lg flex items-center justify-center">
-                    <User className="h-16 w-16 text-gray-500" />
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="w-full max-w-xs mx-auto lg:max-w-none space-y-2 mt-4">
-                <Link
-                  to={`/studentbio/edit/${student.id}`}
-                  className="w-full bg-primary p-3 font-semibold text-white rounded-md hover:bg-primary/90 transition-all duration-200 text-center block text-sm md:text-base"
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <Edit size={16} className="md:w-[18px] md:h-[18px]" />
-                    <span>Edit Student Data</span>
-                  </div>
-                </Link>
-
-                <Link
-                  to={`/studentbio/accomplishments/${student.id}`}
-                  className="w-full bg-primary p-3 font-semibold text-white rounded-md hover:bg-primary/90 transition-all duration-200 text-center block text-sm md:text-base"
-                >
-                  Student Accomplishments
-                </Link>
-
-                <Link
-                  to={`/studentbio/violations/${student.id}`}
-                  className="w-full bg-destructive p-3 font-semibold text-white rounded-md hover:bg-destructive/90 transition-all duration-200 text-center block text-sm md:text-base"
-                >
-                  Student Violations
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Content */}
-          <div className="w-full lg:w-[75%] lg:max-w-[75%] flex flex-col gap-4 md:gap-6">
-            {/* Personal Information Card */}
-            <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
-              <CardHeader className="bg-white flex justify-start items-center py-3 md:py-4 border-b-2 border-green-400 pb-2">
-                <CardTitle className="text-lg md:text-xl font-bold text-black">
-                  Personal Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="py-3 md:py-4 flex flex-col gap-3 md:gap-4 max-h-full overflow-y-auto">
-                  <FormInput
-                    id="studentname"
-                    label="Student Name"
-                    type="text"
-                    placeholder=""
-                    value={student.name}
-                    disabled
-                    className="bg-gray-300"
-                  />
-
-                  {/* NISN and NIS Row */}
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
-                    <div className="flex flex-col gap-1 w-full sm:w-1/2">
-                      <FormInput
-                        id="nisn"
-                        label="NISN"
-                        type="text"
-                        placeholder=""
-                        value={student.nisn}
-                        disabled
-                        className="bg-gray-300"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1 w-full sm:w-1/2">
-                      <FormInput
-                        id="nis"
-                        label="NIS"
-                        type="text"
-                        placeholder=""
-                        value={student.nis}
-                        disabled
-                        className="bg-gray-300"
-                      />
-                    </div>
-                  </div>
-
-                  <FormInput
-                    id="placedatebirth"
-                    label="Place, Date of Birth"
-                    type="text"
-                    placeholder=""
-                    value={`${student.place_of_birth}, ${student.birth_date}`}
-                    disabled
-                    className="bg-gray-300"
-                  />
-
-                  {/* Gender, Religion, and Phone Row */}
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6 lg:gap-12">
-                    <div className="flex flex-col gap-1 w-full sm:w-1/3">
-                      <FormInput
-                        id="gender"
-                        label="Gender"
-                        type="text"
-                        placeholder=""
-                        value={student.gender}
-                        disabled
-                        className="bg-gray-300"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1 w-full sm:w-1/3">
-                      <FormInput
-                        id="religion"
-                        label="Religion"
-                        type="text"
-                        placeholder=""
-                        value={student.religion}
-                        disabled
-                        className="bg-gray-300"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1 w-full sm:w-1/3">
-                      <FormInput
-                        id="studentphonenumber"
-                        label="Student Phone Number"
-                        type="text"
-                        placeholder=""
-                        value={student.phone_number || "-"}
-                        disabled
-                        className="bg-gray-300"
-                      />
-                    </div>
-                  </div>
-
-                  <FormInput
-                    id="address"
-                    label="Address"
-                    type="text"
-                    placeholder=""
-                    value={`${student.address}, ${student.sub_district}, ${student.district}`}
-                    disabled
-                    className="bg-gray-300"
-                  />
-
-                  {/* Height and Weight Row */}
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
-                    <div className="flex flex-col gap-1 w-full sm:w-1/2">
-                      <FormInput
-                        id="height"
-                        label="Height (cm)"
-                        type="text"
-                        placeholder=""
-                        value={student.height}
-                        disabled
-                        className="bg-gray-300"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1 w-full sm:w-1/2">
-                      <FormInput
-                        id="weight"
-                        label="Weight (kg)"
-                        type="text"
-                        placeholder=""
-                        value={student.weight}
-                        disabled
-                        className="bg-gray-300"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Student's Parent Card */}
-            <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
-              <CardHeader className="bg-white flex justify-start items-center py-3 md:py-4 border-b-2 border-green-400 pb-2">
-                <CardTitle className="text-lg md:text-xl font-bold text-black">
-                  Student's Parent
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="py-3 md:py-4 flex flex-col gap-3 md:gap-4 max-h-full overflow-y-auto">
-                  {/* Father's Information */}
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
-                    <div className="flex flex-col gap-1 w-full sm:w-1/2">
-                      <FormInput
-                        id="father_name"
-                        label="Father's Name"
-                        type="text"
-                        value={student.father_name}
-                        disabled
-                        className="bg-gray-300"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1 w-full sm:w-1/2">
-                      <FormInput
-                        id="father_job"
-                        label="Father's Job"
-                        type="text"
-                        value={student.father_job}
-                        disabled
-                        className="bg-gray-300"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Mother's Information */}
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
-                    <div className="flex flex-col gap-1 w-full sm:w-1/2">
-                      <FormInput
-                        id="mother_name"
-                        label="Mother's Name"
-                        type="text"
-                        value={student.mother_name}
-                        disabled
-                        className="bg-gray-300"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1 w-full sm:w-1/2">
-                      <FormInput
-                        id="mother_job"
-                        label="Mother's Job"
-                        type="text"
-                        value={student.mother_job}
-                        disabled
-                        className="bg-gray-300"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Student's Guardian Card */}
-            <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
-              <CardHeader className="bg-white flex justify-start items-center py-3 md:py-4 border-b-2 border-green-400 pb-2">
-                <CardTitle className="text-lg md:text-xl font-bold text-black">
-                  Student's Guardian
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="py-3 md:py-4 flex flex-col gap-3 md:gap-4 max-h-full overflow-y-auto">
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-12">
-                    <div className="flex flex-col gap-1 w-full sm:w-1/2">
-                      <FormInput
-                        id="guardian_name"
-                        label="Guardian's Name"
-                        type="text"
-                        placeholder=""
-                        value={student.guardian_name || "-"}
-                        disabled
-                        className="bg-gray-300"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1 w-full sm:w-1/2">
-                      <FormInput
-                        id="guardian_job"
-                        label="Guardian's Job"
-                        type="text"
-                        placeholder=""
-                        value={student.guardian_job || "-"}
-                        disabled
-                        className="bg-gray-300"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <span className="font-medium text-sm md:text-base">Back to Class</span>
+          </button>
+          <div className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 md:mb-4 mt-2 md:mt-4">
+            Biodata Siswa
           </div>
         </div>
       </div>
-    </>
+
+      {/* Updated Layout Structure */}
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
+        {/* Left Sidebar - Fixed width */}
+        <div className="lg:w-[300px] lg:flex-shrink-0 space-y-4 sm:space-y-6">
+          {/* Profile Photo Card */}
+          <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
+            <CardHeader className="bg-white py-3 px-4">
+              <CardTitle className="text-center text-black">
+                Foto Profil
+              </CardTitle>
+              <div className="relative flex justify-center mt-5">
+                <div className="absolute w-64 h-0.5 bg-green-400 rounded-full shadow-sm mt-1"></div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6 flex flex-col items-center">
+              <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full bg-gray-200 flex items-center justify-center mb-4 sm:mb-6 border-4 border-green-100 overflow-hidden">
+                {photoUrl ? (
+                  <img
+                    src={imageSrc}
+                    alt={formData.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User
+                    className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-gray-400"
+                    strokeWidth={1}
+                  />
+                )}
+              </div>
+
+              <div className="space-y-2 w-full">
+                <input
+                  type="file"
+                  id="photo-upload"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="photo-upload"
+                  className="cursor-pointer w-full block text-center bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition-all"
+                >
+                  <Camera size={16} className="inline-block mr-2" />
+                  Ubah Foto
+                </label>
+
+                {selectedFile && (
+                  <Button
+                    onClick={handleSavePhoto}
+                    disabled={!selectedFile}
+                    variant="default"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-all"
+                  >
+                    Simpan Foto
+                  </Button>
+                )}
+
+                <Button
+                  onClick={handleDeletePhoto}
+                  variant="default"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white transition-all"
+                >
+                  <Trash2 size={16} className="inline-block mr-2" />
+                  Hapus Foto
+                </Button>
+                {/* Edit Control Bar */}
+                <div className="flex justify-center gap-2">
+                  {isEditing ? (
+                    <>
+                      <Button
+                        onClick={handleSaveChanges}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <Save className="w-4 h-4 mr-2" />
+                        Simpan
+                      </Button>
+                      <Button
+                        onClick={toggleEditMode}
+                        variant="outline"
+                        className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Batal
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      onClick={toggleEditMode}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <SquarePen className="w-4 h-4 mr-2" />
+                      Edit Profil
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions Card */}
+          <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
+            <CardHeader className="bg-white py-3 px-4">
+              <CardTitle className="text-center text-black flex items-center justify-center gap-2">
+                <BookOpen size={20} className="text-green-600" />
+                Aksi Cepat
+              </CardTitle>
+              <div className="relative flex justify-center mt-5">
+                <div className="absolute w-64 h-0.5 bg-green-400 rounded-full shadow-sm mt-1"></div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <div className="space-y-3">
+                <Button
+                  asChild
+                  className="w-full bg-green-600 hover:bg-green-700 text-white transition-all"
+                >
+                  <Link to={`/studentbio/accomplishments/${formData.id}`}>
+                    <Award size={16} className="mr-2" />
+                    Prestasi Saya
+                  </Link>
+                </Button>
+
+                <Button
+                  asChild
+                  className="w-full bg-red-600 hover:bg-red-700 text-white transition-all"
+                >
+                  <Link to={`/studentbio/violations/${formData.id}`}>
+                    <AlertTriangle size={16} className="mr-2" />
+                    Pelanggaran Saya
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Content - Full width with left margin compensation */}
+        <div className="flex-1 space-y-4 sm:space-y-6">
+          {/* Personal Information Card */}
+          <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
+            <CardHeader className="bg-white py-3 px-4">
+              <CardTitle className="text-black flex items-center">
+                <User className="mr-2 h-5 w-5" />
+                Informasi Pribadi
+              </CardTitle>
+              <div className="relative flex justify-center mt-5">
+                <div className="absolute w-full h-0.5 bg-green-400 rounded-full shadow-sm mt-1"></div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <div className="space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">
+                      NIS
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        type="text"
+                        value={formData.nis}
+                        onChange={(e) => handleInputChange("nis", e.target.value)}
+                        className="w-full" id={""} label={""}                      />
+                    ) : (
+                      <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                        {formData.nis || "Tidak diatur"}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">
+                      NISN
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        type="text"
+                        value={formData.nisn}
+                        onChange={(e) => handleInputChange("nisn", e.target.value)}
+                        className="w-full" id={""} label={""}                      />
+                    ) : (
+                      <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                        {formData.nisn || "Tidak diatur"}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-black mb-1">
+                    Nama Lengkap
+                  </label>
+                  {isEditing ? (
+                    <FormInput
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => handleInputChange("name", e.target.value)}
+                      className="w-full" id={""} label={""}                    />
+                  ) : (
+                    <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                      {formData.name}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-black mb-1">
+                    Kelas
+                  </label>
+                  <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                    {classroomData?.name || "Tidak diatur"}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-black mb-1">
+                    Tempat, Tanggal Lahir
+                  </label>
+                  <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                    {formData.place_of_birth && formData.birth_date
+                      ? `${formData.place_of_birth}, ${formData.birth_date}`
+                      : "Tidak diatur"}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">
+                      Jenis Kelamin
+                    </label>
+                    <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                      {formData.gender || "Tidak diatur"}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">
+                      Agama
+                    </label>
+                    <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                      {formData.religion || "Tidak diatur"}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-black mb-1">
+                    Alamat
+                  </label>
+                  <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                    {formData.address && formData.sub_district && formData.district
+                      ? `${formData.address}, ${formData.sub_district}, ${formData.district}`
+                      : "Tidak diatur"}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">
+                      Nomor Telepon
+                    </label>
+                    <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                      {formData.phone_number || "Tidak diatur"}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">
+                      Tinggi / Berat Badan
+                    </label>
+                    <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                      {formData.height && formData.weight
+                        ? `${formData.height} cm / ${formData.weight} kg`
+                        : "Tidak diatur"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Parent Information Card */}
+          <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
+            <CardHeader className="bg-white py-3 px-4">
+              <CardTitle className="text-black flex items-center">
+                <Users className="mr-2 h-5 w-5" />
+                Informasi Orang Tua
+              </CardTitle>
+              <div className="relative flex justify-center mt-5">
+                <div className="absolute w-full h-0.5 bg-green-400 rounded-full shadow-sm mt-1"></div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <div className="space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">
+                      Nama Ayah
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        type="text"
+                        value={formData.father_name}
+                        onChange={(e) => handleInputChange("father_name", e.target.value)}
+                        className="w-full" id={""} label={""}                      />
+                    ) : (
+                      <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                        {formData.father_name || "Tidak diatur"}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">
+                      Pekerjaan Ayah
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        type="text"
+                        value={formData.father_job}
+                        onChange={(e) => handleInputChange("father_job", e.target.value)}
+                        className="w-full" id={""} label={""}                      />
+                    ) : (
+                      <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                        {formData.father_job || "Tidak diatur"}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">
+                      Nama Ibu
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        type="text"
+                        value={formData.mother_name}
+                        onChange={(e) => handleInputChange("mother_name", e.target.value)}
+                        className="w-full" id={""} label={""}                      />
+                    ) : (
+                      <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                        {formData.mother_name || "Tidak diatur"}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">
+                      Pekerjaan Ibu
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        type="text"
+                        value={formData.mother_job}
+                        onChange={(e) => handleInputChange("mother_job", e.target.value)}
+                        className="w-full" id={""} label={""}                      />
+                    ) : (
+                      <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                        {formData.mother_job || "Tidak diatur"}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Guardian Information Card */}
+          <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
+            <CardHeader className="bg-white py-3 px-4">
+              <CardTitle className="text-black flex items-center">
+                <Users className="mr-2 h-5 w-5" />
+                Informasi Wali
+              </CardTitle>
+              <div className="relative flex justify-center mt-5">
+                <div className="absolute w-full h-0.5 bg-green-400 rounded-full shadow-sm mt-1"></div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <div className="space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">
+                      Nama Wali
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        type="text"
+                        value={formData.guardian_name || ""}
+                        onChange={(e) => handleInputChange("guardian_name", e.target.value)}
+                        className="w-full" id={""} label={""}                      />
+                    ) : (
+                      <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                        {formData.guardian_name || "Tidak diatur"}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-1">
+                      Pekerjaan Wali
+                    </label>
+                    {isEditing ? (
+                      <FormInput
+                        type="text"
+                        value={formData.guardian_job || ""}
+                        onChange={(e) => handleInputChange("guardian_job", e.target.value)}
+                        className="w-full" id={""} label={""}                      />
+                    ) : (
+                      <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+                        {formData.guardian_job || "Tidak diatur"}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 };
 
