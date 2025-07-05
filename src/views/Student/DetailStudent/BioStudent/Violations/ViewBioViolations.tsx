@@ -235,7 +235,7 @@ const ViewBioViolations = () => {
             <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 group-hover:border-green-500 group-hover:bg-green-50 transition-all">
               <MoveLeft className="h-4 w-4" />
             </div>
-            <span className="font-medium text-sm sm:text-base">Back to Student Profile</span>
+            <span className="font-medium text-sm sm:text-base">Back</span>
           </div>
         </Link>
       </div>
