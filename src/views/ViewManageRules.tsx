@@ -129,7 +129,7 @@ const ViewManageRules: React.FC = () => {
 
   // Handle form changes
   const handleFormChange = (field: string, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev : any) => ({ ...prev, [field]: value }));
   };
 
   // Save function
