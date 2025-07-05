@@ -9,6 +9,7 @@ interface ApiRequestProps {
   authorization?: boolean;
   isMultipart?: boolean;
   isFormData?: boolean;
+  customAuth?: boolean;
 }
 
 export const DefaultHeaders = {
@@ -25,9 +26,19 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    // Special handling for logout endpoint
+    if (config.url?.endsWith("/logout")) {
+      const token = localStorage.getItem("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    }
 
+    // Normal request handling
+    const token = localStorage.getItem("token");
     const customAuth = (config as any).customAuth;
+
     if (token && customAuth !== false) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -37,17 +48,30 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Enhanced response interceptor
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Handle timeout errors
     if (error.code === "ECONNABORTED") {
       console.error("Request timed out");
       return Promise.reject(new Error("Request timed out. Please try again."));
     }
+
+    // Handle unauthorized errors (401)
+    if (error.response?.status === 401) {
+      // Special case: Don't clear token for logout 401 errors
+      if (!error.config.url?.endsWith('/logout')) {
+        localStorage.removeItem("token");
+        window.location.href = '/login';
+      }
+    }
+
     return Promise.reject(error);
   }
 );
 
+// Enhanced ApiRequest function
 export const ApiRequest = async ({
   url,
   method = "GET",
@@ -57,17 +81,19 @@ export const ApiRequest = async ({
   authorization = true,
   isMultipart = false,
   isFormData = false,
+
 }: ApiRequestProps) => {
   try {
     const isFileUpload = isFormData || isMultipart;
 
     const finalHeaders = {
-      ...(authorization
+      ...headers,
+      Accept: "application/json",
+      ...(isFileUpload ? {} : { "Content-Type": "application/json" }),
+      // Special handling for logout to ensure token is sent
+      ...(authorization && localStorage.getItem("token") 
         ? { Authorization: `Bearer ${localStorage.getItem("token")}` }
         : {}),
-      ...(isFileUpload ? {} : { "Content-Type": "application/json" }),
-      Accept: "application/json",
-      ...headers,
     };
 
     const config: AxiosRequestConfig = {
@@ -80,7 +106,7 @@ export const ApiRequest = async ({
 
     const response = await axiosInstance.request(config);
 
-    if (!response || !response.data) {
+    if (!response?.data) {
       throw new Error("Invalid API response: No data returned.");
     }
 

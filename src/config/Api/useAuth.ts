@@ -1,84 +1,96 @@
-import { useMutation } from "@tanstack/react-query";
+// src/config/Api/useAuth.ts
 import { ApiAuth } from "../Services/Auth.service";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { ApiRequest } from "../Services/Api.service";
+
 
 export const useLogin = () => {
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const login = async (credentials: {
+    identifier: string;
+    password: string;
+  }) => {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const data = await ApiAuth.login(credentials);
+
+      // Set token dan login time
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("login_time", new Date().toISOString());
+      localStorage.setItem("last_activity", new Date().toISOString());
+
+      // Set user-specific data
+      if (data.user?.teacher_id) {
+        localStorage.setItem("teacher_id", data.user.teacher_id);
+        localStorage.setItem("user_type", "teacher");
+      } else if (data.user?.student_id) {
+        localStorage.setItem("student_id", data.user.student_id);
+        localStorage.setItem("user_type", "student");
+      }
+
+      navigate("/");
+      return data;
+    } catch (error: any) {
+      console.error("Login failed:", error);
+
+      // Set error message based on response
+      if (error.response) {
+        if (error.response.status === 401) {
+          setErrorMessage("Username atau password salah");
+        } else if (error.response.status === 404) {
+          setErrorMessage("User tidak ditemukan");
+        } else {
+          setErrorMessage("Terjadi kesalahan pada server");
+        }
+      } else if (error.request) {
+        setErrorMessage("Tidak ada respons dari server");
+      } else {
+        setErrorMessage("Terjadi kesalahan");
+      }
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return {
+    login,
+    isLoading,
     errorMessage,
-    ...useMutation({
-      mutationFn: ApiAuth.login,
-      onSuccess: (data) => {
-        // Reset error message
-        setErrorMessage(null);
-
-        // Set token dan login time
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("login_time", new Date().toISOString());
-        localStorage.setItem("last_activity", new Date().toISOString());
-
-        // Set user-specific data
-        if (data.user?.teacher_id) {
-          localStorage.setItem("teacher_id", data.user.teacher_id);
-          localStorage.setItem("user_type", "teacher");
-        } else if (data.user?.student_id) {
-          localStorage.setItem("student_id", data.user.student_id);
-          localStorage.setItem("user_type", "student");
-        }
-
-        navigate("/");
-      },
-      onError: (error: any) => {
-        console.error("Login failed:", error);
-
-        // Set error message based on response
-        if (error.response) {
-          if (error.response.status === 401) {
-            setErrorMessage("Username atau password salah");
-          } else if (error.response.status === 404) {
-            setErrorMessage("User tidak ditemukan");
-          } else {
-            setErrorMessage("Terjadi kesalahan pada server");
-          }
-        } else if (error.request) {
-          setErrorMessage("Tidak ada respons dari server");
-        } else {
-          setErrorMessage("Terjadi kesalahan");
-        }
-      },
-    }),
+    setErrorMessage,
   };
 };
 
 export const useLogout = () => {
-  return useMutation({
-    mutationFn: ApiAuth.logout,
-    onSuccess: () => {
-      // Hapus semua data session untuk teacher dan student
-      localStorage.removeItem("token");
-      localStorage.removeItem("teacher_id");
-      localStorage.removeItem("student_id");
-      localStorage.removeItem("user_type");
-      localStorage.removeItem("login_time");
-      localStorage.removeItem("last_activity");
-    },
-    onError: (error) => {
-      console.error("Logout failed:", error);
-      // Tetap hapus local storage meskipun API gagal
-      localStorage.removeItem("token");
-      localStorage.removeItem("teacher_id");
-      localStorage.removeItem("student_id");
-      localStorage.removeItem("user_type");
-      localStorage.removeItem("login_time");
-      localStorage.removeItem("last_activity");
-    },
-  });
+  const [isLoading, setIsLoading] = useState(false);
+
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      // 1. First call the logout API while still authenticated
+      await ApiAuth.logout();
+    } catch (error) {
+      console.error("Logout API error:", error);
+      // Even if API fails, proceed with client-side cleanup
+    } finally {
+      // 2. Clear all client-side storage
+      localStorage.clear();
+
+      // 3. Force hard redirect to ensure clean state
+      window.location.href = "/login";
+      setIsLoading(false);
+    }
+  };
+
+  return { logout, isLoading };
 };
 
-// Helper hook untuk mendapatkan user info
 export const useCurrentUser = () => {
   const token = localStorage.getItem("token");
   const userType = localStorage.getItem("user_type");

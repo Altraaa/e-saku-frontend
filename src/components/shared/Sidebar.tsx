@@ -26,7 +26,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
   const activeItem = location.pathname;
   const { isOpen, toggleSidebar, closeSidebar } = useSidebar();
 
-  const { mutate: logout } = useLogout();
+  const { logout, isLoading: isLoggingOut } = useLogout();
   const [isLogoutModalOpen, setLogoutModalOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== "undefined" ? window.innerWidth : 1024
@@ -38,18 +38,15 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
 
   const isMobileScreen = windowWidth < 835;
 
-  const confirmLogout = () => {
+  const confirmLogout = async () => {
     setLogoutModalOpen(false);
-    logout(undefined, {
-      onSuccess: () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("teacher_id");
-        localStorage.removeItem("student_id"); // Also remove student_id
-        localStorage.removeItem("login_time");
-        toast.success("Logout berhasil");
-        navigate("/login", { replace: true });
-      },
-    });
+    try {
+      await logout();
+      toast.success("Logout berhasil");
+      navigate("/login", { replace: true });
+    } catch (error) {
+      toast.error("Logout gagal");
+    }
   };
 
   useEffect(() => {

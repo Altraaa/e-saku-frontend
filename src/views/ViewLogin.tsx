@@ -10,22 +10,26 @@ export default function ViewLogin() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
 
-  // Gunakan hook yang dimodifikasi
-  const loginMutation = useLogin();
+  // Use the manual login hook
+  const { login, isLoading, errorMessage, setErrorMessage } = useLogin();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Reset error sebelum mencoba login baru
-    loginMutation.errorMessage = null;
+    // Reset error before trying to login
+    setErrorMessage(null);
 
-    // Validasi input
+    // Validate input
     if (!identifier.trim() || !password.trim()) {
-      loginMutation.errorMessage = "Username dan password harus diisi";
+      setErrorMessage("Username dan password harus diisi");
       return;
     }
 
-    loginMutation.mutate({ identifier, password });
+    try {
+      await login({ identifier, password });
+    } catch (error) {
+      // Error handling is already done in the hook
+    }
   };
 
   const handleInputChange = (
@@ -46,7 +50,7 @@ export default function ViewLogin() {
         </div>
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">
-            <Form onSubmit={handleSubmit} isLoading={loginMutation.isPending}>
+            <Form onSubmit={handleSubmit} isLoading={isLoading}>
               <div className="flex flex-col items-center gap-1 text-center">
                 <h1 className="text-2xl font-bold">Welcome Back!</h1>
                 <p className="text-balance text-sm text-muted-foreground">
@@ -54,11 +58,11 @@ export default function ViewLogin() {
                 </p>
               </div>
 
-              {/* Tampilkan pesan error jika ada */}
-              {loginMutation.errorMessage && (
+              {/* Show error message if exists */}
+              {errorMessage && (
                 <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4" />
-                  {loginMutation.errorMessage}
+                  {errorMessage}
                 </div>
               )}
 
@@ -68,7 +72,7 @@ export default function ViewLogin() {
                 value={identifier}
                 onChange={handleInputChange(setIdentifier)}
                 placeholder="Enter your username"
-                disabled={loginMutation.isPending}
+                disabled={isLoading}
               />
 
               <FormInput
@@ -78,10 +82,10 @@ export default function ViewLogin() {
                 value={password}
                 onChange={handleInputChange(setPassword)}
                 placeholder="Enter your password"
-                disabled={loginMutation.isPending}
+                disabled={isLoading}
               />
 
-              <FormButton isLoading={loginMutation.isPending}>Login</FormButton>
+              <FormButton isLoading={isLoading}>Login</FormButton>
 
               <div className="text-center text-sm">
                 By logging in, you agree to our{" "}
