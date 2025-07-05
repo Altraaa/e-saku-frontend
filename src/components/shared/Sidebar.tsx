@@ -90,8 +90,18 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
 
   // Student-only items
   const studentPlatformItems = [
-    { label: "My Class", icon: Users, path: "/student" },
+    {
+      label: "My Accomplishments",
+      icon: Users,
+      path: `/studentbio/accomplishments/${localStorage.getItem("student_id")}`,
+    },
+    {
+      label: "My Violations",
+      icon: Users,
+      path: `/studentbio/violations/${localStorage.getItem("student_id")}`,
+    },
   ];
+  
 
   // Combine common items with role-specific items
   const platformItems = [
@@ -112,6 +122,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
   ];
 
   const isActivePath = (currentPath: string, itemPath: string): boolean => {
+    const studentId = localStorage.getItem("student_id");
     const matchPatterns: Record<string, RegExp[]> = {
       "/student": [
         /^\/student$/,
@@ -124,6 +135,14 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
       "/rules": [/^\/rules$/],
       "/profilestudent": [/^\/profile$/],
       "/profileteacher": [/^\/profileteacher$/],
+      [`/studentbio/accomplishments/${studentId}`]: [
+        new RegExp(`^/studentbio/accomplishments/${studentId}$`),
+        new RegExp(`^/studentbio/accomplishments/${studentId}/.*$`),
+      ],
+      [`/studentbio/violations/${studentId}`]: [
+        new RegExp(`^/studentbio/violations/${studentId}$`),
+        new RegExp(`^/studentbio/violations/${studentId}/.*$`),
+      ],
     };
 
     const patterns = matchPatterns[itemPath];

@@ -1,12 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Award, AlertTriangle, Clock, BookOpen } from "lucide-react";
+import { User, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useStudentById } from "@/config/Api/useStudent";
 import { useClassroomById } from "@/config/Api/useClasroom";
 import { IStudent } from "@/config/Models/Student";
 import { IClassroom } from "@/config/Models/Classroom";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 
 const ViewProfileStudent = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -129,42 +127,6 @@ const ViewProfileStudent = () => {
                     strokeWidth={1}
                   />
                 )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions Card */}
-          <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
-            <CardHeader className="bg-white py-3 px-4">
-              <CardTitle className="text-center text-black flex items-center justify-center gap-2">
-                <BookOpen size={20} className="text-green-600" />
-                Aksi Cepat
-              </CardTitle>
-              <div className="relative flex justify-center mt-5">
-                <div className="absolute w-64 h-0.5 bg-green-400 rounded-full shadow-sm mt-1"></div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6">
-              <div className="space-y-3">
-                <Button
-                  asChild
-                  className="w-full bg-green-600 hover:bg-green-700 text-white transition-all"
-                >
-                  <Link to={`/studentbio/accomplishments/${studentData.id}`}>
-                    <Award size={16} className="mr-2" />
-                    Prestasi Saya
-                  </Link>
-                </Button>
-
-                <Button
-                  asChild
-                  className="w-full bg-red-600 hover:bg-red-700 text-white transition-all"
-                >
-                  <Link to={`/studentbio/violations/${studentData.id}`}>
-                    <AlertTriangle size={16} className="mr-2" />
-                    Pelanggaran Saya
-                  </Link>
-                </Button>
               </div>
             </CardContent>
           </Card>
