@@ -57,6 +57,7 @@ import { useClassroom } from "@/config/Api/useClasroom";
 import { useAccomplishments } from "@/config/Api/useAccomplishments";
 import { IAccomplishments } from "@/config/Models/Accomplishments";
 import { useStudentById } from "@/config/Api/useStudent";
+import { Link } from "react-router-dom";
 
 interface LeaderboardItem {
   rank: number;
@@ -64,6 +65,15 @@ interface LeaderboardItem {
   points: number;
 }
 
+type TimeRange = "daily" | "weekly" | "monthly" | "yearly";
+
+interface ChartData {
+  day?: string;
+  week?: string;
+  month?: string;
+  violations: number;
+  achievements: number;
+}
 interface PayloadItem {
   value: number;
   name: string;
@@ -134,10 +144,13 @@ const DashboardSkeleton = () => {
 const ViewDashboard = () => {
   const [userName, setUserName] = useState("");
   const [userRole, setUserRole] = useState<"teacher" | "student">("teacher");
-  const [timeRange, setTimeRange] = useState<"weekly" | "monthly">("weekly");
+  const [timeRange, setTimeRange] = useState<TimeRange>("weekly");
   const [overallTimeRange, setOverallTimeRange] = useState<
     "daily" | "weekly" | "monthly"
   >("daily");
+  const [yearlyView, setYearlyView] = useState<"firstHalf" | "secondHalf">(
+    "firstHalf"
+  );
   const [activityType, setActivityType] = useState<
     "all" | "violations" | "achievements"
   >("all");
@@ -161,14 +174,11 @@ const ViewDashboard = () => {
     topClass: "Unknown",
     topGrade: "",
   });
-  const [chartData, setChartData] = useState<
-    { day: string; violations: number; achievements: number }[]
-  >([]);
+  const [chartData, setChartData] = useState<ChartData[]>([]);
 
   // Get user role and ID
   useEffect(() => {
     const role = localStorage.getItem("user_type");
-    const teacherId = localStorage.getItem("teacher_id");
     const studentId = localStorage.getItem("student_id");
 
     if (role === "student" && studentId) {
@@ -222,9 +232,17 @@ const ViewDashboard = () => {
   );
 
   const getGradeFromClassName = (className: string): string => {
-    if (className === "-") return "-";
-    const gradeMatch = className.match(/^(X|XI|XII)/);
-    return gradeMatch ? gradeMatch[0] : "-";
+    if (!className || className === "-") return "-";
+    // Mencocokkan pola kelas seperti "XII RPL 1" atau "12 RPL 1"
+    const gradeMatch = className.match(/^(X|XI|XII|\d+)/);
+    if (!gradeMatch) return "-";
+
+    // Normalisasi grade (ubah '12' menjadi 'XII')
+    const grade = gradeMatch[0];
+    if (grade === "10" || grade === "1") return "X";
+    if (grade === "11" || grade === "2") return "XI";
+    if (grade === "12" || grade === "3") return "XII";
+    return grade;
   };
 
   // Filter berdasarkan rentang waktu
@@ -232,7 +250,7 @@ const ViewDashboard = () => {
     T extends { violation_date?: string; accomplishment_date?: string }
   >(
     data: T[],
-    range: "daily" | "weekly" | "monthly",
+    range: TimeRange,
     dateKey: keyof T = "violation_date"
   ): T[] => {
     const now = new Date();
@@ -251,6 +269,12 @@ const ViewDashboard = () => {
       return data.filter(
         (item) => new Date(item[dateKey] as Date) >= oneMonthAgo
       );
+    } else if (range === "yearly") {
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(now.getFullYear() - 1);
+      return data.filter(
+        (item) => new Date(item[dateKey] as Date) >= oneYearAgo
+      );
     }
     return data;
   };
@@ -258,20 +282,17 @@ const ViewDashboard = () => {
   // Hitung statistik
   const calculateStats = useCallback(
     (violations: IViolation[]) => {
-      const filteredViolations = filterByTimeRange(
-        violations,
-        overallTimeRange
-      );
+      const filteredViolations = filterByTimeRange(violations, overallTimeRange);
 
       const totalPoints = filteredViolations.reduce(
-        (sum, violation) => sum + violation.points,
+        (sum, violation) => sum + (violation.points || 0),
         0
       );
 
-      const uniqueStudents = new Set(
-        filteredViolations.map((v) => v.student_id)
-      ).size;
+      const uniqueStudents = new Set(filteredViolations.map((v) => v.student_id))
+        .size;
 
+      // Hitung pelanggaran per kelas
       const classCount: Record<string, number> = {};
       filteredViolations.forEach((v) => {
         const student = v.student as IStudent;
@@ -280,20 +301,38 @@ const ViewDashboard = () => {
       });
 
       let topClass = "-";
-      if (Object.entries(classCount).length > 0) {
-        topClass = Object.entries(classCount).sort((a, b) => b[1] - a[1])[0][0];
-      }
+      let maxClassCount = 0;
+      Object.entries(classCount).forEach(([className, count]) => {
+        if (count > maxClassCount) {
+          maxClassCount = count;
+          topClass = className;
+        }
+      });
 
+      // Hitung pelanggaran per grade dengan lebih akurat
       const gradeCount: Record<string, number> = {};
       filteredViolations.forEach((v) => {
         const student = v.student as IStudent;
         const className = getClassName(student?.class_id);
         const grade = getGradeFromClassName(className);
-        gradeCount[grade] = (gradeCount[grade] || 0) + 1;
+
+        // Pastikan hanya menghitung grade yang valid
+        if (grade === "X" || grade === "XI" || grade === "XII") {
+          gradeCount[grade] = (gradeCount[grade] || 0) + 1;
+        }
       });
 
-      const topGrade =
-        Object.entries(gradeCount).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
+      // Temukan grade dengan pelanggaran terbanyak
+      let topGrade = "-";
+      let maxGradeCount = 0;
+      Object.entries(gradeCount).forEach(([grade, count]) => {
+        if (count > maxGradeCount) {
+          maxGradeCount = count;
+          topGrade = grade;
+        }
+      });
+
+      console.log("Grade Count:", gradeCount);
 
       return {
         totalPoints,
@@ -340,50 +379,135 @@ const ViewDashboard = () => {
   // Siapkan data chart
   const prepareChartData = useCallback(
     (violations: IViolation[], accomplishments: IAccomplishments[]) => {
-      const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+      if (timeRange === "weekly") {
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
-      // Filter data berdasarkan rentang waktu chart
-      const filteredViolations = filterByTimeRange(
-        violations,
-        timeRange,
-        "violation_date"
-      );
-      const filteredAccomplishments = filterByTimeRange(
-        accomplishments,
-        timeRange,
-        "accomplishment_date"
-      );
+        const filteredViolations = filterByTimeRange(
+          violations,
+          "weekly",
+          "violation_date"
+        );
+        const filteredAccomplishments = filterByTimeRange(
+          accomplishments,
+          "weekly",
+          "accomplishment_date"
+        );
 
-      // Hitung pelanggaran per hari
-      const violationsByDay: Record<string, number> = {};
-      filteredViolations.forEach((v) => {
-        const dayIndex = new Date(v.violation_date).getDay();
-        const adjustedDay = (dayIndex + 6) % 7;
-        if (adjustedDay >= 0 && adjustedDay <= 4) {
-          const dayName = days[adjustedDay];
-          violationsByDay[dayName] = (violationsByDay[dayName] || 0) + 1;
-        }
-      });
+        const violationsByDay: Record<string, number> = {};
+        filteredViolations.forEach((v) => {
+          const dayIndex = new Date(v.violation_date).getDay();
+          const adjustedDay = (dayIndex + 6) % 7;
+          if (adjustedDay >= 0 && adjustedDay <= 4) {
+            const dayName = days[adjustedDay];
+            violationsByDay[dayName] = (violationsByDay[dayName] || 0) + 1;
+          }
+        });
 
-      // Hitung prestasi per hari
-      const accomplishmentsByDay: Record<string, number> = {};
-      filteredAccomplishments.forEach((a) => {
-        const dayIndex = new Date(a.accomplishment_date).getDay();
-        const adjustedDay = (dayIndex + 6) % 7;
-        if (adjustedDay >= 0 && adjustedDay <= 4) {
-          const dayName = days[adjustedDay];
-          accomplishmentsByDay[dayName] =
-            (accomplishmentsByDay[dayName] || 0) + 1;
-        }
-      });
+        const accomplishmentsByDay: Record<string, number> = {};
+        filteredAccomplishments.forEach((a) => {
+          const dayIndex = new Date(a.accomplishment_date).getDay();
+          const adjustedDay = (dayIndex + 6) % 7;
+          if (adjustedDay >= 0 && adjustedDay <= 4) {
+            const dayName = days[adjustedDay];
+            accomplishmentsByDay[dayName] =
+              (accomplishmentsByDay[dayName] || 0) + 1;
+          }
+        });
 
-      return days.map((day) => ({
-        day,
-        violations: violationsByDay[day] || 0,
-        achievements: accomplishmentsByDay[day] || 0,
-      }));
+        return days.map((day) => ({
+          day,
+          violations: violationsByDay[day] || 0,
+          achievements: accomplishmentsByDay[day] || 0,
+        }));
+      } else if (timeRange === "monthly") {
+        const weeks = ["Minggu 1", "Minggu 2", "Minggu 3", "Minggu 4"];
+
+        const filteredViolations = filterByTimeRange(
+          violations,
+          "monthly",
+          "violation_date"
+        );
+        const filteredAccomplishments = filterByTimeRange(
+          accomplishments,
+          "monthly",
+          "accomplishment_date"
+        );
+
+        const violationsByWeek: Record<string, number> = {};
+        filteredViolations.forEach((v) => {
+          const date = new Date(v.violation_date);
+          const dayOfMonth = date.getDate();
+          const weekNumber = Math.floor(dayOfMonth / 7);
+          const weekKey = weeks[Math.min(weekNumber, 3)]; // Pastikan tidak melebihi index 3
+          violationsByWeek[weekKey] = (violationsByWeek[weekKey] || 0) + 1;
+        });
+
+        const accomplishmentsByWeek: Record<string, number> = {};
+        filteredAccomplishments.forEach((a) => {
+          const date = new Date(a.accomplishment_date);
+          const dayOfMonth = date.getDate();
+          const weekNumber = Math.floor(dayOfMonth / 7);
+          const weekKey = weeks[Math.min(weekNumber, 3)];
+          accomplishmentsByWeek[weekKey] =
+            (accomplishmentsByWeek[weekKey] || 0) + 1;
+        });
+
+        return weeks.map((week) => ({
+          week,
+          violations: violationsByWeek[week] || 0,
+          achievements: accomplishmentsByWeek[week] || 0,
+        }));
+      } else {
+        // Yearly view
+        const firstHalfMonths = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun"];
+        const secondHalfMonths = ["Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+        const months =
+          yearlyView === "firstHalf" ? firstHalfMonths : secondHalfMonths;
+
+        const filteredViolations = violations.filter((v) => {
+          const date = new Date(v.violation_date);
+          const month = date.getMonth();
+          return yearlyView === "firstHalf" ? month < 6 : month >= 6;
+        });
+
+        const filteredAccomplishments = accomplishments.filter((a) => {
+          const date = new Date(a.accomplishment_date);
+          const month = date.getMonth();
+          return yearlyView === "firstHalf" ? month < 6 : month >= 6;
+        });
+
+        const violationsByMonth: Record<string, number> = {};
+        filteredViolations.forEach((v) => {
+          const date = new Date(v.violation_date);
+          const monthIndex = date.getMonth();
+          const monthName =
+            yearlyView === "firstHalf"
+              ? firstHalfMonths[monthIndex]
+              : secondHalfMonths[monthIndex - 6];
+          violationsByMonth[monthName] =
+            (violationsByMonth[monthName] || 0) + 1;
+        });
+
+        const accomplishmentsByMonth: Record<string, number> = {};
+        filteredAccomplishments.forEach((a) => {
+          const date = new Date(a.accomplishment_date);
+          const monthIndex = date.getMonth();
+          const monthName =
+            yearlyView === "firstHalf"
+              ? firstHalfMonths[monthIndex]
+              : secondHalfMonths[monthIndex - 6];
+          accomplishmentsByMonth[monthName] =
+            (accomplishmentsByMonth[monthName] || 0) + 1;
+        });
+
+        return months.map((month) => ({
+          month,
+          violations: violationsByMonth[month] || 0,
+          achievements: accomplishmentsByMonth[month] || 0,
+        }));
+      }
     },
-    [timeRange]
+    [timeRange, yearlyView]
   );
 
   // Proses data saat data berubah
@@ -617,16 +741,45 @@ const ViewDashboard = () => {
 
                   <Select
                     value={timeRange}
-                    onValueChange={(v) => setTimeRange(v as any)}
+                    onValueChange={(v) => {
+                      setTimeRange(v as TimeRange);
+                      if (v !== "yearly") setYearlyView("firstHalf");
+                    }}
                   >
                     <SelectTrigger className="border-green-500 focus:ring-green-400 w-full xs:w-auto xs:min-w-[120px] rounded-lg">
                       <SelectValue placeholder="Rentang Waktu" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="weekly">Minggu</SelectItem>
-                      <SelectItem value="monthly">Bulan</SelectItem>
+                      <SelectItem value="weekly">Minggu Ini</SelectItem>
+                      <SelectItem value="monthly">Bulan Ini</SelectItem>
+                      <SelectItem value="yearly">Tahun Ini</SelectItem>
                     </SelectContent>
                   </Select>
+
+                  {timeRange === "yearly" && (
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant={
+                          yearlyView === "firstHalf" ? "default" : "outline"
+                        }
+                        size="sm"
+                        className="h-8"
+                        onClick={() => setYearlyView("firstHalf")}
+                      >
+                        Jan-Jun
+                      </Button>
+                      <Button
+                        variant={
+                          yearlyView === "secondHalf" ? "default" : "outline"
+                        }
+                        size="sm"
+                        className="h-8"
+                        onClick={() => setYearlyView("secondHalf")}
+                      >
+                        Jul-Des
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -645,7 +798,13 @@ const ViewDashboard = () => {
                   >
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis
-                      dataKey="day"
+                      dataKey={
+                        timeRange === "weekly"
+                          ? "day"
+                          : timeRange === "monthly"
+                          ? "week"
+                          : "month"
+                      }
                       axisLine={false}
                       tickLine={false}
                       tick={{
@@ -788,7 +947,9 @@ const ViewDashboard = () => {
                   ? "Hari Ini"
                   : overallTimeRange === "weekly"
                   ? "Minggu Ini"
-                  : "Bulan Ini"}
+                  : overallTimeRange === "monthly"
+                  ? "Bulan Ini"
+                  : "Tahun Ini"}
               </CardTitle>
               <div className="md:flex items-center space-y-2 md:space-y-0 gap-2">
                 <Select
@@ -802,9 +963,10 @@ const ViewDashboard = () => {
                     <SelectItem value="daily">Hari Ini</SelectItem>
                     <SelectItem value="weekly">Minggu Ini</SelectItem>
                     <SelectItem value="monthly">Bulan Ini</SelectItem>
+                    <SelectItem value="yearly">Tahun Ini</SelectItem>
                   </SelectContent>
                 </Select>
-                <div className="relative w-full sm:w-72">
+                <div className="relative w-full">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                   <Input
                     value={searchText}
@@ -861,11 +1023,16 @@ const ViewDashboard = () => {
                         {violation.student?.nis}
                       </TableCell>
                       <TableCell className="text-left font-normal text-xs sm:text-sm">
-                        <div className="min-w-0">
-                          <div className="truncate">
-                            {violation.student?.name}
+                        <Link
+                          to={`/studentbio/${violation.student?.id}`}
+                          className="hover:text-green-500 transition-colors"
+                        >
+                          <div className="min-w-0">
+                            <div className="truncate">
+                              {violation.student?.name}
+                            </div>
                           </div>
-                        </div>
+                        </Link>
                       </TableCell>
                       <TableCell className="text-center font-normal text-xs sm:text-sm hidden md:table-cell">
                         {className}
@@ -915,9 +1082,12 @@ const ViewDashboard = () => {
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <Link
+                            to={`/studentbio/${violation.student?.id}`}
+                            className="hover:text-green-500 transition-colors"
+                          >
                             {violation.student?.name}
-                          </p>
+                          </Link>
                           <p className="text-xs text-gray-500">
                             NIS: {violation.student?.nis}
                           </p>
