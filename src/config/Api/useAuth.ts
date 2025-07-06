@@ -2,30 +2,28 @@
 import { ApiAuth } from "../Services/Auth.service";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { ApiRequest } from "../Services/Api.service";
-
 
 export const useLogin = () => {
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const login = async (credentials: {
     identifier: string;
     password: string;
   }) => {
-    setIsLoading(true);
     setErrorMessage(null);
+    setFieldErrors({});
+    setIsLoading(true);
 
     try {
       const data = await ApiAuth.login(credentials);
 
-      // Set token dan login time
       localStorage.setItem("token", data.token);
       localStorage.setItem("login_time", new Date().toISOString());
       localStorage.setItem("last_activity", new Date().toISOString());
 
-      // Set user-specific data
       if (data.user?.teacher_id) {
         localStorage.setItem("teacher_id", data.user.teacher_id);
         localStorage.setItem("user_type", "teacher");
@@ -39,20 +37,34 @@ export const useLogin = () => {
     } catch (error: any) {
       console.error("Login failed:", error);
 
-      // Set error message based on response
       if (error.response) {
-        if (error.response.status === 401) {
-          setErrorMessage("Username atau password salah");
-        } else if (error.response.status === 404) {
-          setErrorMessage("User tidak ditemukan");
-        } else {
-          setErrorMessage("Terjadi kesalahan pada server");
+        const status = error.response.status;
+
+        switch (status) {
+          case 422:
+            const errors = error.response.data.errors;
+            const mappedErrors: Record<string, string> = {};
+            Object.keys(errors).forEach((key) => {
+              mappedErrors[key] = errors[key][0];
+            });
+            setFieldErrors(mappedErrors);
+            break;
+          case 401:
+            setErrorMessage("Username atau password salah");
+            break;
+          case 404:
+            setErrorMessage("User tidak ditemukan");
+            break;
+          default:
+            setErrorMessage("Terjadi kesalahan pada server");
+            break;
         }
       } else if (error.request) {
         setErrorMessage("Tidak ada respons dari server");
       } else {
         setErrorMessage("Terjadi kesalahan");
       }
+
       throw error;
     } finally {
       setIsLoading(false);
@@ -63,7 +75,9 @@ export const useLogin = () => {
     login,
     isLoading,
     errorMessage,
+    fieldErrors,
     setErrorMessage,
+    setFieldErrors,
   };
 };
 

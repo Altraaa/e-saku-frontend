@@ -5,21 +5,22 @@ import esakulogin from "../assets/esakulogin.jpg";
 import { useState } from "react";
 import { useLogin } from "@/config/Api/useAuth";
 import { AlertTriangle } from "lucide-react";
+import { fi } from "date-fns/locale";
 
 export default function ViewLogin() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
 
-  // Use the manual login hook
-  const { login, isLoading, errorMessage, setErrorMessage } = useLogin();
+  const { login, isLoading, errorMessage, fieldErrors, setErrorMessage } =
+    useLogin();
+
+  const topLevelError =
+    fieldErrors.password || fieldErrors.identifier || errorMessage;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Reset error before trying to login
     setErrorMessage(null);
 
-    // Validate input
     if (!identifier.trim() || !password.trim()) {
       setErrorMessage("Username dan password harus diisi");
       return;
@@ -28,7 +29,7 @@ export default function ViewLogin() {
     try {
       await login({ identifier, password });
     } catch (error) {
-      // Error handling is already done in the hook
+      console.error("Login failed:", error);
     }
   };
 
@@ -58,11 +59,10 @@ export default function ViewLogin() {
                 </p>
               </div>
 
-              {/* Show error message if exists */}
-              {errorMessage && (
+              {topLevelError && (
                 <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4" />
-                  {errorMessage}
+                  {topLevelError}
                 </div>
               )}
 

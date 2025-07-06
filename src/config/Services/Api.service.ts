@@ -61,9 +61,9 @@ axiosInstance.interceptors.response.use(
     // Handle unauthorized errors (401)
     if (error.response?.status === 401) {
       // Special case: Don't clear token for logout 401 errors
-      if (!error.config.url?.endsWith('/logout')) {
+      if (!error.config.url?.endsWith("/logout")) {
         localStorage.removeItem("token");
-        window.location.href = '/login';
+        window.location.href = "/login";
       }
     }
 
@@ -81,7 +81,6 @@ export const ApiRequest = async ({
   authorization = true,
   isMultipart = false,
   isFormData = false,
-
 }: ApiRequestProps) => {
   try {
     const isFileUpload = isFormData || isMultipart;
@@ -90,8 +89,7 @@ export const ApiRequest = async ({
       ...headers,
       Accept: "application/json",
       ...(isFileUpload ? {} : { "Content-Type": "application/json" }),
-      // Special handling for logout to ensure token is sent
-      ...(authorization && localStorage.getItem("token") 
+      ...(authorization && localStorage.getItem("token")
         ? { Authorization: `Bearer ${localStorage.getItem("token")}` }
         : {}),
     };
@@ -113,7 +111,6 @@ export const ApiRequest = async ({
     return response.data;
   } catch (error: any) {
     console.error("API Request Error:", error);
-    const message = error.response?.data?.message || error.message;
-    throw new Error(message);
+    throw error; 
   }
 };
