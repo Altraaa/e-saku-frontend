@@ -14,6 +14,15 @@ export const ApiTeachers = {
       method: "POST",
       body: { ...data, _method: "PUT" },
     }),
+  updatePassword: (
+    id: string,
+    data: Partial<ITeacher>
+  ): Promise<{ message: string }> =>
+    ApiRequest({
+      url: `/teachers/${id}/update-password`,
+      method: "POST",
+      body: { ...data, _method: "PUT" },
+    }),
   uploadPhoto: (id: string, file: File): Promise<any> => {
     const formData = new FormData();
     formData.append("profile_image", file);

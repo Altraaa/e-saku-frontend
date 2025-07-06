@@ -19,6 +19,7 @@ import {
   useTeacherById,
   useTeacherDeleteProfile,
   useTeacherUpdate,
+  useTeacherUpdatePassword,
   useTeacherUpload,
 } from "@/config/Api/useTeacher";
 import { useClassroomByTeacherId } from "@/config/Api/useClasroom";
@@ -67,6 +68,7 @@ const ViewProfileTeacher = () => {
   const teacherId = localStorage.getItem("teacher_id");
 
   const updateMutation = useTeacherUpdate();
+  const updatePassword = useTeacherUpdatePassword();
   const uploadMutation = useTeacherUpload();
   const deleteProfileMutation = useTeacherDeleteProfile();
 
@@ -221,21 +223,6 @@ const ViewProfileTeacher = () => {
     }
   };
 
-  const validatePasswords = (): boolean => {
-    if (password && password.length < 6) {
-      setPasswordError("Password harus minimal 6 karakter");
-      return false;
-    }
-
-    if (password && password !== confirmPassword) {
-      setPasswordError("Password tidak cocok");
-      return false;
-    }
-
-    setPasswordError("");
-    return true;
-  };
-
   const handleSaveChanges = () => {
     if (!formData || !teacherId) return;
 
@@ -266,23 +253,45 @@ const ViewProfileTeacher = () => {
   };
 
   const handleUpdatePassword = () => {
+    // Validasi dasar
+
+    if (password && password.length < 6) {
+      setPasswordError("Password harus minimal 6 karakter");
+      return false;
+    }
+
     if (!password) {
       setPasswordError("Masukkan password baru");
       return;
     }
 
-    if (!validatePasswords() || !teacherId) {
+    if (!confirmPassword) {
+      setPasswordError("Konfirmasi password harus diisi");
       return;
     }
 
-    updateMutation.mutate(
+    if (password !== confirmPassword) {
+      setPasswordError("Password dan konfirmasi tidak cocok");
+      return;
+    }
+
+    if (!teacherId) {
+      console.error("ID guru tidak ditemukan");
+      return;
+    }
+
+    updatePassword.mutate(
       {
         id: teacherId,
-        data: { password } as any,
+        data: {
+          password,
+          password_confirmation: confirmPassword,
+        },
       },
       {
         onSuccess: () => {
           setSuccessMessage("Password berhasil diperbarui!");
+          toast.success("Password berhasil diperbarui!");
           setPassword("");
           setConfirmPassword("");
           setIsEditingPassword(false);

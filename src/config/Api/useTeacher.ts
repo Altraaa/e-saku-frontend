@@ -45,6 +45,19 @@ export const useTeacherUpdate = () => {
   });
 };
 
+//update teacher password
+export const useTeacherUpdatePassword = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<ITeacher> }) =>
+      ApiTeachers.updatePassword(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["teachers", id] });
+    },
+  });
+};
+
 //upload profile image teacher
 export const useTeacherUpload = () => {
   const queryClient = useQueryClient();
