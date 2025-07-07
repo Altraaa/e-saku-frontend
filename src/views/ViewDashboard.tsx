@@ -52,8 +52,6 @@ import { IStudent } from "@/config/Models/Student";
 import { IViolation } from "@/config/Models/Violation";
 import { useViolations } from "@/config/Api/useViolation";
 import { IRules } from "@/config/Models/Rules";
-import { IClassroom } from "@/config/Models/Classroom";
-import { useClassroom } from "@/config/Api/useClasroom";
 import { useAccomplishments } from "@/config/Api/useAccomplishments";
 import { IAccomplishments } from "@/config/Models/Accomplishments";
 import { useStudentById } from "@/config/Api/useStudent";
@@ -209,40 +207,11 @@ const ViewDashboard = () => {
 
   // Ambil data semua kelas
   const { data: accomplishmentsResponse } = useAccomplishments();
-  const { data: classrooms } = useClassroom();
+ 
 
-  // Mapping class_id ke nama kelas
-  const classroomMap = useMemo(() => {
-    const map: Record<number, string> = {};
-    if (classrooms) {
-      classrooms.forEach((c: IClassroom) => {
-        map[c.id] = c.name;
-      });
-    }
-    return map;
-  }, [classrooms]);
-
-  // Fungsi helper
-  const getClassName = useCallback(
-    (classId: number | undefined): string => {
-      if (!classId) return "-";
-      return classroomMap[classId] || "-";
-    },
-    [classroomMap]
-  );
-
-  const getGradeFromClassName = (className: string): string => {
-    if (!className || className === "-") return "-";
-    // Mencocokkan pola kelas seperti "XII RPL 1" atau "12 RPL 1"
-    const gradeMatch = className.match(/^(X|XI|XII|\d+)/);
-    if (!gradeMatch) return "-";
-
-    // Normalisasi grade (ubah '12' menjadi 'XII')
-    const grade = gradeMatch[0];
-    if (grade === "10" || grade === "1") return "X";
-    if (grade === "11" || grade === "2") return "XI";
-    if (grade === "12" || grade === "3") return "XII";
-    return grade;
+  const getGradeFromClassroom = (classroom: any): string => {
+    if (!classroom || !classroom.grade) return "-";
+    return classroom.grade;
   };
 
   // Filter berdasarkan rentang waktu
@@ -282,21 +251,25 @@ const ViewDashboard = () => {
   // Hitung statistik
   const calculateStats = useCallback(
     (violations: IViolation[]) => {
-      const filteredViolations = filterByTimeRange(violations, overallTimeRange);
+      const filteredViolations = filterByTimeRange(
+        violations,
+        overallTimeRange
+      );
 
       const totalPoints = filteredViolations.reduce(
         (sum, violation) => sum + (violation.points || 0),
         0
       );
 
-      const uniqueStudents = new Set(filteredViolations.map((v) => v.student_id))
-        .size;
+      const uniqueStudents = new Set(
+        filteredViolations.map((v) => v.student_id)
+      ).size;
 
       // Hitung pelanggaran per kelas
       const classCount: Record<string, number> = {};
       filteredViolations.forEach((v) => {
         const student = v.student as IStudent;
-        const className = getClassName(student?.class_id);
+        const className = student?.classroom?.name || "-";
         classCount[className] = (classCount[className] || 0) + 1;
       });
 
@@ -309,14 +282,12 @@ const ViewDashboard = () => {
         }
       });
 
-      // Hitung pelanggaran per grade dengan lebih akurat
+      // Hitung pelanggaran per grade langsung dari classroom.grade
       const gradeCount: Record<string, number> = {};
       filteredViolations.forEach((v) => {
         const student = v.student as IStudent;
-        const className = getClassName(student?.class_id);
-        const grade = getGradeFromClassName(className);
+        const grade = getGradeFromClassroom(student?.classroom);
 
-        // Pastikan hanya menghitung grade yang valid
         if (grade === "X" || grade === "XI" || grade === "XII") {
           gradeCount[grade] = (gradeCount[grade] || 0) + 1;
         }
@@ -332,8 +303,6 @@ const ViewDashboard = () => {
         }
       });
 
-      console.log("Grade Count:", gradeCount);
-
       return {
         totalPoints,
         totalStudents: uniqueStudents,
@@ -341,7 +310,7 @@ const ViewDashboard = () => {
         topGrade,
       };
     },
-    [overallTimeRange, getClassName]
+    [overallTimeRange]
   );
 
   // Hitung leaderboard
@@ -566,7 +535,7 @@ const ViewDashboard = () => {
     return timeFiltered.filter((violation) => {
       const student = violation.student as IStudent;
       const rules = violation.rules_of_conduct as IRules;
-      const className = getClassName(student?.class_id);
+      const className = student?.classroom?.name || "-";
 
       const searchLower = searchText.toLowerCase();
       return (
@@ -577,7 +546,7 @@ const ViewDashboard = () => {
         rules?.name?.toLowerCase().includes(searchLower)
       );
     });
-  }, [violationData, overallTimeRange, searchText, getClassName]);
+  }, [violationData, overallTimeRange, searchText]);
 
   const totalPages = useMemo(() => {
     return Math.max(1, Math.ceil(filteredViolationData.length / parseInt(rowsPerPage)));
@@ -1009,8 +978,6 @@ const ViewDashboard = () => {
               </TableHeader>
               <TableBody>
                 {displayedViolationData.map((violation, index) => {
-                  const student = violation.student as IStudent;
-                  const className = getClassName(student?.class_id);
                   return (
                     <TableRow
                       key={violation.id}
@@ -1035,7 +1002,7 @@ const ViewDashboard = () => {
                         </Link>
                       </TableCell>
                       <TableCell className="text-center font-normal text-xs sm:text-sm hidden md:table-cell">
-                        {className}
+                        {violation.student?.classroom?.name || "-"}
                       </TableCell>
                       <TableCell className="text-center font-normal text-xs sm:text-sm hidden lg:table-cell">
                         {violation.rules_of_conduct.name}
@@ -1075,8 +1042,6 @@ const ViewDashboard = () => {
               </div>
             ) : (
               displayedViolationData.map((violation) => {
-                const student = violation.student as IStudent;
-                const className = getClassName(student?.class_id);
                 return (
                   <Card key={violation.id} className="border rounded-lg">
                     <CardContent className="p-4">
@@ -1100,7 +1065,9 @@ const ViewDashboard = () => {
                       <div className="grid grid-cols-2 gap-2 mt-3">
                         <div>
                           <p className="text-xs text-gray-500">Kelas</p>
-                          <p className="text-sm">{className}</p>
+                          <p className="text-sm">
+                            {violation.student?.classroom?.name || "-"}
+                          </p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-500">Pelanggaran</p>

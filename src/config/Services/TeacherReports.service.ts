@@ -17,6 +17,8 @@ export const ApiTeacherReports = {
       url: `/reports-teacher/class/date/${class_id}/${date}`,
       method: "GET",
     }),
+  getByReportedBy: (reported_by: number): Promise<ITeacherReport[]> =>
+    ApiRequest({ url: `/reports-teacher/teacher/reported-by/${reported_by}`, method: "GET" }),
   create: (data: Partial<ITeacherReport>): Promise<ITeacherReport> =>
     ApiRequest({ url: "/reports-teacher", method: "POST", body: data }),
   update: (id: number, data: Partial<ITeacherReport>): Promise<ITeacherReport> =>

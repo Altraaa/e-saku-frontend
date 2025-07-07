@@ -34,7 +34,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Link, useNavigate } from "react-router-dom"; // For navigation
+import { Link, useNavigate } from "react-router-dom";
 import { useReportDelete, useReports } from "@/config/Api/useTeacherReport";
 import toast from "react-hot-toast";
 import ConfirmationModal from "@/components/ui/confirmation";
@@ -50,12 +50,12 @@ const ViewReport = () => {
     selectedDate: "",
     searchTerm: "",
   });
-  const navigate = useNavigate(); // Tambahkan ini
+  const [activeTab, setActiveTab] = useState<"all" | "my">("all");
+  const navigate = useNavigate();
 
   // Fetch reports data using useReports hook
   const { data: reports, isLoading: isReportsLoading } = useReports();
   const { mutate: deleteReport } = useReportDelete();
-  // Tambahkan state untuk konfirmasi delete
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<any>(null);
 
@@ -100,15 +100,27 @@ const ViewReport = () => {
     (filter) => filter !== ""
   );
 
-  // Filter reports by teacher_id and applied filters
+  // Filter reports based on active tab and other filters
   const filteredReports = useMemo(() => {
     if (!reports) return [];
 
-    const teacherReports = reports.filter(
-      (report) => report.teacher_id === teacherId
-    );
+    // Apply tab filter first
+    let tabFilteredReports;
 
-    return teacherReports.filter((report) => {
+    if (activeTab === "all") {
+      // Laporan Masuk: show reports where teacher_id matches logged-in teacher
+      tabFilteredReports = reports.filter(
+        (report) => report.teacher_id === teacherId
+      );
+    } else {
+      // Laporan Keluar: show reports where reported_by matches logged-in teacher
+      tabFilteredReports = reports.filter(
+        (report) => report.reported_by === teacherId
+      );
+    }
+
+    // Then apply other filters (search and date)
+    return tabFilteredReports.filter((report) => {
       if (
         filters.searchTerm &&
         !report.violation_details
@@ -126,9 +138,10 @@ const ViewReport = () => {
           return false;
         }
       }
+
       return true;
     });
-  }, [filters, reports, teacherId]);
+  }, [filters, reports, teacherId, activeTab]);
 
   const totalPages = Math.ceil(filteredReports.length / parseInt(rowsPerPage));
   const startIndex = (currentPage - 1) * parseInt(rowsPerPage);
@@ -200,14 +213,46 @@ const ViewReport = () => {
         </p>
       </div>
 
+      {/* Tab Navigation */}
+      <div className="flex border-b border-gray-200">
+        <button
+          className={`py-4 px-6 font-medium text-sm sm:text-base relative ${
+            activeTab === "all"
+              ? "text-red-600"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+          onClick={() => setActiveTab("all")}
+        >
+          Laporan Masuk
+          {activeTab === "all" && (
+            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600 rounded-full"></span>
+          )}
+        </button>
+        <button
+          className={`py-4 px-6 font-medium text-sm sm:text-base relative ${
+            activeTab === "my"
+              ? "text-red-600"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+          onClick={() => setActiveTab("my")}
+        >
+          Laporan Keluar
+          {activeTab === "my" && (
+            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600 rounded-full"></span>
+          )}
+        </button>
+      </div>
+
       {/* Filters and Search */}
       <div className="bg-white rounded-xl overflow-hidden shadow-sm">
-        <div className="px-4 sm:px-6 pt-4 pb-4 border-b-2 border-red-500">
+        <div className="px-4 sm:px-6 pt-4 pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-red-500" />
               <h2 className="text-xl font-bold text-gray-900">
-                Laporan Pelanggaran Siswa
+                {activeTab === "all"
+                  ? "Laporan Pelanggaran Masuk"
+                  : "Laporan Pelanggaran Keluar"}
               </h2>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
@@ -252,99 +297,195 @@ const ViewReport = () => {
         <div className="overflow-x-auto pt-3 relative scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {/* Desktop Table */}
           <div className="hidden md:block">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50 hover:bg-gray-50">
-                  <TableHead className="text-center font-medium text-black">
-                    No
-                  </TableHead>
-                  <TableHead className="text-center font-medium text-black">
-                    NIS
-                  </TableHead>
-                  <TableHead className="text-left font-medium text-black">
-                    Nama
-                  </TableHead>
-                  <TableHead className="text-center font-medium text-black hidden lg:table-cell">
-                    Pelapor
-                  </TableHead>
-                  <TableHead className="text-center font-medium text-black hidden lg:table-cell">
-                    Detail Pelanggaran
-                  </TableHead>
-                  <TableHead className="text-center font-medium text-black">
-                    Aksi
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedReports.length > 0 ? (
-                  paginatedReports.map((report, index) => (
-                    <TableRow
-                      key={report.id}
-                      className="border-b hover:bg-gray-50"
-                    >
-                      <TableCell className="text-center px-6 font-normal">
-                        {startIndex + index + 1}
-                      </TableCell>
-                      <TableCell className="text-center font-normal">
-                        {report.student?.nis || "N/A"}
-                      </TableCell>
-                      <TableCell className="text-left font-normal">
-                        <Link
-                          to={`/studentbio/${report.student?.id}`}
-                          className="hover:text-green-500 transition-colors"
-                        >
-                          {report.student?.name || "N/A"}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="text-center font-normal hidden lg:table-cell">
-                        {report.reporter?.name || "N/A"}
-                      </TableCell>
-                      <TableCell className="text-center font-normal hidden lg:table-cell">
-                        <Button
-                          variant="link"
-                          onClick={() => handleShowViolationDetails(report)}
-                          className="text-gray-500 hover:text-gray-600"
-                        >
-                          <MoreHorizontal className="h-5 w-5" />
-                        </Button>
-                      </TableCell>
-                      <TableCell className="text-center font-normal">
-                        <div className="flex justify-center gap-2">
-                          <Button
-                            variant="outline"
-                            onClick={() =>
-                              navigate("/esakuform", {
-                                state: { editData: report },
-                              })
-                            }
-                            className="text-blue-500 hover:text-blue-600 transition-colors p-2 rounded-lg"
+            {activeTab === "all" ? (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50 hover:bg-gray-50">
+                    <TableHead className="text-center font-medium text-black">
+                      No
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      NIS
+                    </TableHead>
+                    <TableHead className="text-left font-medium text-black">
+                      Nama
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black hidden lg:table-cell">
+                      Pelapor
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black hidden lg:table-cell">
+                      Tanggal
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black hidden lg:table-cell">
+                      Detail Pelanggaran
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      Aksi
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedReports.length > 0 ? (
+                    paginatedReports.map((report, index) => (
+                      <TableRow
+                        key={report.id}
+                        className="border-b hover:bg-gray-50"
+                      >
+                        <TableCell className="text-center px-6 font-normal">
+                          {startIndex + index + 1}
+                        </TableCell>
+                        <TableCell className="text-center font-normal">
+                          {report.student?.nis || "N/A"}
+                        </TableCell>
+                        <TableCell className="text-left font-normal">
+                          <Link
+                            to={`/studentbio/${report.student?.id}`}
+                            className="hover:text-green-500 transition-colors"
                           >
-                            <SquarePen className="h-6 w-6" />
-                          </Button>
+                            {report.student?.name || "N/A"}
+                          </Link>
+                        </TableCell>
+                        <TableCell className="text-center font-normal hidden lg:table-cell">
+                          {report.reporter?.name || "N/A"}
+                        </TableCell>
+                        <TableCell className="text-center font-normal hidden lg:table-cell">
+                          {formatDisplayDate(report.violation_date)}
+                        </TableCell>
+                        <TableCell className="text-center font-normal hidden lg:table-cell">
                           <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleDeleteClick(report)}
-                            className="text-red-500 hover:text-red-600 transition-colors p-2 rounded-lg"
+                            variant="link"
+                            onClick={() => handleShowViolationDetails(report)}
+                            className="text-gray-500 hover:text-gray-600"
                           >
-                            <Trash2 className="h-6 w-6" />
+                            <MoreHorizontal className="h-5 w-5" />
                           </Button>
+                        </TableCell>
+                        <TableCell className="text-center font-normal">
+                          <div className="flex justify-center gap-2">
+                            <Button
+                              variant="outline"
+                              onClick={() =>
+                                navigate("/esakuform", {
+                                  state: { editData: report },
+                                })
+                              }
+                              className="text-blue-500 hover:text-blue-600 transition-colors p-2 rounded-lg"
+                            >
+                              <SquarePen className="h-6 w-6" />
+                            </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleDeleteClick(report)}
+                                className="text-red-500 hover:text-red-600 transition-colors p-2 rounded-lg"
+                              >
+                                <Trash2 className="h-6 w-6" />
+                              </Button>
+                            
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-12 px-4">
+                        <div className="flex flex-col items-center gap-2 text-gray-500">
+                          <AlertTriangle className="h-8 w-8 text-gray-300" />
+                          <p>Tidak ada pelanggaran ditemukan</p>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12 px-4">
-                      <div className="flex flex-col items-center gap-2 text-gray-500">
-                        <AlertTriangle className="h-8 w-8 text-gray-300" />
-                        <p>Tidak ada pelanggaran ditemukan</p>
-                      </div>
-                    </TableCell>
+                  )}
+                </TableBody>
+              </Table>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50 hover:bg-gray-50">
+                    <TableHead className="text-center font-medium text-black">
+                      No
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      NIS
+                    </TableHead>
+                    <TableHead className="text-left font-medium text-black">
+                      Nama
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      Tujuan Laporan
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black hidden lg:table-cell">
+                      Tanggal
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black hidden lg:table-cell">
+                      Detail Pelanggaran
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      Aksi
+                    </TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedReports.length > 0 ? (
+                    paginatedReports.map((report, index) => (
+                      <TableRow
+                        key={report.id}
+                        className="border-b hover:bg-gray-50"
+                      >
+                        <TableCell className="text-center px-6 font-normal">
+                          {startIndex + index + 1}
+                        </TableCell>
+                        <TableCell className="text-center font-normal">
+                          {report.student?.nis || "N/A"}
+                        </TableCell>
+                        <TableCell className="text-left font-normal">
+                          <Link
+                            to={`/studentbio/${report.student?.id}`}
+                            className="hover:text-green-500 transition-colors"
+                          >
+                            {report.student?.name || "N/A"}
+                          </Link>
+                        </TableCell>
+                        <TableCell className="text-center font-normal">
+                          {report.teacher?.name || "N/A"}
+                        </TableCell>
+                        <TableCell className="text-center font-normal hidden lg:table-cell">
+                          {formatDisplayDate(report.violation_date)}
+                        </TableCell>
+                        <TableCell className="text-center font-normal hidden lg:table-cell">
+                          <Button
+                            variant="link"
+                            onClick={() => handleShowViolationDetails(report)}
+                            className="text-gray-500 hover:text-gray-600"
+                          >
+                            <MoreHorizontal className="h-5 w-5" />
+                          </Button>
+                        </TableCell>
+                        <TableCell className="text-center font-normal">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleDeleteClick(report)}
+                              className="text-red-500 hover:text-red-600 transition-colors p-2 rounded-lg"
+                            >
+                              <Trash2 className="h-6 w-6" />
+                            </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-12 px-4">
+                        <div className="flex flex-col items-center gap-2 text-gray-500">
+                          <AlertTriangle className="h-8 w-8 text-gray-300" />
+                          <p>Tidak ada pelanggaran ditemukan</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </div>
 
           {/* Mobile Card List */}
@@ -364,6 +505,11 @@ const ViewReport = () => {
                         <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
                           {report.student?.nis || "N/A"}
                         </span>
+                        {report.reported_by === teacherId && (
+                          <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
+                            Laporan Saya
+                          </span>
+                        )}
                       </div>
                       <div className="text-lg font-semibold text-gray-900">
                         <Link
@@ -374,7 +520,10 @@ const ViewReport = () => {
                         </Link>
                       </div>
                       <div className="text-sm text-gray-500">
-                        Pelapor: {report.reporter?.name || "-"}
+                        {activeTab === "all" ? "Pelapor" : "Tujuan Laporan"}:{" "}
+                        {activeTab === "all"
+                          ? report.reporter?.name || "-"
+                          : report.teacher?.name || "-"}
                       </div>
                       <div className="text-sm text-gray-500 mt-2">
                         <span className="font-medium">Pelanggaran:</span>{" "}
@@ -399,6 +548,7 @@ const ViewReport = () => {
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                       <Button
+                        variant="ghost"
                         onClick={() =>
                           navigate("/esakuform", {
                             state: { editData: report },
@@ -408,14 +558,16 @@ const ViewReport = () => {
                       >
                         <SquarePen className="h-6 w-6" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteClick(report)}
-                        className="text-red-500 hover:text-red-600"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {report.reported_by === teacherId && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteClick(report)}
+                          className="text-red-500 hover:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -505,12 +657,20 @@ const ViewReport = () => {
                 <strong>Nama:</strong> {violationDetails.student?.name || "N/A"}
               </p>
               <p>
-                <strong>Pelapor:</strong>{" "}
-                {violationDetails.reporter?.name || "N/A"}
+                <strong>
+                  {activeTab === "all" ? "Pelapor" : "Guru yang Dilaporkan"}:
+                </strong>{" "}
+                {activeTab === "all"
+                  ? violationDetails.reporter?.name || "N/A"
+                  : violationDetails.teacher?.name || "N/A"}
               </p>
               <p>
                 <strong>Tanggal:</strong>{" "}
                 {formatDisplayDate(violationDetails.violation_date)}
+              </p>
+              <p>
+                <strong>Jenis Pelanggaran :</strong>{" "}
+                {violationDetails.rules_of_conduct.name}
               </p>
               <p>
                 <strong>Deskripsi Pelanggaran:</strong>{" "}

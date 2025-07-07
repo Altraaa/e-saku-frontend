@@ -266,7 +266,7 @@ const ViewManageRules: React.FC = () => {
                     <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
                     <span className="truncate">Add New Rule</span>
                   </Button>
-                  <div className="relative flex w-full sm:w-72">
+                  <div className="relative flex w-full">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                     <Input placeholder="Search rules..." onChange={handleSearchChange(setRulesSearchText, setRulesCurrentPage)} className="pl-9 bg-white border-gray-200 w-full rounded-lg" />
                   </div>
@@ -301,10 +301,10 @@ const ViewManageRules: React.FC = () => {
                         paginatedRules.map((rule, index) => (
                           <TableRow key={rule.id} className="border-b hover:bg-gray-50">
                             <TableCell className="text-center px-6 font-normal">{(rulesCurrentPage - 1) * rulesRowsPerPage + index + 1}</TableCell>
-                            <TableCell className="text-left font-normal max-w-md">
+                            <TableCell className="text-left font-normal">
                               <div className="font-medium text-gray-900 mb-1">{rule.name}</div>
                             </TableCell>
-                            <TableCell className="text-left font-normal max-w-md">
+                            <TableCell className="text-left font-normal">
                               <div className="text-sm text-gray-600 truncate" title={rule.description }>{rule.description}</div>
                             </TableCell>
                             <TableCell className="text-center">

@@ -27,6 +27,14 @@ export const useReportsByTeacherId = (teacher_id: number) => {
   });
 };
 
+export const useReportsByReportedBy = (reported_by: number) => {
+  return useQuery<ITeacherReport[]>({
+    queryKey: ["reports", "reported_by", reported_by],
+    queryFn: () => ApiTeacherReports.getByReportedBy(reported_by),
+    enabled: !!reported_by, 
+  });
+};
+
 // Fetch reports by class ID
 export const useReportsByClassId = (class_id: number) => {
   return useQuery<ITeacherReport[]>({

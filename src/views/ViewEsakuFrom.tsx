@@ -21,8 +21,6 @@ import {
   Send,
   Globe,
   PenTool,
-  X,
-  Upload,
 } from "lucide-react";
 import {
   Card,
@@ -41,7 +39,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Tooltip,
   TooltipContent,
@@ -71,6 +68,27 @@ import { useAccomplishmentCreate } from "@/config/Api/useAccomplishments";
 import { useReportCreate } from "@/config/Api/useTeacherReport";
 import ConfirmationModal from "@/components/ui/confirmation";
 import { Checkbox } from "@/components/ui/checkbox";
+import toast from "react-hot-toast";
+import { useLocation, useNavigate } from "react-router-dom";
+
+const RankOptions = [
+  "Juara 1",
+  "Juara 2",
+  "Juara 3",
+  "Harapan 1",
+  "Harapan 2",
+  "Harapan 3",
+  "Peserta",
+  "lainnya",
+] as const;
+export type RankOptions = (typeof RankOptions)[number];
+const followUpOptions = [
+  "tidak-perlu",
+  "pemanggilan",
+  "peringatan",
+  "lainnya",
+] as const;
+type FollowUpType = (typeof followUpOptions)[number];
 
 const ESakuForm: React.FC = () => {
   const teacherId = Number(localStorage.getItem("teacher_id"));
@@ -102,6 +120,8 @@ const ESakuForm: React.FC = () => {
     return new Date();
   });
   const [selectedRule, setSelectedRule] = useState<IRules | null>(null);
+  const [rank, setRank] = useState<string>("");
+  const [customRank, setCustomRank] = useState<string>("");
   const [selectedRuleId, setSelectedRuleId] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmType, setConfirmType] = useState<"report" | "save" | null>(
@@ -109,6 +129,7 @@ const ESakuForm: React.FC = () => {
   );
   const [point, setPoint] = useState<string>("0");
   const [formStep, setFormStep] = useState<number>(0);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [errors, setErrors] = useState<ESakuFormErrorState>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
@@ -126,46 +147,71 @@ const ESakuForm: React.FC = () => {
   const { mutate: createAccomplishment } = useAccomplishmentCreate();
   const { mutate: createReport } = useReportCreate();
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadStatus] = useState<string | null>(null);
-  const [uploadProgress] = useState<number>(0);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
   const formRef = useRef<HTMLDivElement>(null);
 
-  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setUploadError(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const editData = location.state?.editData as any;
+
+  useEffect(() => {
+    if (editData && classrooms && classrooms.length > 0) {
+      // Isi form dengan data dari report
+      setStudentName(editData.student?.name || "");
+      setDescription(editData.violation_details || "");
+      setIsEditMode(true);
+
+      // Set tanggal dari report
+      if (editData.violation_date) {
+        setDate(new Date(editData.violation_date));
+      }
+
+      // Set jenis input berdasarkan data
+      if (editData.accomplishment_type) {
+        setInputType("achievement");
+        setAchievementTypeOptions(editData.accomplishment_type);
+        setAchievementLevel(editData.level || "");
+        setPoint(editData.points?.toString() || "0");
+        setRank(editData.rank || "");
+      } else {
+        setInputType("violation");
+        setViolationType(editData.rules_of_conduct?.name || "");
+
+        // Handle follow-up type dengan array yang baru
+        if (editData.action && !followUpOptions.includes(editData.action)) {
+          setFollowUpType("lainnya");
+          setCustomFollowUp(editData.action);
+        } else {
+          setFollowUpType((editData.action as FollowUpType) || "tidak-perlu");
+        }
+      }
+
+      // Set kelas berdasarkan data siswa
+      if (editData.student?.class) {
+        setClassType(editData.student.class.name);
+      } else if (editData.student?.class_id && classrooms) {
+        const studentClass = classrooms.find(
+          (c: IClassroom) => c.id === editData.student.class_id
+        );
+        if (studentClass) {
+          setClassType(studentClass.name);
+        }
+      }
+
+      // Set rule jika tersedia
+      if (editData.rules_of_conduct) {
+        setSelectedRuleId(editData.rules_of_conduct.id.toString());
+        setSelectedRule(editData.rules_of_conduct);
+        setPoint(editData.rules_of_conduct.points.toString());
+      }
     }
-  };
+  }, [editData, classrooms]);
 
-  const handleDragEnter = () => setIsDragging(true);
-  const handleDragLeave = () => setIsDragging(false);
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setUploadError(null);
+  useEffect(() => {
+    // Jika tidak ada editData, pastikan mode edit dimatikan
+    if (!location.state?.editData) {
+      setIsEditMode(false);
     }
-    setIsDragging(false);
-  };
-
-  const handleRemoveFile = () => {
-    setSelectedFile(null);
-  };
-
-
+  }, [location.state]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -224,6 +270,8 @@ const ESakuForm: React.FC = () => {
     errors,
   ]);
 
+  // Di dalam handleSubmit dan handleSendAsReport, setelah berhasil
+
   const resetForm = () => {
     setInputType("violation");
     setClassType("");
@@ -237,10 +285,13 @@ const ESakuForm: React.FC = () => {
     setCustomFollowUp("");
     setCustomViolation("");
     setDescription("");
+    setRank("");
+    setCustomRank("");
     setStudentName("");
     setDate(new Date());
     setFormStep(0);
     setErrors({});
+    setIsEditMode(false);
 
     if (formRef.current) {
       formRef.current.scrollIntoView({ behavior: "smooth" });
@@ -256,11 +307,14 @@ const ESakuForm: React.FC = () => {
 
     if (inputType === "violation" && !violationType) {
       newErrors.violationType = "Jenis pelanggaran harus dipilih";
-    } else if (inputType === "achievement" && !achievementLevel) {
-      newErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
-    } else if (inputType === "achievement" && !achievementTypeOptions) {
-      newErrors.achievementTypeOptions = "Jenis prestasi harus dipilih";
-    } 
+    } else if (inputType === "achievement") {
+      if (!achievementLevel) {
+        newErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
+      }
+      if (!achievementTypeOptions) {
+        newErrors.achievementTypeOptions = "Jenis prestasi harus dipilih";
+      }
+    }
 
     if (
       inputType === "violation" &&
@@ -287,6 +341,12 @@ const ESakuForm: React.FC = () => {
         newErrors.point = "Poin harus berupa angka";
       } else if (parseInt(point) <= 0) {
         newErrors.point = "Poin harus lebih besar dari 0";
+      }
+
+      if (!rank) {
+        newErrors.rank = "Peringkat diperlukan";
+      } else if (rank === "lainnya" && !customRank.trim()) {
+        newErrors.customRank = "Peringkat lainnya diperlukan";
       }
     }
 
@@ -332,6 +392,12 @@ const ESakuForm: React.FC = () => {
         } else if (parseInt(point) <= 0) {
           newErrors.point = "Poin harus lebih besar dari 0";
         }
+
+        if (!rank) {
+          newErrors.rank = "Peringkat diperlukan";
+        } else if (rank === "lainnya" && !customRank.trim()) {
+          newErrors.customRank = "Peringkat lainnya diperlukan";
+        }
       }
     }
 
@@ -345,9 +411,25 @@ const ESakuForm: React.FC = () => {
     if (!isValid) return;
     setIsSubmitting(true);
 
-    const studentObj = students.find((s) => s.name === studentName);
+    let studentObj;
+    if (isEditMode) {
+      if (!editData || !editData.student) {
+        toast.error("Data siswa tidak valid");
+        setIsSubmitting(false);
+        return;
+      }
+      // Gunakan data siswa langsung dari editData di mode edit
+      studentObj = {
+        id: editData.student.id,
+        name: editData.student.name,
+      };
+    } else {
+      // Cari siswa dari API di mode normal
+      studentObj = students.find((s) => s.name === studentName);
+    }
+
     if (!studentObj) {
-      alert("Siswa tidak ditemukan");
+      toast.error("Data siswa tidak ditemukan");
       setIsSubmitting(false);
       return;
     }
@@ -355,7 +437,7 @@ const ESakuForm: React.FC = () => {
     if (inputType === "violation") {
       createViolation(
         {
-          student_id: studentObj.id,
+          student_id: studentObj.id.toString(),
           description,
           violation_date: date.toISOString().split("T")[0],
           teacher_id: teacherId,
@@ -367,12 +449,21 @@ const ESakuForm: React.FC = () => {
           onSuccess: () => {
             setShowSuccess(true);
             resetForm();
+            setIsEditMode(false);
+            navigate(location.pathname, { replace: true });
             window.scrollTo({ top: 0, behavior: "smooth" });
+            toast.success(
+              isEditMode
+                ? "Data berhasil diperbarui"
+                : inputType === "violation"
+                ? "Data pelanggaran berhasil disimpan"
+                : "Data prestasi berhasil disimpan"
+            );
             setTimeout(() => setShowSuccess(false), 3000);
           },
           onError: (err) => {
+            toast.error("Data pelanggaran gagal disimpan");
             console.error("Gagal kirim pelanggaran:", err);
-            alert("Gagal menyimpan data pelanggaran.");
           },
           onSettled: () => setIsSubmitting(false),
         }
@@ -387,7 +478,7 @@ const ESakuForm: React.FC = () => {
 
       createAccomplishment(
         {
-          student_id: studentObj.id,
+          student_id: studentObj.id.toString(),
           description,
           accomplishment_type:
             achievementTypeOptions === "lainnya"
@@ -396,17 +487,19 @@ const ESakuForm: React.FC = () => {
           accomplishment_date: date.toISOString().split("T")[0],
           level: levelMap[achievementLevel] ?? 0,
           points: parseInt(point),
+          rank: rank === "lainnya" ? customRank : rank,
         },
         {
           onSuccess: () => {
             setShowSuccess(true);
             resetForm();
             window.scrollTo({ top: 0, behavior: "smooth" });
+            toast.success("Data prestasi berhasil disimpan");
             setTimeout(() => setShowSuccess(false), 3000);
           },
           onError: (err) => {
+            toast.error("Data prestasi gagal disimpan");
             console.error("Gagal kirim prestasi:", err);
-            alert("Gagal menyimpan data prestasi.");
           },
           onSettled: () => setIsSubmitting(false),
         }
@@ -415,38 +508,77 @@ const ESakuForm: React.FC = () => {
   };
 
   const handleSendAsReport = (): void => {
-    const studentObj = students.find((s) => s.name === studentName);
-    const classroomObj = classrooms?.find((c) => c.name === classType);
+    let studentObj;
+    let classroomObj;
+
+    if (isEditMode) {
+      // Gunakan data langsung dari editData
+      if (!editData || !editData.student) {
+        toast.error("Data siswa tidak valid");
+        return;
+      }
+
+      studentObj = editData.student;
+      classroomObj = editData.student.class;
+    } else {
+      // Mode normal
+      studentObj = students.find((s) => s.name === studentName);
+      classroomObj = classrooms?.find((c) => c.name === classType);
+    }
 
     if (!studentObj || !classroomObj) {
-      alert("Data siswa atau kelas tidak valid.");
+      toast.error("Data siswa atau kelas tidak ditemukan");
       return;
     }
 
     setIsSubmitting(true);
 
-    createReport(
-      {
-        student_id: studentObj.id,
-        reported_by: teacherId,
-        teacher_id: classroomObj.teacher_id,
-        violation_details: description,
-        report_date: date.toISOString().split("T")[0],
+    // Prepare the data based on input type (violation or achievement)
+    let reportData: any = {
+      student_id: studentObj.id,
+      teacher_id: teacherId, // Automatically using the logged-in teacher's ID
+      violation_date: date.toISOString().split("T")[0],
+      violation_details: description,
+      action: followUpType === "lainnya" ? customFollowUp : followUpType,
+      rulesofconduct_id: selectedRule?.id ?? 0, // Selected from rules
+      points: selectedRule?.points ?? 0,
+    };
+
+    const levelMap: Record<string, number> = {
+      kota: 1,
+      provinsi: 2,
+      nasional: 3,
+      internasional: 4,
+    };
+
+    if (inputType === "achievement") {
+      // For achievements, include the rank and points
+      reportData = {
+        ...reportData,
+        accomplishment_type:
+          achievementTypeOptions === "lainnya"
+            ? customAchievement
+            : achievementTypeOptions,
+        level: levelMap[achievementLevel] ?? 0,
+        points: parseInt(point),
+        rank: rank === "lainnya" ? customRank : rank,
+      };
+    }
+
+    createReport(reportData, {
+      onSuccess: () => {
+        setShowSuccess(true);
+        resetForm();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        toast.success("Laporan berhasil dikirim");
+        setTimeout(() => setShowSuccess(false), 3000);
       },
-      {
-        onSuccess: () => {
-          setShowSuccess(true);
-          resetForm();
-          window.scrollTo({ top: 0, behavior: "smooth" });
-          setTimeout(() => setShowSuccess(false), 3000);
-        },
-        onError: (error) => {
-          console.error("Gagal mengirim laporan:", error);
-          alert("Gagal mengirim laporan ke guru pengampu.");
-        },
-        onSettled: () => setIsSubmitting(false),
-      }
-    );
+      onError: (error) => {
+        toast.error("Gagal mengirim laporan");
+        console.error("Gagal mengirim laporan:", error);
+      },
+      onSettled: () => setIsSubmitting(false),
+    });
   };
 
   const handleNextStep = (): void => {
@@ -496,6 +628,7 @@ const ESakuForm: React.FC = () => {
         ? getAchievementLevelLabel(achievementLevel)
         : "-",
     point: inputType === "violation" ? `-${point}` : `+${point}`,
+    rank: rank === "lainnya" ? customRank : rank,
   };
 
   const isMobileView = typeof window !== "undefined" && window.innerWidth < 640;
@@ -532,18 +665,10 @@ const ESakuForm: React.FC = () => {
       if (!date) reportErrors.date = "Tanggal diperlukan";
       if (!description.trim())
         reportErrors.description = "Deskripsi diperlukan";
-      if (!violationType)
+
+      // Hanya validasi pelanggaran jika tipe input adalah violation
+      if (inputType === "violation" && !violationType) {
         reportErrors.violationType = "Pelanggaran harus dipilih";
-      if (!achievementTypeOptions)
-        reportErrors.achievementTypeOptions = "Tipe prestasi harus dipilih";
-      if (!achievementLevel)
-        reportErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
-      if (!point.trim()) {
-        reportErrors.point = "Poin prestasi diperlukan";
-      } else if (isNaN(parseInt(point))) {
-        reportErrors.point = "Poin harus berupa angka";
-      } else if (parseInt(point) <= 0) {
-        reportErrors.point = "Poin harus lebih besar dari 0";
       }
 
       setErrors(reportErrors);
@@ -555,6 +680,7 @@ const ESakuForm: React.FC = () => {
       return;
     }
 
+    // Validasi untuk simpan biasa
     const isValid = validateForm();
     if (isValid) {
       setConfirmType(type);
@@ -571,15 +697,19 @@ const ESakuForm: React.FC = () => {
 
   const handleConfirm = () => {
     setIsModalOpen(false);
-    if (confirmType === "report") {
-      handleSendAsReport();
-    } else if (confirmType === "save") {
-      handleSubmit();
-    }
+
+    // Beri jeda sebelum eksekusi untuk memastikan state sudah update
+    setTimeout(() => {
+      if (confirmType === "report") {
+        handleSendAsReport();
+      } else if (confirmType === "save") {
+        handleSubmit();
+      }
+    }, 100);
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 overflow-x-hidden" ref={formRef}>
+    <div className="space-y-4 sm:space-y-6" ref={formRef}>
       <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-md">
         <div className="flex items-center mb-2">
           <div className="bg-green-600/40 p-2 rounded-lg mr-3">
@@ -593,14 +723,6 @@ const ESakuForm: React.FC = () => {
           Masukkan data pelanggaran atau prestasi siswa
         </p>
       </div>
-
-      {showSuccess && (
-        <Alert className="bg-green-50 border border-green-200 text-green-800">
-          <CheckCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription>Data berhasil disimpan!</AlertDescription>
-        </Alert>
-      )}
-
       <Card className="rounded-xl overflow-hidden border-green-100 shadow-md">
         <CardHeader className="border-b bg-green-600 text-white p-4">
           <div className="flex items-center gap-2">
@@ -704,59 +826,69 @@ const ESakuForm: React.FC = () => {
                       icon={<School className="h-4 w-4 text-green-600" />}
                       error={errors.classType}
                     >
-                      <Select
-                        value={classType}
-                        onValueChange={(value) => {
-                          setClassType(value);
-                          const selectedClass = classrooms?.find(
-                            (c: IClassroom) => c.name === value
-                          );
-                          setSelectedClassId(selectedClass?.id || null);
-                          setStudentName("");
+                      {isEditMode ? (
+                        // Display class name directly for edit mode
+                        <Input
+                          value={classType}
+                          readOnly
+                          className="bg-gray-100"
+                        />
+                      ) : (
+                        <Select
+                          value={classType}
+                          onValueChange={(value) => {
+                            setClassType(value);
+                            const selectedClass = classrooms?.find(
+                              (c: IClassroom) => c.name === value
+                            );
+                            setSelectedClassId(selectedClass?.id || null);
+                            setStudentName("");
 
-                          if (selectedClass?.teacher_id === teacherId) {
-                            setIsClassTaughtByTeacher(true);
-                          } else {
-                            setIsClassTaughtByTeacher(false);
-                          }
-                        }}
-                      >
-                        <SelectTrigger
-                          className={`${inputClass} ${
-                            errors.classType ? inputErrorClass : ""
-                          }`}
+                            const teacherIdNum = Number(teacherId);
+                            setIsClassTaughtByTeacher(
+                              selectedClass?.teacher_id === teacherIdNum
+                            );
+                          }}
                         >
-                          <SelectValue placeholder="Pilih Kelas" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {filteredClassrooms?.map((classroom: IClassroom) => (
-                            <SelectItem
-                              key={classroom.id}
-                              value={classroom.name}
-                            >
-                              {classroom.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                        {inputType === "violation" && (
-                          <div className="flex items-center gap-2 mt-2">
-                            <Checkbox
-                              id="filter-my-classes"
-                              checked={showOnlyTeacherClass}
-                              onCheckedChange={(checked) =>
-                                setShowOnlyTeacherClass(!!checked)
-                              }
-                              className="text-green-600"
-                            />
-                            <label
-                              htmlFor="filter-my-classes"
-                              className="text-sm text-gray-600 select-none"
-                            >
-                              Tampilkan hanya kelas yang diampu
-                            </label>
-                          </div>
-                        )}
-                      </Select>
+                          <SelectTrigger
+                            className={`${inputClass} ${
+                              errors.classType ? inputErrorClass : ""
+                            }`}
+                          >
+                            <SelectValue placeholder="Pilih Kelas" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {filteredClassrooms?.map(
+                              (classroom: IClassroom) => (
+                                <SelectItem
+                                  key={classroom.id}
+                                  value={classroom.name}
+                                >
+                                  {classroom.name}
+                                </SelectItem>
+                              )
+                            )}
+                          </SelectContent>
+                          {inputType === "violation" && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <Checkbox
+                                id="filter-my-classes"
+                                checked={showOnlyTeacherClass}
+                                onCheckedChange={(checked) =>
+                                  setShowOnlyTeacherClass(!!checked)
+                                }
+                                className="text-green-600"
+                              />
+                              <label
+                                htmlFor="filter-my-classes"
+                                className="text-sm text-gray-600 select-none"
+                              >
+                                Tampilkan hanya kelas yang diampu
+                              </label>
+                            </div>
+                          )}
+                        </Select>
+                      )}
                     </FormFieldGroup>
                   </div>
                 </div>
@@ -769,49 +901,58 @@ const ESakuForm: React.FC = () => {
                       error={errors.studentName}
                       required
                     >
-                      <Select
-                        value={studentName}
-                        onValueChange={setStudentName}
-                        disabled={!selectedClassId}
-                      >
-                        <SelectTrigger
-                          className={`${inputClass} ${
-                            errors.studentName ? inputErrorClass : ""
-                          }`}
+                      {isEditMode ? (
+                        // Display student name directly for edit mode
+                        <Input
+                          value={studentName}
+                          readOnly
+                          className="bg-gray-100"
+                        />
+                      ) : (
+                        <Select
+                          value={studentName}
+                          onValueChange={setStudentName}
+                          disabled={!selectedClassId}
                         >
-                          <SelectValue
-                            placeholder={
-                              selectedClassId
-                                ? "Pilih Siswa"
-                                : "Pilih kelas terlebih dahulu"
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {selectedClassId ? (
-                            students.length > 0 ? (
-                              students.map((student) => (
-                                <SelectItem
-                                  key={student.id}
-                                  value={
-                                    student.name || `student-${student.id}`
-                                  }
-                                >
-                                  {student.name}
+                          <SelectTrigger
+                            className={`${inputClass} ${
+                              errors.studentName ? inputErrorClass : ""
+                            }`}
+                          >
+                            <SelectValue
+                              placeholder={
+                                selectedClassId
+                                  ? "Pilih Siswa"
+                                  : "Pilih kelas terlebih dahulu"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {selectedClassId ? (
+                              students.length > 0 ? (
+                                students.map((student) => (
+                                  <SelectItem
+                                    key={student.id}
+                                    value={
+                                      student.name || `student-${student.id}`
+                                    }
+                                  >
+                                    {student.name}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="no-data" disabled>
+                                  Tidak ada siswa di kelas ini
                                 </SelectItem>
-                              ))
+                              )
                             ) : (
-                              <SelectItem value="no-data" disabled>
-                                Tidak ada siswa di kelas ini
+                              <SelectItem value="select-class-first" disabled>
+                                Pilih kelas terlebih dahulu
                               </SelectItem>
-                            )
-                          ) : (
-                            <SelectItem value="select-class-first" disabled>
-                              Pilih kelas terlebih dahulu
-                            </SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </FormFieldGroup>
                   </div>
 
@@ -974,6 +1115,44 @@ const ESakuForm: React.FC = () => {
                         </div>
                       )}
 
+                      <div className="space-y-2">
+                        <FormFieldGroup
+                          label="Peringkat"
+                          icon={<Award className="h-4 w-4 text-green-600" />}
+                          required
+                          error={errors.rank}
+                        >
+                          <Select
+                            value={rank}
+                            onValueChange={(value: string) => setRank(value)}
+                          >
+                            <SelectTrigger
+                              className={`${inputClass} ${
+                                errors.rank ? inputErrorClass : ""
+                              }`}
+                            >
+                              <SelectValue placeholder="Pilih Peringkat" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Juara 1">Juara 1</SelectItem>
+                              <SelectItem value="Juara 2">Juara 2</SelectItem>
+                              <SelectItem value="Juara 3">Juara 3</SelectItem>
+                              <SelectItem value="Harapan 1">
+                                Harapan 1
+                              </SelectItem>
+                              <SelectItem value="Harapan 2">
+                                Harapan 2
+                              </SelectItem>
+                              <SelectItem value="Harapan 3">
+                                Harapan 3
+                              </SelectItem>
+                              <SelectItem value="Peserta">Peserta</SelectItem>
+                              <SelectItem value="lainnya">Lainnya</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormFieldGroup>
+                      </div>
+
                       <div className="flex flex-col sm:flex-row gap-6">
                         <div className="space-y-2 flex-grow">
                           <FormFieldGroup
@@ -1012,7 +1191,6 @@ const ESakuForm: React.FC = () => {
                             </Select>
                           </FormFieldGroup>
                         </div>
-
                         <div className="space-y-2 flex-grow">
                           <FormFieldGroup
                             label={
@@ -1051,6 +1229,26 @@ const ESakuForm: React.FC = () => {
                           </FormFieldGroup>
                         </div>
                       </div>
+                      {rank === "lainnya" && (
+                        <div className="space-y-2">
+                          <FormFieldGroup
+                            label="Peringkat Lainnya"
+                            icon={<Award className="h-4 w-4 text-green-600" />}
+                            required
+                            error={errors.customRank}
+                          >
+                            <Input
+                              type="text"
+                              value={customRank}
+                              onChange={(e) => setCustomRank(e.target.value)}
+                              placeholder="Masukkan peringkat lainnya"
+                              className={`${inputClass} ${
+                                errors.customRank ? inputErrorClass : ""
+                              }`}
+                            />
+                          </FormFieldGroup>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1104,105 +1302,6 @@ const ESakuForm: React.FC = () => {
                     />
                   </FormFieldGroup>
                 </div>
-
-                <div className="space-y-3 sm:space-y-4">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                    id="photo-upload"
-                  />
-
-                  {!selectedFile ? (
-                    <div
-                      onDragEnter={handleDragEnter}
-                      onDragLeave={handleDragLeave}
-                      onDragOver={handleDragOver}
-                      onDrop={handleDrop}
-                      className={`relative transition-all duration-200 ${
-                        isDragging ? "scale-100" : ""
-                      }`}
-                    >
-                      <label
-                        htmlFor="photo-upload"
-                        className={`flex flex-col items-center justify-center w-full max-w-full border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 p-6 sm:p-8 ${
-                          isDragging
-                            ? "border-green-500 bg-green-50"
-                            : "border-gray-300 bg-gray-50 hover:border-green-500 hover:bg-gray-100"
-                        }`}
-                      >
-                        <Upload
-                          className={`w-6 h-6 sm:w-8 sm:h-8 mb-1 sm:mb-2 transition-all duration-200 ${
-                            isDragging ? "text-green-600 scale-100" : "text-gray-400"
-                          }`}
-                        />
-                        <span
-                          className={`text-xs sm:text-sm text-center px-2 transition-colors duration-200 ${
-                            isDragging ? "text-green-600 font-medium" : "text-gray-600"
-                          }`}
-                        >
-                          {isDragging
-                            ? "Drop your image here"
-                            : "Click to upload or drag & drop"}
-                        </span>
-                        <span className="text-xs text-gray-400 mt-0.5 sm:mt-1 px-2 text-center">
-                          Image files only (max 10MB)
-                        </span>
-                      </label>
-                      {isDragging && (
-                        <div className="absolute inset-0 rounded-lg bg-green-500 bg-opacity-10 pointer-events-none animate-pulse" />
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between rounded-lg border border-green-200 p-3 sm:p-4 bg-green-50 mb-3 sm:mb-4">
-                      <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-                        <img
-                          src={URL.createObjectURL(selectedFile)}
-                          alt="Uploaded"
-                          className="w-10 h-10 sm:w-16 sm:h-16 object-cover rounded"
-                        />
-                        <div className="truncate min-w-0">
-                          <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
-                            {selectedFile.name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {(
-                              selectedFile.size /
-                              1024 /
-                              1024
-                            ).toFixed(2)}{" "}
-                            MB
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={handleRemoveFile}
-                        className="text-gray-400 hover:text-red-500 transition-colors p-1 ml-2 flex-shrink-0"
-                      >
-                        <X className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </button>
-                    </div>
-                  )}
-
-                  {uploadError && (
-                    <div className="flex items-start space-x-2 text-xs sm:text-sm text-red-600 bg-red-50 p-2 sm:p-3 rounded-lg border border-red-200">
-                      <X className="w-4 h-4 flex-shrink-0 mt-0.5 sm:mt-0" />
-                      <span className="break-words">{uploadError}</span>
-                    </div>
-                  )}
-
-                  {uploadStatus === "uploading" && (
-                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                      <div
-                        className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${uploadProgress}%` }}
-                      />
-                    </div>
-                  )}
-                </div>
-
               </>
             )}
 
@@ -1353,12 +1452,12 @@ const ESakuForm: React.FC = () => {
             </Button>
 
             <div className="flex gap-3">
-              {inputType === "violation" && (
+              {inputType === "violation" && !isEditMode && (
                 <Button
                   type="button"
                   className={btnDarkClass}
                   onClick={() => handleOpenConfirm("report")}
-                  disabled={isSubmitting || isClassTaughtByTeacher !== false}
+                  disabled={isSubmitting || isClassTaughtByTeacher === true}
                 >
                   <Send className="h-4 w-4" />
                   Kirim sebagai Laporan
@@ -1370,9 +1469,14 @@ const ESakuForm: React.FC = () => {
                 onClick={() => handleOpenConfirm("save")}
                 icon={<CheckCircle className="h-4 w-4" />}
                 className={btnPrimaryClass}
-                disabled={isClassTaughtByTeacher !== true}
+                disabled={
+                  isSubmitting ||
+                  (inputType === "violation" &&
+                    !isEditMode &&
+                    isClassTaughtByTeacher !== true)
+                }
               >
-                Simpan
+                {isEditMode ? "Perbarui Data" : "Simpan"}
               </LoadingSpinnerButton>
             </div>
           </CardFooter>
@@ -1381,17 +1485,20 @@ const ESakuForm: React.FC = () => {
 
       <ConfirmationModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setConfirmType(null);
+        }}
         onConfirm={handleConfirm}
         title={confirmType === "report" ? "Kirim Laporan?" : "Simpan Data?"}
         description={
           confirmType === "report"
-            ? "Apakah anda yakin ingin mengirim sebagai laporan?"
+            ? "Apakah anda yakin ingin mengirim sebagai laporan ke guru pengampu kelas?"
             : "Apakah anda yakin ingin menyimpan data ini?"
         }
         confirmText={confirmType === "report" ? "Kirim" : "Simpan"}
         cancelText="Batal"
-        type={confirmType === "report" ? "update" : "add"}
+        type={confirmType === "report" ? "report" : "add"}
       />
     </div>
   );
