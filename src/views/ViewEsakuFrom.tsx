@@ -21,6 +21,9 @@ import {
   Send,
   Globe,
   PenTool,
+  Paperclip,
+  Upload,
+  File,
 } from "lucide-react";
 import {
   Card,
@@ -63,8 +66,15 @@ import DatePickerForm from "@/components/shared/component/DatePickerForm";
 import MobileSummaryCard from "@/components/shared/component/MobileSummaryCard";
 import FormFieldGroup from "@/components/shared/component/FormField";
 import LoadingSpinnerButton from "@/components/shared/component/LoadingSpinnerButton";
-import { useViolationCreate } from "@/config/Api/useViolation";
-import { useAccomplishmentCreate } from "@/config/Api/useAccomplishments";
+import {
+  useViolationCreate,
+  useViolationsDocumentationDelete,
+  useViolationsDocumentationUpload,
+} from "@/config/Api/useViolation";
+import {
+  useAccomplishmentCreate,
+  useAccomplishmentsDocumentationUpload,
+} from "@/config/Api/useAccomplishments";
 import { useReportCreate } from "@/config/Api/useTeacherReport";
 import ConfirmationModal from "@/components/ui/confirmation";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -133,6 +143,8 @@ const ESakuForm: React.FC = () => {
   const [errors, setErrors] = useState<ESakuFormErrorState>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
   const [isClassTaughtByTeacher, setIsClassTaughtByTeacher] = useState<
     boolean | null
@@ -146,6 +158,9 @@ const ESakuForm: React.FC = () => {
   const { mutate: createViolation } = useViolationCreate();
   const { mutate: createAccomplishment } = useAccomplishmentCreate();
   const { mutate: createReport } = useReportCreate();
+  const uploadViolationDocumentation = useViolationsDocumentationUpload();
+  const uploadAccomplishmentDocumentation =
+    useAccomplishmentsDocumentationUpload();
 
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -405,6 +420,26 @@ const ESakuForm: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleChangeDocumentation = () => {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+
+    fileInput.onchange = (e: any) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const localUrl = URL.createObjectURL(file);
+        setPhotoUrl(localUrl);
+        setSelectedFile(file);
+        console.log("File selected:", file);
+      } else {
+        console.log("No file selected");
+      }
+    };
+
+    fileInput.click();
+  };
+
   const handleSubmit = (e?: FormEvent): void => {
     if (e) e.preventDefault();
     const isValid = validateForm();
@@ -446,7 +481,21 @@ const ESakuForm: React.FC = () => {
           rulesofconduct_id: selectedRule?.id ?? 0,
         },
         {
-          onSuccess: () => {
+          onSuccess: (data) => {
+            if (selectedFile) {
+              uploadViolationDocumentation.mutate(
+                { id: data.id, file: selectedFile },
+                {
+                  onSuccess: () => {
+                    toast.success("Dokumentasi berhasil diupload");
+                    setSelectedFile(null);
+                  },
+                  onError: () => {
+                    toast.error("Upload dokumentasi gagal");
+                  },
+                }
+              );
+            }
             setShowSuccess(true);
             resetForm();
             setIsEditMode(false);
@@ -490,7 +539,23 @@ const ESakuForm: React.FC = () => {
           rank: rank === "lainnya" ? customRank : rank,
         },
         {
-          onSuccess: () => {
+          onSuccess: (data) => {
+            if (selectedFile) {
+              uploadAccomplishmentDocumentation.mutate(
+                { id: data.id, file: selectedFile },
+                {
+                  onSuccess: () => {
+                    toast.success("Dokumentasi berhasil diupload");
+                    setSelectedFile(null);
+                  },
+                  onError: (err) => {
+                    console.error("Gagal upload dokumentasi:", err);
+                    toast.error("Upload dokumentasi gagal");
+                  },
+                }
+              );
+            }
+
             setShowSuccess(true);
             resetForm();
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1300,6 +1365,33 @@ const ESakuForm: React.FC = () => {
                         errors.description ? inputErrorClass : ""
                       }`}
                     />
+                  </FormFieldGroup>
+                </div>
+
+                <div className="space-y-2">
+                  <FormFieldGroup
+                    label={
+                      <>
+                        <Paperclip className="h-4 w-4 text-green-600" />
+                        Lampiran{" "}
+                        {inputType === "violation" ? "Pelanggaran" : "Prestasi"}
+                      </>
+                    }
+                  >
+                    <Button
+                      className="w-full h-full border py-4"
+                      onClick={handleChangeDocumentation}
+                      variant={"ghost"}
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      <span>Upload Lampiran</span>
+                    </Button>
+                    {selectedFile && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <File className="h-4 w-4 text-green-600" />
+                        <span>{selectedFile.name}</span>
+                      </div>
+                    )}
                   </FormFieldGroup>
                 </div>
               </>
