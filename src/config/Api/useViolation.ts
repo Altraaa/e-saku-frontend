@@ -46,7 +46,6 @@ export const useViolationsByStudentId = (student_id: string) => {
   });
 };
 
-
 // Create violation
 export const useViolationCreate = () => {
   const queryClient = useQueryClient();
@@ -61,6 +60,31 @@ export const useViolationCreate = () => {
     },
   });
 };
+
+// Upload Documentation
+export const useViolationsDocumentationUpload = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, file }: { id: number; file: File }) =>
+      ApiViolations.uploadDocumentation(id, file),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["violation", id] });
+    },
+  })
+}
+
+// Delete Documentation
+export const useViolationsDocumentationDelete = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => ApiViolations.deleteDocumentation(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ["violation", id] });
+    },
+  })
+}
 
 // Update violation
 export const useViolationUpdate = () => {

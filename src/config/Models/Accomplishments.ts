@@ -9,6 +9,7 @@ export interface IAccomplishments {
     violation_date: string;
     level: number;
     rank: string
+    image_documentation: string | null;
     points: number;
     created_at: string;
     updated_at: string;

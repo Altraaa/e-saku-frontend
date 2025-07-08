@@ -46,8 +46,6 @@ export const useAccomplishmentsByStudentId = (student_id: string) => {
   });
 };
 
-
-
 // Create accomplishment
 export const useAccomplishmentCreate = () => {
   const queryClient = useQueryClient();
@@ -82,6 +80,31 @@ export const useAccomplishmentUpdate = () => {
     },
     onError: (error) => {
       console.error("Error updating accomplishment:", error);
+    },
+  });
+};
+
+// Upload Documentation
+export const useAccomplishmentsDocumentationUpload = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, file }: { id: number; file: File }) =>
+      ApiAccomplishments.uploadDocumentation(id, file),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["accomplishment", id] });
+    },
+  });
+};
+
+// Delete Documentation
+export const useAccomplishmentsDocumentationDelete = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => ApiAccomplishments.deleteDocumentation(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ["accomplishment", id] });
     },
   });
 };

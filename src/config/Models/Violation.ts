@@ -9,6 +9,7 @@ export interface IViolation {
     violation_date: string;
     teacher_id: number;
     action: string;
+    image_documentation: string | null;
     points: number;
     accomplishment_date?: string;
     rulesofconduct_id: number;
