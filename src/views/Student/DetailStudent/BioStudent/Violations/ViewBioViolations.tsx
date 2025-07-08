@@ -19,8 +19,20 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { useViolationDelete, useViolationsByStudentId } from "@/config/Api/useViolation";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  useViolationById,
+  useViolationDelete,
+  useViolationsByStudentId,
+  useViolationsDocumentationDelete,
+} from "@/config/Api/useViolation";
 import { DatePicker } from "@/components/shared/component/DatePicker";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
@@ -39,7 +51,10 @@ const ViewBioViolations = () => {
   );
   const { id } = useParams();
   const studentId = id ?? "";
-  const { data: student, isLoading: studentLoading } = useStudentById(studentId);
+  const { data: student, isLoading: studentLoading } =
+    useStudentById(studentId);
+  const deleteDocumentation = useViolationsDocumentationDelete();
+  const {data: violations} = useViolationById(violationToDelete ?? 0);
 
   const studentName = student ? student.name : "Loading...";
 
@@ -75,14 +90,18 @@ const ViewBioViolations = () => {
   };
 
   const handleDeleteViolation = (id: number) => {
-    setViolationToDelete(id); 
-    setIsModalOpen(true); 
+    setViolationToDelete(id);
+    setIsModalOpen(true);
   };
 
   const handleConfirmDelete = async () => {
     if (violationToDelete) {
       try {
         toast.loading("Menghapus data...", { id: "delete-loading" });
+
+        if (violations?.image_documentation) {
+          await deleteDocumentation.mutateAsync(violationToDelete);
+        }
         await deleteViolation.mutateAsync(violationToDelete);
         toast.success("Data pelanggaran berhasil dihapus");
         setIsModalOpen(false);
@@ -132,10 +151,10 @@ const ViewBioViolations = () => {
     description: violation.description,
     followUp: violation.action,
     date: violation.violation_date,
+    image_documentation: violation.image_documentation,
     points: violation.points,
     created_at: violation.created_at,
     updated_at: violation.updated_at,
-    // documentation_image: "/docs/sample-doc.png",
   }));
 
   const filteredViolations = mappedViolations.filter((violation) => {
@@ -211,7 +230,11 @@ const ViewBioViolations = () => {
           <p className="text-sm sm:text-base text-gray-600 mb-4">
             Gagal memuat data pelanggaran. Silakan coba lagi.
           </p>
-          <Button onClick={() => window.location.reload()} variant="outline" size="sm">
+          <Button
+            onClick={() => window.location.reload()}
+            variant="outline"
+            size="sm"
+          >
             Coba Lagi
           </Button>
         </div>
@@ -285,11 +308,13 @@ const ViewBioViolations = () => {
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {studentViolations.length}
               </p>
-              <p className="text-xs sm:text-sm text-gray-600">Total Pelanggaran</p>
+              <p className="text-xs sm:text-sm text-gray-600">
+                Total Pelanggaran
+              </p>
             </div>
           </div>
         </div>
-        
+
         {/* Pelanggaran Terakhir */}
         <div className="p-4 rounded-xl border-2 bg-white">
           <div className="flex items-center gap-3 sm:gap-4">
@@ -302,7 +327,9 @@ const ViewBioViolations = () => {
                   ? formatStatDate(lastViolationDate.toString())
                   : "tidak ada data"}
               </p>
-              <p className="text-xs sm:text-sm text-gray-600">Pelanggaran Terakhir</p>
+              <p className="text-xs sm:text-sm text-gray-600">
+                Pelanggaran Terakhir
+              </p>
             </div>
           </div>
         </div>
@@ -363,21 +390,37 @@ const ViewBioViolations = () => {
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent className="p-0">
           {/* Desktop Table View */}
           <div className="hidden lg:block overflow-x-auto p-4">
             <Table className="w-full">
               <TableHeader>
                 <TableRow className="bg-gray-50 hover:bg-gray-50 border-b-2 border-gray-200">
-                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">No</TableHead>
-                  <TableHead className="font-semibold text-gray-900 py-4 px-4 text-left">Jenis Pelanggaran</TableHead>
-                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">Deskripsi</TableHead>
-                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">Tindak Lanjut</TableHead>
-                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">Documentation</TableHead>
-                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">Tanggal &amp; Waktu</TableHead>
-                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">Poin</TableHead>
-                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">Aksi</TableHead>
+                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">
+                    No
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-900 py-4 px-4 text-left">
+                    Jenis Pelanggaran
+                  </TableHead>
+                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">
+                    Deskripsi
+                  </TableHead>
+                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">
+                    Tindak Lanjut
+                  </TableHead>
+                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">
+                    Documentation
+                  </TableHead>
+                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">
+                    Tanggal &amp; Waktu
+                  </TableHead>
+                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">
+                    Poin
+                  </TableHead>
+                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">
+                    Aksi
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -387,10 +430,16 @@ const ViewBioViolations = () => {
                       key={violation.id}
                       className="hover:bg-gray-50/50 transition-colors border-b"
                     >
-                      <TableCell className="text-center py-4 px-4">{startIndex + index + 1}</TableCell>
-                      <TableCell className="py-4 px-4">{violation.type}</TableCell>
                       <TableCell className="text-center py-4 px-4">
-                        <span className="text-gray-600">{violation.description}</span>
+                        {startIndex + index + 1}
+                      </TableCell>
+                      <TableCell className="py-4 px-4">
+                        {violation.type}
+                      </TableCell>
+                      <TableCell className="text-center py-4 px-4">
+                        <span className="text-gray-600">
+                          {violation.description}
+                        </span>
                       </TableCell>
                       <TableCell className="text-center py-4 px-4">
                         <Badge
@@ -420,20 +469,25 @@ const ViewBioViolations = () => {
                           {violation.points}
                         </Badge>
                       </TableCell>
-                      {/* <TableCell className="text-center py-4 px-4">
-                        <img
-                          src={
-                            violation.documentation_image
-                              ? `${import.meta.env.VITE_API_URL?.replace(
-                                  "/api",
-                                  "/public"
-                                )}${violation.documentation_image}`
-                              : "https://via.placeholder.com/40x30?text=Doc"
-                          }
-                          alt="Documentation"
-                          className="mx-auto max-h-8 max-w-full object-contain"
-                        />
-                      </TableCell> */}
+                      <TableCell className="text-center py-4 px-4">
+                        {violation.image_documentation ? (
+                          <a
+                            href={`${import.meta.env.VITE_API_URL?.replace(
+                              "/api",
+                              "/public"
+                            )}${violation.image_documentation}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block bg-blue-500 text-white font-semibold px-3 py-1 rounded hover:bg-blue-600 transition duration-200"
+                          >
+                            Lihat Gambar
+                          </a>
+                        ) : (
+                          <span className="text-gray-600">
+                            Tidak Ada Dokumentasi
+                          </span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-center py-4 px-4">
                         <div className="flex justify-center gap-2">
                           <Button
@@ -495,7 +549,10 @@ const ViewBioViolations = () => {
           <div className="lg:hidden p-4 space-y-4">
             {paginatedViolations.length > 0 ? (
               paginatedViolations.map((violation, index) => (
-                <Card key={violation.id} className="border border-gray-200 shadow-sm">
+                <Card
+                  key={violation.id}
+                  className="border border-gray-200 shadow-sm"
+                >
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center gap-2">
@@ -535,15 +592,17 @@ const ViewBioViolations = () => {
                         </Button>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <div>
                         <h4 className="font-semibold text-gray-900 text-sm mb-1">
                           {violation.type}
                         </h4>
-                        <p className="text-gray-600 text-sm">{violation.description}</p>
+                        <p className="text-gray-600 text-sm">
+                          {violation.description}
+                        </p>
                       </div>
-                      
+
                       <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
                         <div className="flex items-center gap-1 text-xs text-gray-500">
                           <Calendar className="h-3 w-3" />
@@ -666,7 +725,7 @@ const ViewBioViolations = () => {
           </div>
         </CardContent>
       </Card>
-      
+
       <ConfirmationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
