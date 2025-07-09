@@ -10,7 +10,8 @@ import {
   X,
   Check,
   Trash,
-  ArrowLeft, // Add ArrowLeft icon for back button
+  ArrowLeft,
+  Plus, // Add ArrowLeft icon for back button
 } from "lucide-react";
 import {
   Table,
@@ -20,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -45,7 +46,7 @@ import {
   useStudentDeleteByClass,
   useStudentsByClassId,
 } from "@/config/Api/useStudent";
-import { useClassroomById } from "@/config/Api/useClasroom";
+import { useClassroom, useClassroomById } from "@/config/Api/useClasroom";
 import { useStudentDelete } from "@/config/Api/useStudent";
 import { useTeacherById } from "@/config/Api/useTeacher";
 import axios from "axios";
@@ -126,6 +127,7 @@ const ViewStudentByClass: React.FC = () => {
     "idle" | "uploading" | "success" | "error"
   >("idle");
   const [uploadError, setUploadError] = useState<string>("");
+  const [submitError, setSubmitError] = useState<string>("");
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -141,6 +143,10 @@ const ViewStudentByClass: React.FC = () => {
   const deleteStudentByClass = useStudentDeleteByClass();
   const token = localStorage.getItem("token");
   const queryClient = useQueryClient();
+  const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
+  // Fetch all classes for the class select dropdown
+  const { data: classes } = useClassroom();
+
 
   useEffect(() => {
     // Get user type from localStorage
@@ -222,6 +228,22 @@ const ViewStudentByClass: React.FC = () => {
   const handleDeleteStudentByClass = (class_id: number) => {
     setStudentByClasstoDelete(class_id);
     setIsModalDeleteAllOpen(true);
+  };
+
+  const [newStudent, setNewStudent] = useState({
+    name: "",
+    nis: "",
+    nisn: "",
+    classId: classId,
+  });
+
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+
+  const handleInputChange = (field: string, value: string | number) => {
+    setNewStudent((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const handleConfirmDelete = async () => {
@@ -436,6 +458,10 @@ const ViewStudentByClass: React.FC = () => {
   );
   const safePage = Math.min(Math.max(currentPage, 1), totalPages);
 
+  function handleSubmitStudent(event: React.MouseEvent<HTMLButtonElement>): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <ClassHeader
@@ -453,281 +479,520 @@ const ViewStudentByClass: React.FC = () => {
 
             {/* Conditionally render buttons based on user type */}
             {userType === "teacher" && (
-              <div className="flex flex-col xl:flex-row items-stretch sm:items-center gap-3 md:pl-4 lg:pl-0">
-                <div className="relative flex w-full">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  <Input
-                    defaultValue={searchText}
-                    onChange={handleSearchChange}
-                    placeholder="Cari nama siswa atau NIS..."
-                    className="pl-9 bg-white border-gray-200 w-full rounded-lg"
-                  />
-                </div>
+            <div className="flex flex-col xl:flex-row items-stretch sm:items-center gap-3 md:pl-4 lg:pl-0">
+              <div className="relative flex w-full">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  defaultValue={searchText}
+                  onChange={handleSearchChange}
+                  placeholder="Cari nama siswa atau NIS..."
+                  className="pl-9 bg-white border-gray-200 w-full rounded-lg"
+                />
+              </div>
 
-                <div className="flex flex-col md:flex-row justify-between gap-2">
-                  <Dialog
-                    open={isImportModalOpen}
-                    onOpenChange={(open) => {
-                      setIsImportModalOpen(open);
-                      if (!open) {
-                        resetUploadState();
-                      } else {
-                        resetUploadState();
-                      }
-                    }}
-                  >
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="default"
-                        className="hover:bg-[#009616] hover:text-white transition-all duration-300 w-full sm:w-auto"
-                      >
-                        <Download className="mr-2 h-4 w-4 flex-shrink-0" />
-                        <span className="truncate">Import Excel</span>
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent
-                      className="max-w-[95vw] sm:max-w-[500px] lg:max-w-[600px] p-3 sm:p-4 lg:p-6 max-h-[90vh] overflow-y-auto"
-                      onDragOver={(e) => e.preventDefault()}
+              <div className="flex flex-col md:flex-row justify-between gap-2">
+                {/* Add Student Button */}
+                <Dialog open={isAddStudentModalOpen} onOpenChange={setIsAddStudentModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="default"
+                      className="hover:bg-[#009616] hover:text-white transition-all duration-300 w-full sm:w-auto"
                     >
-                      <DialogHeader>
-                        <DialogTitle className="text-base sm:text-lg lg:text-xl leading-tight">
-                          Import Student Data untuk {classroom?.name}
-                        </DialogTitle>
-                        <DialogDescription className="text-xs sm:text-sm leading-relaxed">
-                          Upload file Excel (.xls atau .xlsx) yang berisi data
-                          siswa untuk kelas ini
-                        </DialogDescription>
-                      </DialogHeader>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Student
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-3 sm:p-4 md:p-6 max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="text-base sm:text-lg md:text-xl">
+                        Add New Student
+                      </DialogTitle>
+                      <DialogDescription className="text-xs sm:text-sm md:text-base">
+                        Create a new student by filling in the information below
+                      </DialogDescription>
+                    </DialogHeader>
 
-                      <div className="grid gap-3 sm:gap-4 py-3 sm:py-4">
-                        {uploadStatus === "success" ? (
-                          <div className="bg-gray-50 rounded-lg border border-gray-200 p-3 sm:p-4 mb-3 sm:mb-4">
-                            <div className="text-green-600 flex items-start sm:items-center space-x-3">
-                              <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
-                                <Check className="w-4 h-4 sm:w-5 sm:h-5" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="text-sm sm:text-lg font-semibold">
-                                  Upload Berhasil!
-                                </p>
-                                <p className="text-xs sm:text-sm text-gray-600 break-words">
-                                  Data siswa berhasil diunggah ke kelas{" "}
-                                  {classroom?.name}.
-                                </p>
-                              </div>
+                    <div className="grid gap-3 sm:gap-4 py-2 sm:py-4">
+                      <div className="space-y-3 sm:space-y-4">
+                        <div className="space-y-2">
+                          <label
+                            htmlFor="studentName"
+                            className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
+                          >
+                            Student Name <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="studentName"
+                            placeholder="Enter student full name"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200 text-xs sm:text-sm md:text-base"
+                            value={newStudent.name}
+                            onChange={(e) => handleInputChange("name", e.target.value)}
+                            disabled={submitStatus === "submitting"}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label
+                            htmlFor="studentNis"
+                            className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
+                          >
+                            NIS <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="studentNis"
+                            placeholder="Enter NIS number"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200 text-xs sm:text-sm md:text-base"
+                            value={newStudent.nis}
+                            onChange={(e) => handleInputChange("nis", e.target.value)}
+                            disabled={submitStatus === "submitting"}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label
+                            htmlFor="studentNisn"
+                            className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
+                          >
+                            NISN <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="studentNisn"
+                            placeholder="Enter NISN number"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200 text-xs sm:text-sm md:text-base"
+                            value={newStudent.nisn}
+                            onChange={(e) => handleInputChange("nisn", e.target.value)}
+                            disabled={submitStatus === "submitting"}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label
+                            htmlFor="classSelect"
+                            className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
+                          >
+                            Class <span className="text-red-500">*</span>
+                          </label>
+                          <Select
+                            value={newStudent.classId?.toString()}
+                            onValueChange={(value) =>
+                              handleInputChange("classId", parseInt(value))
+                            }
+                          >
+                            <SelectTrigger className="border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-lg h-9 sm:h-10 bg-white text-xs sm:text-sm md:text-base">
+                              <SelectValue placeholder="Select a class" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {classes?.map((classroom) => (
+                                <SelectItem
+                                  key={classroom.id}
+                                  value={classroom.id.toString()}
+                                  className="text-xs sm:text-sm md:text-base"
+                                >
+                                  {classroom.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label
+                            htmlFor="teacherSelect"
+                            className="text-xs sm:text-sm md:text-base font-medium text-gray-500"
+                          >
+                            Teacher (Auto-assigned)
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={
+                                classes?.find(c => c.id === newStudent.classId)?.teacher?.name ||
+                                "Select a class first"
+                              }
+                              disabled
+                              className="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-600 cursor-not-allowed text-xs sm:text-sm md:text-base"
+                            />
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                             </div>
                           </div>
-                        ) : (
-                          <>
-                            <div className="space-y-3 sm:space-y-4">
-                              <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                onChange={handleFileSelect}
-                                className="hidden"
-                                id="excel-upload"
-                              />
+                          <p className="text-xs text-gray-500">
+                            Teacher will be assigned automatically based on selected class
+                          </p>
+                        </div>
 
-                              {!selectedFile ? (
-                                <div
-                                  onDragEnter={handleDragEnter}
-                                  onDragLeave={handleDragLeave}
-                                  onDragOver={handleDragOver}
-                                  onDrop={handleDrop}
-                                  className={`relative transition-all duration-200 ${
-                                    isDragging ? "scale-100" : ""
-                                  }`}
-                                >
-                                  <label
-                                    htmlFor="excel-upload"
-                                    className={`flex flex-col items-center justify-center w-full h-24 sm:h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
-                                      isDragging
-                                        ? "border-green-500 bg-green-50"
-                                        : "border-gray-300 bg-gray-50 hover:border-green-500 hover:bg-gray-100"
-                                    }`}
-                                  >
-                                    <Upload
-                                      className={`w-6 h-6 sm:w-8 sm:h-8 mb-1 sm:mb-2 transition-all duration-200 ${
-                                        isDragging
-                                          ? "text-green-600 scale-100"
-                                          : "text-gray-400"
-                                      }`}
-                                    />
-                                    <span
-                                      className={`text-xs sm:text-sm text-center px-2 transition-colors duration-200 ${
-                                        isDragging
-                                          ? "text-green-600 font-medium"
-                                          : "text-gray-600"
-                                      }`}
-                                    >
-                                      {isDragging
-                                        ? "Drop your Excel file here"
-                                        : "Click to upload or drag & drop"}
-                                    </span>
-                                    <span className="text-xs text-gray-400 mt-0.5 sm:mt-1 px-2 text-center">
-                                      .xls or .xlsx (max 10MB)
-                                    </span>
-                                  </label>
-                                  {isDragging && (
-                                    <div className="absolute inset-0 rounded-lg bg-green-500 bg-opacity-10 pointer-events-none animate-pulse" />
-                                  )}
-                                </div>
-                              ) : (
-                                <div className="flex items-center justify-between rounded-lg border border-green-200 p-3 sm:p-4 bg-green-50 mb-3 sm:mb-4">
-                                  <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-                                    <FileSpreadsheet className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 flex-shrink-0" />
-                                    <div className="truncate min-w-0">
-                                      <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
-                                        {selectedFile.name}
-                                      </p>
-                                      <p className="text-xs text-gray-500">
-                                        {(
-                                          selectedFile.size /
-                                          1024 /
-                                          1024
-                                        ).toFixed(2)}{" "}
-                                        MB
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <button
-                                    onClick={handleRemoveFile}
-                                    className="text-gray-400 hover:text-red-500 transition-colors p-1 ml-2 flex-shrink-0"
-                                    disabled={uploadStatus === "uploading"}
-                                  >
-                                    <X className="w-4 h-4 sm:w-5 sm:h-5" />
-                                  </button>
-                                </div>
-                              )}
-
-                              {uploadError && (
-                                <div className="flex items-start space-x-2 text-xs sm:text-sm text-red-600 bg-red-50 p-2 sm:p-3 rounded-lg border border-red-200">
-                                  <X className="w-4 h-4 flex-shrink-0 mt-0.5 sm:mt-0" />
-                                  <span className="break-words">
-                                    {uploadError}
-                                  </span>
-                                </div>
-                              )}
-
-                              {uploadStatus === "uploading" && (
-                                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                                  <div
-                                    className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${uploadProgress}%` }}
-                                  />
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="bg-gray-50 rounded-lg border border-gray-200 p-3 sm:p-4 mb-3 sm:mb-4">
-                              <h4 className="text-xs sm:text-sm font-medium mb-2">
-                                Persyaratan File:
-                              </h4>
-                              <ul className="text-xs text-gray-600 space-y-1">
-                                <li className="flex items-start">
-                                  <span className="mr-1 flex-shrink-0">•</span>
-                                  <span>Format Excel (.xls atau .xlsx)</span>
-                                </li>
-                                <li className="flex items-start">
-                                  <span className="mr-1 flex-shrink-0">•</span>
-                                  <span>Kolom wajib: Nama, NIS, Email</span>
-                                </li>
-                                <li className="flex items-start">
-                                  <span className="mr-1 flex-shrink-0">•</span>
-                                  <span>Ukuran file maksimal: 10MB</span>
-                                </li>
-                                <li className="flex items-start">
-                                  <span className="mr-1 flex-shrink-0">•</span>
-                                  <span>NIS siswa tidak boleh duplikat</span>
-                                </li>
-                                <li className="flex items-start">
-                                  <span className="mr-1 flex-shrink-0">•</span>
-                                  <span className="break-words">
-                                    Siswa akan ditambahkan ke kelas{" "}
-                                    {classroom?.name}
-                                  </span>
-                                </li>
-                              </ul>
-                            </div>
-                          </>
+                        {submitError && (
+                          <Card className="border-red-200 bg-red-50">
+                            <CardContent className="p-3">
+                              <div className="flex items-center space-x-2 text-xs sm:text-sm text-red-600">
+                                <X className="w-4 h-4 flex-shrink-0" />
+                                <span>{submitError}</span>
+                              </div>
+                            </CardContent>
+                          </Card>
                         )}
 
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                          {uploadStatus !== "success" && (
-                            <Button
-                              variant="outline"
-                              className="text-green-600 hover:text-green-700 hover:bg-green-50 order-3 sm:order-1"
-                              onClick={downloadTemplate}
-                              disabled={uploadStatus === "uploading"}
-                            >
-                              <FileSpreadsheet className="w-4 h-4 mr-2" />
-                              Download Template
-                            </Button>
-                          )}
+                        {submitStatus === "success" && (
+                          <Card className="border-green-200 bg-green-50">
+                            <CardContent className="p-3">
+                              <div className="flex items-center space-x-2 text-xs sm:text-sm text-green-600">
+                                <div className="w-4 h-4 flex-shrink-0">✓</div>
+                                <span>Student created successfully!</span>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
 
-                          <div className="flex gap-2 order-1 sm:order-2">
-                            {uploadStatus === "success" ? (
-                              <Button
-                                onClick={() => setIsImportModalOpen(false)}
-                                className="bg-green-500 hover:bg-green-600 text-white flex-1 sm:flex-none"
-                              >
-                                Continue
-                              </Button>
-                            ) : (
-                              <>
-                                <Button
-                                  variant="outline"
-                                  onClick={() => setIsImportModalOpen(false)}
-                                  disabled={uploadStatus === "uploading"}
-                                  className="flex-1 sm:flex-none"
-                                >
-                                  Cancel
-                                </Button>
-                                <Button
-                                  onClick={handleFileUpload}
-                                  disabled={
-                                    !selectedFile ||
-                                    uploadStatus === "uploading"
-                                  }
-                                  className="bg-green-500 hover:bg-green-600 text-white flex-1 sm:flex-none"
-                                >
-                                  {uploadStatus === "uploading" ? (
-                                    <>
-                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                      <span className="hidden sm:inline">
-                                        Uploading... {uploadProgress}%
-                                      </span>
-                                      <span className="sm:hidden">
-                                        {uploadProgress}%
-                                      </span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Upload className="w-4 h-4 mr-2" />
-                                      Upload File
-                                    </>
-                                  )}
-                                </Button>
-                              </>
-                            )}
+                        {submitStatus === "submitting" && (
+                          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                            <div className="bg-green-500 h-2 rounded-full transition-all duration-1000 animate-pulse w-3/4"></div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Guidelines Card - Made Responsive */}
+                      <Card className="bg-gray-50 border-gray-200">
+                        <CardContent className="p-3 sm:p-4">
+                          <h4 className="text-xs sm:text-sm md:text-base font-medium mb-2">
+                            Student Creation Guidelines:
+                          </h4>
+                          <ul className="space-y-1 text-xs sm:text-sm">
+                            <li className="flex items-start">
+                              <span className="mr-1">•</span>
+                              <span>
+                                Student name should be entered as full name
+                                <p className="font-medium">
+                                  (e.g., Ahmad Rizki Maulana)
+                                </p>
+                              </span>
+                            </li>
+                            <li className="flex items-start">
+                              <span className="mr-1">•</span>
+                              <span>
+                                NIS and NISN must be unique for each student
+                              </span>
+                            </li>
+                            <li className="flex items-start">
+                              <span className="mr-1">•</span>
+                              <span>
+                                Teacher assignment is automatic based on selected class
+                              </span>
+                            </li>
+                            <li className="flex items-start">
+                              <span className="mr-1">•</span>
+                              <span>
+                                Class selection determines the student's major and teacher
+                              </span>
+                            </li>
+                          </ul>
+                        </CardContent>
+                      </Card>
+
+                      <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsAddStudentModalOpen(false)}
+                          disabled={submitStatus === "submitting"}
+                          className="w-full sm:w-auto text-xs sm:text-sm"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleSubmitStudent}
+                          disabled={submitStatus === "submitting"}
+                          className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto text-xs sm:text-sm"
+                        >
+                          {submitStatus === "submitting" ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Creating Student...
+                            </>
+                          ) : submitStatus === "success" ? (
+                            <>
+                              <div className="w-4 h-4 mr-2">✓</div>
+                              Student Created!
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-4 h-4 mr-2" />
+                              Create Student
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Import Excel Button */}
+                <Dialog
+                  open={isImportModalOpen}
+                  onOpenChange={(open) => {
+                    setIsImportModalOpen(open);
+                    if (!open) {
+                      resetUploadState();
+                    } else {
+                      resetUploadState();
+                    }
+                  }}
+                >
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="default"
+                      className="hover:bg-[#009616] hover:text-white transition-all duration-300 w-full sm:w-auto"
+                    >
+                      <Download className="mr-2 h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">Import Excel</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent
+                    className="max-w-[95vw] sm:max-w-[500px] lg:max-w-[600px] p-3 sm:p-4 lg:p-6 max-h-[90vh] overflow-y-auto"
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    <DialogHeader>
+                      <DialogTitle className="text-base sm:text-lg lg:text-xl leading-tight">
+                        Import Student Data untuk {classroom?.name}
+                      </DialogTitle>
+                      <DialogDescription className="text-xs sm:text-sm leading-relaxed">
+                        Upload file Excel (.xls atau .xlsx) yang berisi data
+                        siswa untuk kelas ini
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-3 sm:gap-4 py-3 sm:py-4">
+                      {uploadStatus === "success" ? (
+                        <div className="bg-gray-50 rounded-lg border border-gray-200 p-3 sm:p-4 mb-3 sm:mb-4">
+                          <div className="text-green-600 flex items-start sm:items-center space-x-3">
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
+                              <Check className="w-4 h-4 sm:w-5 sm:h-5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm sm:text-lg font-semibold">
+                                Upload Berhasil!
+                              </p>
+                              <p className="text-xs sm:text-sm text-gray-600 break-words">
+                                Data siswa berhasil diunggah ke kelas{" "}
+                                {classroom?.name}.
+                              </p>
+                            </div>
                           </div>
                         </div>
+                      ) : (
+                        <>
+                          <div className="space-y-3 sm:space-y-4">
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                              onChange={handleFileSelect}
+                              className="hidden"
+                              id="excel-upload"
+                            />
+
+                            {!selectedFile ? (
+                              <div
+                                onDragEnter={handleDragEnter}
+                                onDragLeave={handleDragLeave}
+                                onDragOver={handleDragOver}
+                                onDrop={handleDrop}
+                                className={`relative transition-all duration-200 ${
+                                  isDragging ? "scale-100" : ""
+                                }`}
+                              >
+                                <label
+                                  htmlFor="excel-upload"
+                                  className={`flex flex-col items-center justify-center w-full h-24 sm:h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                                    isDragging
+                                      ? "border-green-500 bg-green-50"
+                                      : "border-gray-300 bg-gray-50 hover:border-green-500 hover:bg-gray-100"
+                                  }`}
+                                >
+                                  <Upload
+                                    className={`w-6 h-6 sm:w-8 sm:h-8 mb-1 sm:mb-2 transition-all duration-200 ${
+                                      isDragging
+                                        ? "text-green-600 scale-100"
+                                        : "text-gray-400"
+                                    }`}
+                                  />
+                                  <span
+                                    className={`text-xs sm:text-sm text-center px-2 transition-colors duration-200 ${
+                                      isDragging
+                                        ? "text-green-600 font-medium"
+                                        : "text-gray-600"
+                                    }`}
+                                  >
+                                    {isDragging
+                                      ? "Drop your Excel file here"
+                                      : "Click to upload or drag & drop"}
+                                  </span>
+                                  <span className="text-xs text-gray-400 mt-0.5 sm:mt-1 px-2 text-center">
+                                    .xls or .xlsx (max 10MB)
+                                  </span>
+                                </label>
+                                {isDragging && (
+                                  <div className="absolute inset-0 rounded-lg bg-green-500 bg-opacity-10 pointer-events-none animate-pulse" />
+                                )}
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-between rounded-lg border border-green-200 p-3 sm:p-4 bg-green-50 mb-3 sm:mb-4">
+                                <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                                  <FileSpreadsheet className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 flex-shrink-0" />
+                                  <div className="truncate min-w-0">
+                                    <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                                      {selectedFile.name}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {(
+                                        selectedFile.size /
+                                        1024 /
+                                        1024
+                                      ).toFixed(2)}{" "}
+                                      MB
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={handleRemoveFile}
+                                  className="text-gray-400 hover:text-red-500 transition-colors p-1 ml-2 flex-shrink-0"
+                                  disabled={uploadStatus === "uploading"}
+                                >
+                                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                                </button>
+                              </div>
+                            )}
+
+                            {uploadError && (
+                              <div className="flex items-start space-x-2 text-xs sm:text-sm text-red-600 bg-red-50 p-2 sm:p-3 rounded-lg border border-red-200">
+                                <X className="w-4 h-4 flex-shrink-0 mt-0.5 sm:mt-0" />
+                                <span className="break-words">
+                                  {uploadError}
+                                </span>
+                              </div>
+                            )}
+
+                            {uploadStatus === "uploading" && (
+                              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div
+                                  className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                                  style={{ width: `${uploadProgress}%` }}
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="bg-gray-50 rounded-lg border border-gray-200 p-3 sm:p-4 mb-3 sm:mb-4">
+                            <h4 className="text-xs sm:text-sm font-medium mb-2">
+                              Persyaratan File:
+                            </h4>
+                            <ul className="text-xs text-gray-600 space-y-1">
+                              <li className="flex items-start">
+                                <span className="mr-1 flex-shrink-0">•</span>
+                                <span>Format Excel (.xls atau .xlsx)</span>
+                              </li>
+                              <li className="flex items-start">
+                                <span className="mr-1 flex-shrink-0">•</span>
+                                <span>Kolom wajib: Nama, NIS, Email</span>
+                              </li>
+                              <li className="flex items-start">
+                                <span className="mr-1 flex-shrink-0">•</span>
+                                <span>Ukuran file maksimal: 10MB</span>
+                              </li>
+                              <li className="flex items-start">
+                                <span className="mr-1 flex-shrink-0">•</span>
+                                <span>NIS siswa tidak boleh duplikat</span>
+                              </li>
+                              <li className="flex items-start">
+                                <span className="mr-1 flex-shrink-0">•</span>
+                                <span className="break-words">
+                                  Siswa akan ditambahkan ke kelas{" "}
+                                  {classroom?.name}
+                                </span>
+                              </li>
+                            </ul>
+                          </div>
+                        </>
+                      )}
+
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                        {uploadStatus !== "success" && (
+                          <Button
+                            variant="outline"
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50 order-3 sm:order-1"
+                            onClick={downloadTemplate}
+                            disabled={uploadStatus === "uploading"}
+                          >
+                            <FileSpreadsheet className="w-4 h-4 mr-2" />
+                            Download Template
+                          </Button>
+                        )}
+
+                        <div className="flex gap-2 order-1 sm:order-2">
+                          {uploadStatus === "success" ? (
+                            <Button
+                              onClick={() => setIsImportModalOpen(false)}
+                              className="bg-green-500 hover:bg-green-600 text-white flex-1 sm:flex-none"
+                            >
+                              Continue
+                            </Button>
+                          ) : (
+                            <>
+                              <Button
+                                variant="outline"
+                                onClick={() => setIsImportModalOpen(false)}
+                                disabled={uploadStatus === "uploading"}
+                                className="flex-1 sm:flex-none"
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                onClick={handleFileUpload}
+                                disabled={
+                                  !selectedFile ||
+                                  uploadStatus === "uploading"
+                                }
+                                className="bg-green-500 hover:bg-green-600 text-white flex-1 sm:flex-none"
+                              >
+                                {uploadStatus === "uploading" ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    <span className="hidden sm:inline">
+                                      Uploading... {uploadProgress}%
+                                    </span>
+                                    <span className="sm:hidden">
+                                      {uploadProgress}%
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Upload className="w-4 h-4 mr-2" />
+                                    Upload File
+                                  </>
+                                )}
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                  <div>
-                    <Button
-                      className="hover:bg-red-700 hover:text-white bg-red-600 transition-all duration-300 w-full sm:w-auto"
-                      onClick={() => handleDeleteStudentByClass(classId)}
-                    >
-                      <Trash className="mr-1 h-4 w-4 flex-shrink-0" />
-                      <span className="truncate">Delete Students Data</span>
-                    </Button>
-                  </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Delete Students Button */}
+                <div>
+                  <Button
+                    className="hover:bg-red-700 hover:text-white bg-red-600 transition-all duration-300 w-full sm:w-auto"
+                    onClick={() => handleDeleteStudentByClass(classId)}
+                  >
+                    <Trash className="mr-1 h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">Delete Students Data</span>
+                  </Button>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
             {/* For students, show only search input */}
             {userType === "student" && (

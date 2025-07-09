@@ -10,6 +10,8 @@ import {
   Award,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  UserX,
 } from "lucide-react";
 import { useTeacherById } from "@/config/Api/useTeacher";
 import {
@@ -63,6 +65,14 @@ interface LeaderboardItem {
   points: number;
 }
 
+// interface ReportedStudentItem {
+//   id: string;
+//   name: string;
+//   violationType: string;
+//   timestamp: string;
+//   points: number;
+// }
+
 type TimeRange = "daily" | "weekly" | "monthly" | "yearly";
 
 interface ChartData {
@@ -84,8 +94,6 @@ interface CustomTooltipProps {
   payload?: PayloadItem[];
   label?: string;
 }
-
-
 
 const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
@@ -166,6 +174,7 @@ const ViewDashboard = () => {
     IAccomplishments[]
   >([]);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([]);
+  const [reportedStudentsData, setReportedStudentsData] = useState<ReportedStudentItem[]>([]);
   const [statsData, setStatsData] = useState({
     totalPoints: 0,
     totalStudents: 0,
@@ -212,6 +221,28 @@ const ViewDashboard = () => {
   const getGradeFromClassroom = (classroom: any): string => {
     if (!classroom || !classroom.grade) return "-";
     return classroom.grade;
+  };
+
+  // Format time helper
+  const formatTimeAgo = (dateString: string): string => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return "Baru saja";
+    if (diffInMinutes < 60) return `${diffInMinutes} menit lalu`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours} jam lalu`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays} hari lalu`;
+    
+    return date.toLocaleDateString('id-ID', { 
+      day: 'numeric', 
+      month: 'short',
+      year: 'numeric'
+    });
   };
 
   // Filter berdasarkan rentang waktu
@@ -344,6 +375,33 @@ const ViewDashboard = () => {
     },
     [overallTimeRange]
   );
+
+  // Hitung reported students
+  // const calculateReportedStudents = useCallback(
+  //   (violations: IViolation[]) => {
+  //     const oneWeekAgo = new Date();
+  //     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      
+  //     const recentViolations = violations
+  //       .filter(v => new Date(v.violation_date) >= oneWeekAgo)
+  //       .sort((a, b) => new Date(b.violation_date).getTime() - new Date(a.violation_date).getTime())
+  //       .slice(0, 5);
+
+  //     return recentViolations.map((violation) => {
+  //       const student = violation.student as IStudent;
+  //       const rules = violation.rules_of_conduct as IRules;
+        
+  //       return {
+  //         id: violation.student_id,
+  //         name: student?.name || "Unknown Student",
+  //         violationType: rules?.name || "Unknown Violation",
+  //         timestamp: violation.violation_date,
+  //         points: violation.points || 0,
+  //       };
+  //     });
+  //   },
+  //   []
+  // );
 
   // Siapkan data chart
   const prepareChartData = useCallback(
@@ -491,6 +549,9 @@ const ViewDashboard = () => {
       const leaderboard = calculateLeaderboard(violationsResponse);
       setLeaderboardData(leaderboard);
 
+      // const reportedStudents = calculateReportedStudents(violationsResponse);
+      // setReportedStudentsData(reportedStudents);
+
       const chart = prepareChartData(
         violationsResponse,
         accomplishmentsResponse
@@ -504,6 +565,7 @@ const ViewDashboard = () => {
     accomplishmentsResponse,
     calculateStats,
     calculateLeaderboard,
+    // calculateReportedStudents,
     prepareChartData,
   ]);
 
@@ -683,226 +745,292 @@ const ViewDashboard = () => {
           </CardContent>
         </Card>
       </div>
-      {/* Grid for Main Content (Comparisons & Leaderboard) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Bar Chart Card */}
-        <div className="col-span-1 lg:col-span-2">
-          <Card className="rounded-xl overflow-hidden">
-            <CardHeader className="border-b">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <CardTitle className="text-lg sm:text-xl font-bold text-gray-800">
-                  Perbandingan Aktivitas Siswa
-                </CardTitle>
-                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full md:w-auto">
-                  <Select
-                    value={activityType}
-                    onValueChange={(v) => setActivityType(v as any)}
-                  >
-                    <SelectTrigger className="border-green-500 focus:ring-green-400 w-full xs:w-auto xs:min-w-[140px] rounded-lg">
-                      <SelectValue placeholder="Jenis Aktivitas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua</SelectItem>
-                      <SelectItem value="violations">Pelanggaran</SelectItem>
-                      <SelectItem value="achievements">Prestasi</SelectItem>
-                    </SelectContent>
-                  </Select>
+      <div className="space-y-6">
+        {/* First Row: Chart and Leaderboard */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Bar Chart Card - Takes 2/3 of the width */}
+          <div className="lg:col-span-2">
+            <Card className="rounded-xl overflow-hidden h-fit">
+              <CardHeader className="border-b">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <CardTitle className="text-lg sm:text-xl font-bold text-gray-800">
+                    Perbandingan Aktivitas Siswa
+                  </CardTitle>
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full md:w-auto">
+                    <Select
+                      value={activityType}
+                      onValueChange={(v) => setActivityType(v as any)}
+                    >
+                      <SelectTrigger className="border-green-500 focus:ring-green-400 w-full xs:w-auto xs:min-w-[140px] rounded-lg">
+                        <SelectValue placeholder="Jenis Aktivitas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Semua</SelectItem>
+                        <SelectItem value="violations">Pelanggaran</SelectItem>
+                        <SelectItem value="achievements">Prestasi</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-                  <Select
-                    value={timeRange}
-                    onValueChange={(v) => {
-                      setTimeRange(v as TimeRange);
-                      if (v !== "yearly") setYearlyView("firstHalf");
-                    }}
-                  >
-                    <SelectTrigger className="border-green-500 focus:ring-green-400 w-full xs:w-auto xs:min-w-[120px] rounded-lg">
-                      <SelectValue placeholder="Rentang Waktu" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="weekly">Minggu Ini</SelectItem>
-                      <SelectItem value="monthly">Bulan Ini</SelectItem>
-                      <SelectItem value="yearly">Tahun Ini</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Select
+                      value={timeRange}
+                      onValueChange={(v) => {
+                        setTimeRange(v as TimeRange);
+                        if (v !== "yearly") setYearlyView("firstHalf");
+                      }}
+                    >
+                      <SelectTrigger className="border-green-500 focus:ring-green-400 w-full xs:w-auto xs:min-w-[120px] rounded-lg">
+                        <SelectValue placeholder="Rentang Waktu" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="weekly">Minggu Ini</SelectItem>
+                        <SelectItem value="monthly">Bulan Ini</SelectItem>
+                        <SelectItem value="yearly">Tahun Ini</SelectItem>
+                      </SelectContent>
+                    </Select>
 
-                  {timeRange === "yearly" && (
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant={
-                          yearlyView === "firstHalf" ? "default" : "outline"
+                    {timeRange === "yearly" && (
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant={
+                            yearlyView === "firstHalf" ? "default" : "outline"
+                          }
+                          size="sm"
+                          className="h-8"
+                          onClick={() => setYearlyView("firstHalf")}
+                        >
+                          Jan-Jun
+                        </Button>
+                        <Button
+                          variant={
+                            yearlyView === "secondHalf" ? "default" : "outline"
+                          }
+                          size="sm"
+                          className="h-8"
+                          onClick={() => setYearlyView("secondHalf")}
+                        >
+                          Jul-Des
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-4 sm:pt-6">
+                <div className="w-full h-80 sm:h-96 lg:h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={chartData}
+                      barGap={currentBreakpoint === "xs" ? 5 : 10}
+                      margin={{
+                        top: 10,
+                        right: currentBreakpoint === "xs" ? 5 : 10,
+                        left: currentBreakpoint === "xs" ? -10 : 0,
+                        bottom: 10,
+                      }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis
+                        dataKey={
+                          timeRange === "weekly"
+                            ? "day"
+                            : timeRange === "monthly"
+                            ? "week"
+                            : "month"
                         }
-                        size="sm"
-                        className="h-8"
-                        onClick={() => setYearlyView("firstHalf")}
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{
+                          fontSize:
+                            currentBreakpoint === "xs"
+                              ? 9
+                              : currentBreakpoint === "sm"
+                              ? 10
+                              : 12,
+                        }}
+                        interval={currentBreakpoint === "xs" ? 1 : 0}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{
+                          fontSize:
+                            currentBreakpoint === "xs"
+                              ? 9
+                              : currentBreakpoint === "sm"
+                              ? 10
+                              : 12,
+                        }}
+                        width={currentBreakpoint === "xs" ? 30 : 40}
+                      />
+                      <Tooltip
+                        content={<CustomTooltip />}
+                        cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
+                        wrapperStyle={{ outline: "none" }}
+                      />
+                      <Bar
+                        dataKey="violations"
+                        name="Pelanggaran"
+                        fill="#14532d"
+                        radius={[4, 4, 0, 0]}
+                        hide={activityType === "achievements"}
+                      />
+                      <Bar
+                        dataKey="achievements"
+                        name="Prestasi"
+                        fill="#00BB1C"
+                        radius={[4, 4, 0, 0]}
+                        hide={activityType === "violations"}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-center gap-4 sm:gap-6 py-4 border-t">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 block bg-[#14532d] rounded"></span>
+                  <span className="text-xs sm:text-sm">Pelanggaran</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 block bg-[#00BB1C] rounded"></span>
+                  <span className="text-xs sm:text-sm">Prestasi</span>
+                </div>
+              </CardFooter>
+            </Card>
+          </div>
+          {/* Right Column: Leaderboard and Reported Students */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Leaderboard Card */}
+            <Card className="rounded-xl overflow-hidden">
+              <CardHeader className="text-center bg-green-500 text-white p-3">
+                <CardTitle className="text-sm">Peringkat Pelanggaran</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 h-[250px] flex flex-col justify-between">
+                <div>
+                  {leaderboardData.length > 0 ? (
+                    leaderboardData.map((student, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center p-3 border-b hover:bg-green-50 transition-colors"
                       >
-                        Jan-Jun
-                      </Button>
-                      <Button
-                        variant={
-                          yearlyView === "secondHalf" ? "default" : "outline"
-                        }
-                        size="sm"
-                        className="h-8"
-                        onClick={() => setYearlyView("secondHalf")}
-                      >
-                        Jul-Des
-                      </Button>
+                        <div
+                          className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full mr-3 text-sm font-bold ${
+                            index === 0
+                              ? "bg-yellow-100 text-yellow-600 ring-1 ring-yellow-200"
+                              : index === 1
+                              ? "bg-gray-100 text-gray-500 ring-1 ring-gray-200"
+                              : "bg-orange-100 text-orange-600 ring-1 ring-orange-200"
+                          }`}
+                        >
+                          {student.rank}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">
+                            {student.name}
+                          </p>
+                          <div className="flex items-center">
+                            <p className="text-xs text-gray-500">
+                              Poin Pelanggaran:
+                            </p>
+                            <Badge
+                              variant="outline"
+                              className="ml-2 rounded-full text-xs"
+                            >
+                              {student.points}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <Award
+                            className={`h-4 w-4 ${
+                              index === 0
+                                ? "text-yellow-500"
+                                : index === 1
+                                ? "text-gray-500"
+                                : "text-orange-500"
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-6 text-center">
+                      <Award className="h-10 w-10 text-gray-400 mb-3" />
+                      <p className="text-sm text-gray-500 font-medium">
+                        Belum ada data pelanggaran
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Tidak ada siswa yang memiliki poin pelanggaran
+                      </p>
                     </div>
                   )}
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-4 sm:pt-6">
-              <div className="w-full h-48 sm:h-64 lg:h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={chartData}
-                    barGap={currentBreakpoint === "xs" ? 5 : 10}
-                    margin={{
-                      top: 10,
-                      right: currentBreakpoint === "xs" ? 5 : 10,
-                      left: currentBreakpoint === "xs" ? -10 : 0,
-                      bottom: 10,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis
-                      dataKey={
-                        timeRange === "weekly"
-                          ? "day"
-                          : timeRange === "monthly"
-                          ? "week"
-                          : "month"
-                      }
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{
-                        fontSize:
-                          currentBreakpoint === "xs"
-                            ? 9
-                            : currentBreakpoint === "sm"
-                            ? 10
-                            : 12,
-                      }}
-                      interval={currentBreakpoint === "xs" ? 1 : 0}
-                    />
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{
-                        fontSize:
-                          currentBreakpoint === "xs"
-                            ? 9
-                            : currentBreakpoint === "sm"
-                            ? 10
-                            : 12,
-                      }}
-                      width={currentBreakpoint === "xs" ? 30 : 40}
-                    />
-                    <Tooltip
-                      content={<CustomTooltip />}
-                      cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
-                      wrapperStyle={{ outline: "none" }}
-                    />
-                    <Bar
-                      dataKey="violations"
-                      name="Pelanggaran"
-                      fill="#14532d"
-                      radius={[4, 4, 0, 0]}
-                      hide={activityType === "achievements"}
-                    />
-                    <Bar
-                      dataKey="achievements"
-                      name="Prestasi"
-                      fill="#00BB1C"
-                      radius={[4, 4, 0, 0]}
-                      hide={activityType === "violations"}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-center gap-4 sm:gap-6 py-4 border-t">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 block bg-[#14532d] rounded"></span>
-                <span className="text-xs sm:text-sm">Pelanggaran</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 block bg-[#00BB1C] rounded"></span>
-                <span className="text-xs sm:text-sm">Prestasi</span>
-              </div>
-            </CardFooter>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
 
-        {/* Leaderboard Card */}
-        <div className="order-2 xl:order-none">
+          {/* Reported Students Card */}
           <Card className="rounded-xl overflow-hidden">
-            <CardHeader className="text-center bg-green-500 text-white p-4">
-              <CardTitle>Peringkat Pelanggaran</CardTitle>
+            <CardHeader className="text-center bg-green-500 text-white p-3">
+              <CardTitle className="text-sm">Siswa Dilaporkan</CardTitle>
             </CardHeader>
             <CardContent className="p-0 min-h-[300px] flex flex-col justify-between">
               <div>
-                {leaderboardData.length > 0 ? (
-                  leaderboardData.map((student, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center p-4 border-b hover:bg-green-50 transition-colors"
-                    >
+                {reportedStudentsData.length > 0 ? (
+                  <>
+                    {reportedStudentsData.slice(0, 3).map((student, index) => (
                       <div
-                        className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full mr-3 text-lg font-bold ${
-                          index === 0
-                            ? "bg-yellow-100 text-yellow-600 ring-1 ring-yellow-200"
-                            : index === 1
-                            ? "bg-gray-100 text-gray-500 ring-1 ring-gray-200"
-                            : "bg-orange-100 text-orange-600 ring-1 ring-orange-200"
-                        }`}
+                        key={student.id + index}
+                        className="flex items-center p-3 border-b hover:bg-green-50 transition-colors"
                       >
-                        {student.rank}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">
-                          {student.name}
-                        </p>
-                        <div className="flex items-center">
-                          <p className="text-sm text-gray-500">
-                            Poin Pelanggaran:
-                          </p>
-                          <Badge
-                            variant="outline"
-                            className="ml-2 rounded-full"
+                        <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full mr-3 bg-red-100 text-red-600 ring-1 ring-red-200">
+                          <UserX className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <button
+                            className="text-sm font-medium text-gray-900 truncate hover:text-green-600 transition-colors text-left"
                           >
-                            {student.points}
-                          </Badge>
+                            {student.name}
+                          </button>
+                          <p className="text-xs text-gray-500 truncate">
+                            {student.violationType}
+                          </p>
+                          <div className="flex items-center mt-1">
+                            <Clock className="h-3 w-3 text-gray-400 mr-1" />
+                            <p className="text-xs text-gray-400">
+                              {formatTimeAgo(student.timestamp)}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex-shrink-0">
-                        <Award
-                          className={`h-5 w-5 ${
-                            index === 0
-                              ? "text-yellow-500"
-                              : index === 1
-                              ? "text-gray-500"
-                              : "text-orange-500"
-                          }`}
-                        />
+                    ))}
+                    
+                    {/* Show "Lihat Lainnya" button if there are more than 3 students */}
+                    {reportedStudentsData.length > 3 && (
+                      <div className="p-3">
+                        <button
+                          // onClick={() => navigate('/#')}
+                          className="w-full flex items-center justify-center py-2 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors group"
+                        >
+                          <span>Lihat Lainnya ({reportedStudentsData.length - 3})</span>
+                          <ChevronRight className="h-3 w-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
+                        </button>
                       </div>
-                    </div>
-                  ))
+                    )}
+                  </>
                 ) : (
-                  <div className="flex flex-col items-center justify-center p-8 text-center">
-                    <Award className="h-12 w-12 text-gray-400 mb-4" />
-                    <p className="text-gray-500 font-medium">
-                      Belum ada data pelanggaran
+                  <div className="flex flex-col items-center justify-center p-6 text-center">
+                    <UserX className="h-10 w-10 text-gray-400 mb-3" />
+                    <p className="text-sm text-gray-500 font-medium">
+                      Belum ada laporan
                     </p>
-                    <p className="text-sm text-gray-400 mt-2">
-                      Tidak ada siswa yang memiliki poin pelanggaran
+                    <p className="text-xs text-gray-400 mt-1">
+                      Tidak ada siswa yang dilaporkan baru-baru ini
                     </p>
                   </div>
                 )}
               </div>
             </CardContent>
           </Card>
+          </div>
         </div>
       </div>
       {/* Violation List Section - Now responsive with card list on mobile */}
