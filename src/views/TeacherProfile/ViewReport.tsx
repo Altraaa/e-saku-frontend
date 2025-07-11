@@ -549,7 +549,8 @@ const ViewReport = () => {
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
+                        size="icon"
                         onClick={() =>
                           navigate("/esakuform", {
                             state: { editData: report },
@@ -560,14 +561,14 @@ const ViewReport = () => {
                         <SquarePen className="h-6 w-6" />
                       </Button>
                       {report.reported_by === teacherId && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteClick(report)}
-                          className="text-red-500 hover:text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleDeleteClick(report)}
+                        className="text-red-500 hover:text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                       )}
                     </div>
                   </div>
