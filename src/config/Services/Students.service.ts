@@ -44,4 +44,16 @@ export const ApiStudents = {
       method: "POST",
       body: { _method: "DELETE" },
     }),
+  exportByClassId: (class_id: number): Promise<Blob> =>
+    ApiRequest({
+      url: `/students/export/class/${class_id}`,
+      method: "GET",
+      responseType: "blob",
+    }),
+  exportHistory: (): Promise<Blob> =>
+    ApiRequest({
+      url: `/history/export`,  
+      method: "GET",
+      responseType: "blob",
+    }),
 };

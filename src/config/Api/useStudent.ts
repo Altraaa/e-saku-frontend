@@ -127,3 +127,51 @@ export const useStudentDeleteByClass = () => {
     },
   });
 };
+
+// Export data Student
+export const useStudentExportByClass = () => {
+  return async (class_id: number) => {
+    try {
+      const blob = await ApiStudents.exportByClassId(class_id);
+
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement("a");
+      link.href = url;
+
+      const fileName = `students_class_${class_id}_${new Date()
+        .toISOString()
+        .slice(0, 10)}.xlsx`;
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Export failed:", error);
+      throw error;
+    }
+  };
+};
+
+// Export data History
+export const useStudentHistoryExport = () => {
+  return async () => {
+    try {
+      const response = await ApiStudents.exportHistory();
+
+      const url = window.URL.createObjectURL(new Blob([response]));
+      const link = document.createElement("a");
+      link.href = url;
+
+      const fileName = `history_export_${new Date()
+        .toISOString()
+        .slice(0, 10)}.xlsx`;
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Export history failed:", error);
+      throw error;
+    }
+  };
+};
