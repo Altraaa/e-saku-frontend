@@ -11,6 +11,7 @@ interface ApiRequestProps {
   isFormData?: boolean;
   customAuth?: boolean;
   onUploadProgress?: (progressEvent: { loaded: number; total?: number }) => void;
+  responseType?: "json" | "blob";
 }
 
 export const DefaultHeaders = {
@@ -67,6 +68,7 @@ export const ApiRequest = async ({
   isMultipart = false,
   isFormData = false,
   onUploadProgress,
+  responseType = "json",
 }: ApiRequestProps) => {
   try {
     const isFileUpload = isFormData || isMultipart;
@@ -87,9 +89,14 @@ export const ApiRequest = async ({
       params,
       data: body ? (isFileUpload ? body : JSON.stringify(body)) : undefined,
       onUploadProgress: isFileUpload ? onUploadProgress : undefined,
+      responseType,
     };
 
     const response = await axiosInstance.request(config);
+
+    if (responseType === "blob") {
+      return response.data;
+    }
 
     if (!response?.data) {
       throw new Error("Invalid API response: No data returned.");

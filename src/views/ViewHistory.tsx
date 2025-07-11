@@ -26,19 +26,27 @@ import {
   Loader2,
   Search,
   Trash2,
+  UploadIcon,
   X,
 } from "lucide-react";
 import { DatePicker } from "@/components/shared/component/DatePicker";
 import { useEffect, useMemo, useState } from "react";
-import { useViolationDelete, useViolationsByTeacherId } from "@/config/Api/useViolation";
+import {
+  useViolationDelete,
+  useViolationsByTeacherId,
+} from "@/config/Api/useViolation";
 import { IViolation } from "@/config/Models/Violation";
-import { useAccomplishmentDelete, useAccomplishmentsByTeacherId } from "@/config/Api/useAccomplishments";
+import {
+  useAccomplishmentDelete,
+  useAccomplishmentsByTeacherId,
+} from "@/config/Api/useAccomplishments";
 import { IAccomplishments } from "@/config/Models/Accomplishments";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LevelLabel } from "@/config/Models/LevelMap";
 import toast from "react-hot-toast";
 import ConfirmationModal from "@/components/ui/confirmation";
 import { Link } from "react-router-dom";
+import { useStudentHistoryExport } from "@/config/Api/useStudent";
 
 // Helper function to format date as YYYY-MM-DD in local time
 const formatDate = (date: Date) => {
@@ -63,6 +71,7 @@ const ViewHistory = () => {
   const [classType, setClassType] = useState<string>("");
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [isModalExportOpen, setIsModalExportOpen] = useState(false);
 
   // Table states
   const [rowsPerPage, setRowsPerPage] = useState("10");
@@ -83,7 +92,10 @@ const ViewHistory = () => {
   const deleteAccomplishment = useAccomplishmentDelete();
 
   const { refetch: refetchViolations } = useViolationsByTeacherId(teacherId);
-  const { refetch: refetchAccomplishments } = useAccomplishmentsByTeacherId(teacherId);
+  const { refetch: refetchAccomplishments } =
+    useAccomplishmentsByTeacherId(teacherId);
+
+  const exportHistory = useStudentHistoryExport();
 
   // Fetch data hooks
   const {
@@ -110,26 +122,29 @@ const ViewHistory = () => {
     setCurrentPage(1);
   };
 
-  const handleDeleteClick = (id: number, type: "violation" | "accomplishment") => {
+  const handleDeleteClick = (
+    id: number,
+    type: "violation" | "accomplishment"
+  ) => {
     setItemToDelete({ id, type });
     setIsDeleteModalOpen(true);
   };
 
   // Fungsi untuk konfirmasi delete
-const handleConfirmDelete = async () => {
+  const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
 
     try {
       if (itemToDelete.type === "violation") {
         await deleteViolation.mutateAsync(itemToDelete.id);
         toast.success("Data pelanggaran berhasil dihapus");
-        
+
         // Panggil refetch untuk memperbarui data
         await refetchViolations();
       } else {
         await deleteAccomplishment.mutateAsync(itemToDelete.id);
         toast.success("Data prestasi berhasil dihapus");
-        
+
         // Panggil refetch untuk memperbarui data
         await refetchAccomplishments();
       }
@@ -150,6 +165,21 @@ const handleConfirmDelete = async () => {
     }, 300);
 
     return () => clearTimeout(timeoutId);
+  };
+
+  const handleConfirmExportData = async () => {
+    try {
+      await exportHistory();
+      setIsModalExportOpen(false);
+      toast.success("File berhasil didownload");
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Gagal export file");
+    }
+  };
+
+  const handleFileExport = () => {
+    setIsModalExportOpen(true);
   };
 
   const handleRowsPerPageChange = (value: string) => {
@@ -292,22 +322,32 @@ const handleConfirmDelete = async () => {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
-        <div className="w-full sm:w-[180px]">
-          <Select onValueChange={handleHistoryChange} value={selectedHistory}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Pilih Histori" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="violationhistory">
-                  Histori Pelanggaran
-                </SelectItem>
-                <SelectItem value="accomplishmenthistory">
-                  Histori Prestasi
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+        <div className="w-full flex justify-between sm:w-[180px]">
+          <div className="flex gap-4 w-full">
+            <Select onValueChange={handleHistoryChange} value={selectedHistory}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Pilih Histori" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="violationhistory">
+                    Histori Pelanggaran
+                  </SelectItem>
+                  <SelectItem value="accomplishmenthistory">
+                    Histori Prestasi
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={handleFileExport}
+              variant="outline"
+              className="text-green-600 hover:text-white hover:bg-green-600 border border-green-500 transition-all duration-300 w-full sm:w-auto"
+            >
+              <UploadIcon className="mr-2 h-4 w-4" />
+              Export Excel
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -739,6 +779,16 @@ const handleConfirmDelete = async () => {
         confirmText="Hapus"
         cancelText="Batal"
         type="delete"
+      />
+      <ConfirmationModal
+        isOpen={isModalExportOpen}
+        onClose={() => setIsModalExportOpen(false)}
+        onConfirm={handleConfirmExportData}
+        title="Konfirmasi Export Data"
+        description="Apakah Anda yakin ingin mengekspor data ini?"
+        confirmText="Export"
+        cancelText="Cancel"
+        type="add"
       />
     </>
   );
