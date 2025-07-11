@@ -117,8 +117,6 @@ const ViewBioViolations = () => {
     }
   };
 
-  const [isModalImageOpen, setIsImageModalOpen] = useState(false);
-
   const handleOpenImageModal = () => {
     setIsImageModalOpen(true);
   };
@@ -486,19 +484,19 @@ const ViewBioViolations = () => {
                       </TableCell>
                       <TableCell className="text-center py-4 px-4">
                         {violation.image_documentation ? (
-                          <a
+                          <button
                             onClick={handleOpenImageModal} // Memanggil fungsi untuk membuka modal
                             className="inline-block bg-blue-500 text-white font-semibold px-3 py-1 rounded hover:bg-blue-600 transition duration-200 cursor-pointer"
                           >
                             Lihat Gambar
-                          </Button>
+                          </button>
                         ) : (
                           <span className="text-gray-600">
                             Tidak Ada Dokumentasi
                           </span>
                         )}
 
-                        {isModalImageOpen && (
+                        {isImageModalOpen && (
                           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                             <div className="relative bg-white p-6 rounded-md">
                               <button
@@ -508,7 +506,10 @@ const ViewBioViolations = () => {
                                 <X className="h-4 w-4" />
                               </button>
                               <img
-                                src={`${import.meta.env.VITE_API_URL?.replace("/api", "/public")}${violation.image_documentation}`}
+                                src={`${import.meta.env.VITE_API_URL?.replace(
+                                  "/api",
+                                  "/public"
+                                )}${violation.image_documentation}`}
                                 alt="Dokumentasi"
                                 className="w-full aspect-auto max-h-screen rounded-md"
                               />
@@ -544,7 +545,7 @@ const ViewBioViolations = () => {
                         </div>
                       </TableCell>
                     </TableRow>
-                ))
+                  ))
                 ) : (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-12 px-4">
@@ -658,7 +659,7 @@ const ViewBioViolations = () => {
                             Tidak Ada Dokumentasi
                           </span>
                         )}
-                        {isModalImageOpen && (
+                        {isImageModalOpen && (
                           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
                             <div className="relative w-[90%] bg-white p-5 rounded-sm">
                               <button
@@ -668,7 +669,10 @@ const ViewBioViolations = () => {
                                 <X className="h-4 w-4" />
                               </button>
                               <img
-                                src={`${import.meta.env.VITE_API_URL?.replace("/api", "/public")}${violation.image_documentation}`}
+                                src={`${import.meta.env.VITE_API_URL?.replace(
+                                  "/api",
+                                  "/public"
+                                )}${violation.image_documentation}`}
                                 alt="Dokumentasi"
                                 className="w-full aspect-auto max-h-screen rounded-sm"
                               />
@@ -783,8 +787,6 @@ const ViewBioViolations = () => {
         </CardContent>
       </Card>
 
-      
-
       <ConfirmationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -795,19 +797,19 @@ const ViewBioViolations = () => {
         cancelText="Cancel"
         type="delete"
       />
-      
+
       {/* Image Modal */}
       {isImageModalOpen && selectedImage && (
         <div className="fixed top-0 inset-0 z-50 bg-black bg-opacity-90">
-          <button 
+          <button
             onClick={() => setIsImageModalOpen(false)}
             className="absolute top-4 right-4 text-white hover:text-gray-300 z-50"
           >
             <X className="h-8 w-8" />
           </button>
           <div className="flex items-center justify-center h-full w-full p-4">
-            <img 
-              src={selectedImage} 
+            <img
+              src={selectedImage}
               alt="Dokumentasi Pelanggaran"
               className="max-w-full max-h-full object-contain"
             />
