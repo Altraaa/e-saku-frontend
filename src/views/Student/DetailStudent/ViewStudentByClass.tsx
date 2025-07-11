@@ -10,7 +10,8 @@ import {
   X,
   Check,
   Trash,
-  ArrowLeft, // Add ArrowLeft icon for back button
+  ArrowLeft,
+  UploadIcon, // Add ArrowLeft icon for back button
 } from "lucide-react";
 import {
   Table,
@@ -43,6 +44,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom"; // Add useNavigate
 import {
   useStudentDeleteByClass,
+  useStudentExportByClass,
   useStudentsByClassId,
 } from "@/config/Api/useStudent";
 import { useClassroomById } from "@/config/Api/useClasroom";
@@ -53,6 +55,7 @@ import { IStudent } from "@/config/Models/Student";
 import ConfirmationModal from "@/components/ui/confirmation";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { set } from "date-fns";
 
 interface ClassHeaderProps {
   className: string;
@@ -112,6 +115,7 @@ const ViewStudentByClass: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalDeleteAllOpen, setIsModalDeleteAllOpen] = useState(false);
+  const [isModalExportOpen, setIsModalExportOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<number | null>(null);
   const [studentByClasstoDelete, setStudentByClasstoDelete] = useState<
     number | null
@@ -135,6 +139,8 @@ const ViewStudentByClass: React.FC = () => {
     useClassroomById(classId);
   const { data: students, isLoading: studentsLoading } =
     useStudentsByClassId(classId);
+  const exportStudents = useStudentExportByClass();
+
   const teacherId = classroom?.teacher_id ?? 0;
   const { data: teacher } = useTeacherById(teacherId);
   const deleteStudent = useStudentDelete();
@@ -151,7 +157,6 @@ const ViewStudentByClass: React.FC = () => {
       setUserType("teacher");
     }
   }, []);
-
 
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,6 +253,17 @@ const ViewStudentByClass: React.FC = () => {
       } catch (error) {
         toast.error("Data siswa gagal dihapus");
       }
+    }
+  };
+
+  const handleConfirmExportData = async () => {
+    try {
+      await exportStudents(classId);
+      setIsModalExportOpen(false);
+      toast.success("File berhasil didownload");
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Gagal export file");
     }
   };
 
@@ -352,6 +368,10 @@ const ViewStudentByClass: React.FC = () => {
     }
   };
 
+  const handleFileExport = () => {
+    setIsModalExportOpen(true);
+  };
+
   const handleRemoveFile = () => {
     setSelectedFile(null);
     setUploadError("");
@@ -434,6 +454,15 @@ const ViewStudentByClass: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col md:flex-row justify-between gap-2">
+                  <Button
+                    onClick={handleFileExport}
+                    variant="outline"
+                    className="text-green-600 hover:text-white hover:bg-green-600 border border-green-500 transition-all duration-300 w-full sm:w-auto"
+                  >
+                    <UploadIcon className="mr-2 h-4 w-4" />
+                    Export Excel
+                  </Button>
+
                   <Dialog
                     open={isImportModalOpen}
                     onOpenChange={(open) => {
@@ -1017,6 +1046,16 @@ const ViewStudentByClass: React.FC = () => {
             confirmText="Delete"
             cancelText="Cancel"
             type="delete"
+          />
+          <ConfirmationModal
+            isOpen={isModalExportOpen}
+            onClose={() => setIsModalExportOpen(false)}
+            onConfirm={handleConfirmExportData}
+            title="Konfirmasi Export Data"
+            description="Apakah Anda yakin ingin mengekspor data ini?"
+            confirmText="Export"
+            cancelText="Cancel"
+            type="add"
           />
         </>
       )}
