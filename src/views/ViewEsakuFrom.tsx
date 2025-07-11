@@ -162,6 +162,50 @@ const ESakuForm: React.FC = () => {
     useAccomplishmentsDocumentationUpload();
 
   const formRef = useRef<HTMLDivElement>(null);
+  const dragCounter = useRef<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounter.current = 0;
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      if (files.length > 1) {
+        // Optionally handle error for multiple files
+        return;
+      }
+      const file = files[0];
+      setSelectedFile(file);
+      const localUrl = URL.createObjectURL(file);
+      setPhotoUrl(localUrl);
+    }
+  };
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -452,13 +496,11 @@ const ESakuForm: React.FC = () => {
         setIsSubmitting(false);
         return;
       }
-      // Gunakan data siswa langsung dari editData di mode edit
       studentObj = {
         id: editData.student.id,
         name: editData.student.name,
       };
     } else {
-      // Cari siswa dari API di mode normal
       studentObj = students.find((s) => s.name === studentName);
     }
 
@@ -771,7 +813,7 @@ const ESakuForm: React.FC = () => {
       }
     }, 100);
   };
-
+  
   return (
     <div className="space-y-4 sm:space-y-6" ref={formRef}>
       <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-md">
@@ -1377,20 +1419,73 @@ const ESakuForm: React.FC = () => {
                       </>
                     }
                   >
-                    <Button
-                      className="w-full h-full border py-4"
-                      onClick={handleChangeDocumentation}
-                      variant={"ghost"}
+                {!selectedFile ? (
+                  <div
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                    className={`relative transition-all duration-200 ${
+                      isDragging ? "scale-100" : ""
+                    }`}
+                  >
+                    <label
+                      htmlFor="file-upload"
+                      className={`flex flex-col items-center justify-center w-full h-24 sm:h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                        isDragging
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-300 bg-gray-50 hover:border-green-500 hover:bg-gray-100"
+                      }`}
                     >
-                      <Upload className="mr-2 h-4 w-4" />
-                      <span>Upload Lampiran</span>
-                    </Button>
-                    {selectedFile && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <File className="h-4 w-4 text-green-600" />
-                        <span>{selectedFile.name}</span>
-                      </div>
+                      <Upload
+                        className={`w-6 h-6 sm:w-8 sm:h-8 mb-1 sm:mb-2 transition-all duration-200 ${
+                          isDragging
+                            ? "text-green-600 scale-100"
+                            : "text-gray-400"
+                        }`}
+                      />
+                      <span
+                        className={`text-xs sm:text-sm text-center px-2 transition-colors duration-200 ${
+                          isDragging
+                            ? "text-green-600 font-medium"
+                            : "text-gray-600"
+                        }`}
+                      >
+                        {isDragging
+                          ? "Drop your file here"
+                          : "Click to upload or drag & drop"}
+                      </span>
+                      <span className="text-xs text-gray-400 mt-0.5 sm:mt-1 px-2 text-center">
+                        .jpg, .jpeg, .png, .gif (max 10MB)
+                      </span>
+                    </label>
+                    {isDragging && (
+                      <div className="absolute inset-0 rounded-lg bg-green-500 bg-opacity-10 pointer-events-none animate-pulse" />
                     )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 mt-2 rounded-md border border-green-300 bg-green-50 px-3 py-2 shadow-sm">
+                    <File className="h-5 w-5 text-green-600 flex-shrink-0" />
+                    <span className="truncate font-medium text-green-700">
+                      {selectedFile.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFile(null)}
+                      className="text-red-500 hover:text-red-600 transition-colors ml-auto"
+                      aria-label="Remove file"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                )}
+                <input
+                  id="file-upload"
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.gif,image/*"
+                  onChange={handleChangeDocumentation}
+                  className="hidden"
+                />
                   </FormFieldGroup>
                 </div>
               </>
