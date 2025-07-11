@@ -23,7 +23,7 @@ export const ApiTeachers = {
       method: "POST",
       body: { ...data, _method: "PUT" },
     }),
-  uploadPhoto: (id: string, file: File): Promise<any> => {
+  uploadPhoto: (id: string, file: File): Promise<ITeacher> => {
     const formData = new FormData();
     formData.append("profile_image", file);
 
@@ -34,7 +34,7 @@ export const ApiTeachers = {
       isFormData: true,
     });
   },
-  deleteProfileImage: (id: string): Promise<any> =>
+  deleteProfileImage: (id: string): Promise<ITeacher> =>
     ApiRequest({
       url: `/teachers/${id}/photo`,
       method: "POST",

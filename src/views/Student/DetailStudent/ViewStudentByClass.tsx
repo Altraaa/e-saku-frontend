@@ -49,7 +49,7 @@ import {
 import { useClassroom, useClassroomById } from "@/config/Api/useClasroom";
 import { useStudentDelete } from "@/config/Api/useStudent";
 import { useTeacherById } from "@/config/Api/useTeacher";
-import axios from "axios";
+import { StudentImportService } from "@/config/Services/StudentImport.service";
 import { IStudent } from "@/config/Models/Student";
 import ConfirmationModal from "@/components/ui/confirmation";
 import toast from "react-hot-toast";
@@ -188,13 +188,25 @@ const ViewStudentByClass: React.FC = () => {
   const filteredStudents = useMemo(() => {
     if (!students || !Array.isArray(students)) return [] as IStudent[];
 
-    if (searchText === "") return students;
+    let result = [...students];
 
-    return students.filter(
-      (student: IStudent) =>
-        student.name?.toLowerCase().includes(searchText.toLowerCase()) ||
-        student.nis?.toLowerCase().includes(searchText.toLowerCase())
-    );
+    // Sort by NIS
+    result.sort((a, b) => {
+      const nisA = a.nis?.toLowerCase() ?? '';
+      const nisB = b.nis?.toLowerCase() ?? '';
+      return nisA.localeCompare(nisB);
+    });
+
+    // Apply search filter if search text exists
+    if (searchText !== "") {
+      result = result.filter(
+        (student: IStudent) =>
+          student.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+          student.nis?.toLowerCase().includes(searchText.toLowerCase())
+      );
+    }
+
+    return result;
   }, [searchText, students]);
 
   useEffect(() => {
@@ -275,27 +287,10 @@ const ViewStudentByClass: React.FC = () => {
   };
 
   const validateAndSetFile = (file: File) => {
-    const validTypes = [
-      "application/vnd.ms-excel",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    ];
-
-    const validExtensions = [".xls", ".xlsx"];
-    const fileExtension = file.name
-      .toLowerCase()
-      .slice(file.name.lastIndexOf("."));
-
-    if (
-      !validTypes.includes(file.type) &&
-      !validExtensions.includes(fileExtension)
-    ) {
-      setUploadError("Please select a valid Excel file (.xls or .xlsx)");
-      setSelectedFile(null);
-      return false;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      setUploadError("File size must be less than 10MB");
+    const validation = StudentImportService.validateFile(file);
+    
+    if (!validation.isValid) {
+      setUploadError(validation.error || "Invalid file");
       setSelectedFile(null);
       return false;
     }
@@ -355,53 +350,27 @@ const ViewStudentByClass: React.FC = () => {
   };
 
   const handleFileUpload = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile || !token) return;
 
     setUploadStatus("uploading");
     setUploadProgress(0);
 
-    try {
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-      formData.append("classId", classId.toString());
+    const result = await StudentImportService.importStudents(
+      selectedFile,
+      classId,
+      setUploadProgress
+    );
 
-      const response = await axios.post(
-        "https://saku.dev.smkn1denpasar.sch.id/api/import/students",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-          onUploadProgress: (progressEvent) => {
-            if (progressEvent.total) {
-              const percent = Math.round(
-                (progressEvent.loaded * 100) / progressEvent.total
-              );
-              setUploadProgress(percent > 90 ? 90 : percent);
-            }
-          },
-        }
-      );
-
-      if (response.status !== 200) {
-        throw new Error("Failed to upload file. Please try again.");
-      }
-
+    if (result.success) {
       await new Promise((resolve) => setTimeout(resolve, 500));
-
       setUploadProgress(100);
-      toast.success("Data siswa berhasil diimport");
+      toast.success(result.message);
       setUploadStatus("success");
       queryClient.invalidateQueries({ queryKey: ["students"] });
-    } catch (error) {
+    } else {
       setUploadStatus("error");
       toast.error("Data siswa gagal diimport");
-      setUploadError(
-        error instanceof Error
-          ? error.message
-          : "Failed to upload file. Please try again."
-      );
+      setUploadError(result.message);
     }
   };
 

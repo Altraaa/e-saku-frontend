@@ -38,6 +38,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useReportDelete, useReports } from "@/config/Api/useTeacherReport";
 import toast from "react-hot-toast";
 import ConfirmationModal from "@/components/ui/confirmation";
+import { ITeacherReport } from "@/config/Models/TeacherReport";
 
 const ViewReport = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -45,7 +46,7 @@ const ViewReport = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isViolationDetailModalOpen, setIsViolationDetailModalOpen] =
     useState(false);
-  const [violationDetails, setViolationDetails] = useState<any>(null);
+  const [violationDetails, setViolationDetails] = useState<ITeacherReport | undefined>(undefined);
   const [filters, setFilters] = useState({
     selectedDate: "",
     searchTerm: "",
@@ -57,7 +58,7 @@ const ViewReport = () => {
   const { data: reports, isLoading: isReportsLoading } = useReports();
   const { mutate: deleteReport } = useReportDelete();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [reportToDelete, setReportToDelete] = useState<any>(null);
+  const [reportToDelete, setReportToDelete] = useState<ITeacherReport | undefined>(undefined);
 
   // Get logged-in teacher ID from localStorage
   const teacherId = Number(localStorage.getItem("teacher_id"));
@@ -91,7 +92,7 @@ const ViewReport = () => {
     });
   };
 
-  const handleShowViolationDetails = (violation: any) => {
+  const handleShowViolationDetails = (violation: ITeacherReport) => {
     setViolationDetails(violation);
     setIsViolationDetailModalOpen(true);
   };
@@ -166,7 +167,7 @@ const ViewReport = () => {
     }));
   }, []);
 
-  const handleDeleteClick = (report: any) => {
+  const handleDeleteClick = (report: ITeacherReport) => {
     setReportToDelete(report);
     setIsDeleteModalOpen(true);
   };

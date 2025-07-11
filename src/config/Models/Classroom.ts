@@ -5,6 +5,7 @@ import { ITeacher } from "./Teacher";
 export interface IClassroom {
   id: number;
   name: string;
+  grade: string;
   teacher_id: number;
   total_student: number;
   major_id: number;

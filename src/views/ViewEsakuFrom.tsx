@@ -68,7 +68,6 @@ import FormFieldGroup from "@/components/shared/component/FormField";
 import LoadingSpinnerButton from "@/components/shared/component/LoadingSpinnerButton";
 import {
   useViolationCreate,
-  useViolationsDocumentationDelete,
   useViolationsDocumentationUpload,
 } from "@/config/Api/useViolation";
 import {
@@ -142,9 +141,9 @@ const ESakuForm: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [errors, setErrors] = useState<ESakuFormErrorState>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [showSuccess, setShowSuccess] = useState<boolean>(false);
+  const [, setShowSuccess] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
+  const [, setPhotoUrl] = useState<string | undefined>(undefined);
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
   const [isClassTaughtByTeacher, setIsClassTaughtByTeacher] = useState<
     boolean | null

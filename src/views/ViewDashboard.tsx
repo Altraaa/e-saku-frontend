@@ -58,6 +58,7 @@ import { useAccomplishments } from "@/config/Api/useAccomplishments";
 import { IAccomplishments } from "@/config/Models/Accomplishments";
 import { useStudentById } from "@/config/Api/useStudent";
 import { Link } from "react-router-dom";
+import { IClassroom } from "@/config/Models/Classroom";
 
 interface LeaderboardItem {
   rank: number;
@@ -152,7 +153,7 @@ const ViewDashboard = () => {
   const [userRole, setUserRole] = useState<"teacher" | "student">("teacher");
   const [timeRange, setTimeRange] = useState<TimeRange>("weekly");
   const [overallTimeRange, setOverallTimeRange] = useState<
-    "daily" | "weekly" | "monthly"
+    "daily" | "weekly" | "monthly" | "yearly"
   >("daily");
   const [yearlyView, setYearlyView] = useState<"firstHalf" | "secondHalf">(
     "firstHalf"
@@ -170,7 +171,7 @@ const ViewDashboard = () => {
 
   // State for data
   const [violationData, setViolationData] = useState<IViolation[]>([]);
-  const [accomplishmentData, setAccomplishmentData] = useState<
+  const [, setAccomplishmentData] = useState<
     IAccomplishments[]
   >([]);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardItem[]>([]);
@@ -218,7 +219,7 @@ const ViewDashboard = () => {
   const { data: accomplishmentsResponse } = useAccomplishments();
  
 
-  const getGradeFromClassroom = (classroom: any): string => {
+  const getGradeFromClassroom = (classroom: IClassroom | undefined): string => {
     if (!classroom || !classroom.grade) return "-";
     return classroom.grade;
   };
@@ -745,31 +746,30 @@ const ViewDashboard = () => {
           </CardContent>
         </Card>
       </div>
-      <div className="space-y-6">
-        {/* First Row: Chart and Leaderboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Bar Chart Card - Takes 2/3 of the width */}
-          <div className="lg:col-span-2">
-            <Card className="rounded-xl overflow-hidden h-fit">
-              <CardHeader className="border-b">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <CardTitle className="text-lg sm:text-xl font-bold text-gray-800">
-                    Perbandingan Aktivitas Siswa
-                  </CardTitle>
-                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full md:w-auto">
-                    <Select
-                      value={activityType}
-                      onValueChange={(v) => setActivityType(v as any)}
-                    >
-                      <SelectTrigger className="border-green-500 focus:ring-green-400 w-full xs:w-auto xs:min-w-[140px] rounded-lg">
-                        <SelectValue placeholder="Jenis Aktivitas" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Semua</SelectItem>
-                        <SelectItem value="violations">Pelanggaran</SelectItem>
-                        <SelectItem value="achievements">Prestasi</SelectItem>
-                      </SelectContent>
-                    </Select>
+      {/* Grid for Main Content (Comparisons & Leaderboard) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Bar Chart Card */}
+        <div className="col-span-1 lg:col-span-2">
+          <Card className="rounded-xl overflow-hidden">
+            <CardHeader className="border-b">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <CardTitle className="text-lg sm:text-xl font-bold text-gray-800">
+                  Perbandingan Aktivitas Siswa
+                </CardTitle>
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full md:w-auto">
+                  <Select
+                    value={activityType}
+                    onValueChange={(v: "all" | "violations" | "achievements") => setActivityType(v)}
+                  >
+                    <SelectTrigger className="border-green-500 focus:ring-green-400 w-full xs:w-auto xs:min-w-[140px] rounded-lg">
+                      <SelectValue placeholder="Jenis Aktivitas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua</SelectItem>
+                      <SelectItem value="violations">Pelanggaran</SelectItem>
+                      <SelectItem value="achievements">Prestasi</SelectItem>
+                    </SelectContent>
+                  </Select>
 
                     <Select
                       value={timeRange}
@@ -1051,7 +1051,7 @@ const ViewDashboard = () => {
               <div className="md:flex items-center space-y-2 md:space-y-0 gap-2">
                 <Select
                   value={overallTimeRange}
-                  onValueChange={(v) => setOverallTimeRange(v as any)}
+                  onValueChange={(v: "daily" | "weekly" | "monthly" | "yearly" ) => setOverallTimeRange(v)}
                 >
                   <SelectTrigger className="border-green-500 focus:ring-green-400 w-full xs:w-auto xs:min-w-[140px] rounded-lg">
                     <SelectValue placeholder="Rentang Waktu" />

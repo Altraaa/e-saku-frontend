@@ -5,7 +5,6 @@ import esakulogin from "../assets/esakulogin.jpg";
 import { useState } from "react";
 import { useLogin } from "@/config/Api/useAuth";
 import { AlertTriangle } from "lucide-react";
-import { fi } from "date-fns/locale";
 
 export default function ViewLogin() {
   const [identifier, setIdentifier] = useState("");

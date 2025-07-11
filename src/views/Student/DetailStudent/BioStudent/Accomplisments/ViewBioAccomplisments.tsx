@@ -400,7 +400,7 @@ const ViewBioAccomplishments = () => {
           <div className="block lg:hidden">
             {paginatedAccomplishments.length > 0 ? (
               <div className="space-y-4 p-4">
-                {paginatedAccomplishments.map((accomplishment, index) => (
+                {paginatedAccomplishments.map((accomplishment) => (
                   <Card
                     key={accomplishment.id}
                     className="border border-gray-200"
