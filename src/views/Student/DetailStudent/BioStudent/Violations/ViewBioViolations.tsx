@@ -115,6 +115,16 @@ const ViewBioViolations = () => {
     }
   };
 
+  const [isModalImageOpen, setIsImageModalOpen] = useState(false);
+
+  const handleOpenImageModal = () => {
+    setIsImageModalOpen(true);
+  };
+
+  const handleCloseImageModal = () => {
+    setIsImageModalOpen(false);
+  };
+
   const formatDisplayDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("id-ID", {
@@ -185,6 +195,8 @@ const ViewBioViolations = () => {
     (sum, violation) => sum + violation.points,
     0
   );
+
+  
 
   const itemsPerPage = parseInt(rowsPerPage);
   const totalPages = Math.ceil(filteredViolations.length / itemsPerPage);
@@ -472,13 +484,8 @@ const ViewBioViolations = () => {
                       <TableCell className="text-center py-4 px-4">
                         {violation.image_documentation ? (
                           <a
-                            href={`${import.meta.env.VITE_API_URL?.replace(
-                              "/api",
-                              "/public"
-                            )}${violation.image_documentation}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block bg-blue-500 text-white font-semibold px-3 py-1 rounded hover:bg-blue-600 transition duration-200"
+                            onClick={handleOpenImageModal} // Memanggil fungsi untuk membuka modal
+                            className="inline-block bg-blue-500 text-white font-semibold px-3 py-1 rounded hover:bg-blue-600 transition duration-200 cursor-pointer"
                           >
                             Lihat Gambar
                           </a>
@@ -486,6 +493,24 @@ const ViewBioViolations = () => {
                           <span className="text-gray-600">
                             Tidak Ada Dokumentasi
                           </span>
+                        )}
+
+                        {isModalImageOpen && (
+                          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                            <div className="relative bg-white p-6 rounded-md">
+                              <button
+                                onClick={handleCloseImageModal} // Fungsi untuk menutup modal
+                                className="absolute text-2xl h-fit top-0 right-0 p-2 text-gray-600"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                              <img
+                                src={`${import.meta.env.VITE_API_URL?.replace("/api", "/public")}${violation.image_documentation}`}
+                                alt="Dokumentasi"
+                                className="w-full aspect-auto max-h-screen rounded-md"
+                              />
+                            </div>
+                          </div>
                         )}
                       </TableCell>
                       <TableCell className="text-center py-4 px-4">
@@ -516,7 +541,7 @@ const ViewBioViolations = () => {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
+                ))
                 ) : (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-12 px-4">
@@ -618,6 +643,35 @@ const ViewBioViolations = () => {
                         >
                           {violation.followUp}
                         </Badge>
+                        {violation.image_documentation ? (
+                          <a
+                            onClick={handleOpenImageModal} // Memanggil fungsi untuk membuka modal
+                            className="inline-block bg-blue-500 text-white font-medium text-sm text-center px-3 py-1 rounded-full hover:bg-blue-600 transition duration-200 cursor-pointer"
+                          >
+                            Lihat Gambar
+                          </a>
+                        ) : (
+                          <span className="text-gray-600">
+                            Tidak Ada Dokumentasi
+                          </span>
+                        )}
+                        {isModalImageOpen && (
+                          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                            <div className="relative w-[90%] bg-white p-5 rounded-sm">
+                              <button
+                                onClick={handleCloseImageModal} // Fungsi untuk menutup modal
+                                className="absolute text-2xl h-fit top-0 right-0 p-2 text-gray-600"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                              <img
+                                src={`${import.meta.env.VITE_API_URL?.replace("/api", "/public")}${violation.image_documentation}`}
+                                alt="Dokumentasi"
+                                className="w-full aspect-auto max-h-screen rounded-sm"
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -725,6 +779,8 @@ const ViewBioViolations = () => {
           </div>
         </CardContent>
       </Card>
+
+      
 
       <ConfirmationModal
         isOpen={isModalOpen}
