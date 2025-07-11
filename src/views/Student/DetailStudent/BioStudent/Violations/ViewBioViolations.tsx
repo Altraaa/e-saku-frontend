@@ -45,6 +45,8 @@ const ViewBioViolations = () => {
   const [rowsPerPage, setRowsPerPage] = useState("10");
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [userType, setUserType] = useState<"teacher" | "student">("teacher");
   const [violationToDelete, setViolationToDelete] = useState<number | null>(
     null
@@ -156,6 +158,7 @@ const ViewBioViolations = () => {
     created_at: violation.created_at,
     updated_at: violation.updated_at,
   }));
+  
 
   const filteredViolations = mappedViolations.filter((violation) => {
     if (
@@ -471,17 +474,18 @@ const ViewBioViolations = () => {
                       </TableCell>
                       <TableCell className="text-center py-4 px-4">
                         {violation.image_documentation ? (
-                          <a
-                            href={`${import.meta.env.VITE_API_URL?.replace(
-                              "/api",
-                              "/public"
-                            )}${violation.image_documentation}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block bg-blue-500 text-white font-semibold px-3 py-1 rounded hover:bg-blue-600 transition duration-200"
+                          <Button
+                            onClick={() => {
+                              setSelectedImage(`${import.meta.env.VITE_API_URL?.replace(
+                                "/api",
+                                "/public"
+                              )}${violation.image_documentation}`);
+                              setIsImageModalOpen(true);
+                            }}
+                            className="bg-blue-500 text-white font-semibold px-3 py-1 rounded hover:bg-blue-600 transition duration-200"
                           >
                             Lihat Gambar
-                          </a>
+                          </Button>
                         ) : (
                           <span className="text-gray-600">
                             Tidak Ada Dokumentasi
@@ -736,6 +740,25 @@ const ViewBioViolations = () => {
         cancelText="Cancel"
         type="delete"
       />
+      
+      {/* Image Modal */}
+      {isImageModalOpen && selectedImage && (
+        <div className="fixed top-0 inset-0 z-50 bg-black bg-opacity-90">
+          <button 
+            onClick={() => setIsImageModalOpen(false)}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 z-50"
+          >
+            <X className="h-8 w-8" />
+          </button>
+          <div className="flex items-center justify-center h-full w-full p-4">
+            <img 
+              src={selectedImage} 
+              alt="Dokumentasi Pelanggaran"
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

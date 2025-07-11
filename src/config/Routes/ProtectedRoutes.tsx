@@ -1,5 +1,6 @@
+// src/config/ProtectedRoute.tsx
+import { useEffect, useCallback, useState, useRef } from "react";
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
-import { useEffect, useCallback, useState } from "react";
 import { useLogout } from "../Api/useAuth";
 import toast from "react-hot-toast";
 
@@ -7,95 +8,85 @@ export function ProtectedRoute() {
   const navigate = useNavigate();
   const [token, setToken] = useState(localStorage.getItem("token"));
   const { logout } = useLogout();
+  const isLoggingOutRef = useRef(false);
+  const lastTokenCheckRef = useRef(token);
 
-  // Function to check auth status
-  const checkAuthStatus = useCallback(() => {
-    const currentToken = localStorage.getItem("token");
-    if (!currentToken) {
-      setToken(null);
-      return false;
-    }
-    return true;
-  }, []);
-
-  // Function to update last activity time
-  const updateLastActivity = useCallback(() => {
-    localStorage.setItem("last_activity", new Date().toISOString());
-  }, []);
-
-  // Function to handle user activity
-  const handleUserActivity = useCallback(() => {
-    updateLastActivity();
-  }, [updateLastActivity]);
-
-  // Function to logout user
+  // Fungsi logout terpusat
   const performLogout = useCallback(async () => {
+    if (isLoggingOutRef.current) return;
+    isLoggingOutRef.current = true;
+
     try {
-      // Attempt API logout first
       await logout();
     } catch (error) {
-      console.error("Logout API failed:", error);
+      console.error("Logout error:", error);
     } finally {
-      // Clear all auth-related localStorage
-      localStorage.clear();
-
-      // Show toast notification
       toast.error("Sesi Anda telah berakhir. Silakan login kembali.", {
         duration: 5000,
         position: "top-center",
       });
-
-      // Force redirect to login
       navigate("/login", { replace: true });
     }
   }, [logout, navigate]);
 
-  // Check session validity
-  const checkSession = useCallback(() => {
-    if (!checkAuthStatus()) {
-      performLogout();
-      return false;
-    }
+  // Fungsi untuk update last activity
+  const updateLastActivity = useCallback(() => {
+    localStorage.setItem("last_activity", new Date().toISOString());
+  }, []);
 
+  // Fungsi untuk handle aktivitas user
+  const handleUserActivity = useCallback(() => {
+    updateLastActivity();
+  }, [updateLastActivity]);
+
+  // Fungsi untuk cek sesi (inactivity)
+  const checkSession = useCallback(() => {
     const lastActivity = localStorage.getItem("last_activity");
     if (lastActivity) {
       const currentTime = new Date().getTime();
       const lastActivityTime = new Date(lastActivity).getTime();
       const timeDifference = currentTime - lastActivityTime;
 
-      // Logout if inactive for 1 hour (3600000 ms)
+      // Logout jika tidak aktif selama 1 jam (3600000 ms)
       if (timeDifference > 60 * 60 * 1000) {
-        console.log("Session expired due to inactivity");
         toast.error("Sesi Anda telah berakhir karena tidak ada aktivitas.", {
           duration: 5000,
           position: "top-center",
         });
-        performLogout();
         return false;
       }
     }
     return true;
-  }, [checkAuthStatus, performLogout]);
+  }, []);
 
-  // Real-time local storage check
+  // Pantau token di localStorage setiap detik
   useEffect(() => {
     const interval = setInterval(() => {
-      const isAuthenticated = checkAuthStatus();
-      if (!isAuthenticated) {
+      const currentToken = localStorage.getItem("token");
+
+      // Deteksi perubahan token di tab yang sama
+      if (lastTokenCheckRef.current !== currentToken) {
+        lastTokenCheckRef.current = currentToken;
+        setToken(currentToken);
+      }
+
+      // Trigger logout jika token dihapus
+      if (!currentToken && token) {
         performLogout();
       }
-    }, 1000); // Check every second
+    }, 500); // Periksa setiap 500ms
 
     return () => clearInterval(interval);
-  }, [checkAuthStatus, performLogout]);
+  }, [token, performLogout]);
 
+  // Set activity listeners dan session check
   useEffect(() => {
     if (!token) {
       performLogout();
       return;
     }
 
-    // Set initial last activity if not exists
+    // Set last activity jika belum ada
     if (!localStorage.getItem("last_activity")) {
       updateLastActivity();
     }
@@ -107,31 +98,24 @@ export function ProtectedRoute() {
       "keypress",
       "scroll",
       "touchstart",
-      "click",
-      "focus",
     ];
 
     const activityListeners = events.map((event) => {
       const listener = () => handleUserActivity();
-      document.addEventListener(event, listener, true);
+      document.addEventListener(event, listener);
       return { event, listener };
     });
 
     // Check session periodically
     const sessionCheckInterval = setInterval(() => {
-      checkSession();
+      if (!checkSession()) {
+        performLogout();
+      }
     }, 30 * 1000); // Check every 30 seconds
 
-    // Initial check
-    const isValidSession = checkSession();
-    if (!isValidSession) {
-      return;
-    }
-
-    // Cleanup
     return () => {
       activityListeners.forEach(({ event, listener }) => {
-        document.removeEventListener(event, listener, true);
+        document.removeEventListener(event, listener);
       });
       clearInterval(sessionCheckInterval);
     };
@@ -146,13 +130,16 @@ export function ProtectedRoute() {
   // Listen for storage changes from other tabs
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "token" && !e.newValue) {
-        setToken(null);
-        toast.error("Sesi Anda telah berakhir di tab lain.", {
-          duration: 5000,
-          position: "top-center",
-        });
-        performLogout();
+      if (e.key === "token") {
+        setToken(e.newValue || null);
+
+        if (!e.newValue) {
+          toast.error("Sesi Anda telah berakhir di tab lain.", {
+            duration: 5000,
+            position: "top-center",
+          });
+          performLogout();
+        }
       }
     };
 
@@ -160,7 +147,7 @@ export function ProtectedRoute() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [performLogout]);
 
-  // Redirect if no token
+  // Redirect jika token tidak ada
   if (!token) {
     return <Navigate to="/login" replace />;
   }

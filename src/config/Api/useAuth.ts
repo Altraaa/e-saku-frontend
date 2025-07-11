@@ -87,17 +87,17 @@ export const useLogout = () => {
   const logout = async () => {
     setIsLoading(true);
     try {
-      // 1. First call the logout API while still authenticated
-      await ApiAuth.logout();
+      // Hanya panggil API jika token ada
+      const token = localStorage.getItem("token");
+      if (token) {
+        await ApiAuth.logout();
+      }
     } catch (error) {
       console.error("Logout API error:", error);
-      // Even if API fails, proceed with client-side cleanup
+      // Tidak melempar error ke luar
     } finally {
-      // 2. Clear all client-side storage
+      // Selalu bersihkan storage
       localStorage.clear();
-
-      // 3. Force hard redirect to ensure clean state
-      window.location.href = "/login";
       setIsLoading(false);
     }
   };

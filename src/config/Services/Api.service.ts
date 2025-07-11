@@ -19,24 +19,12 @@ export const DefaultHeaders = {
 };
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL
-    ? `${import.meta.env.VITE_API_URL}`
-    : "https://saku.dev.smkn1denpasar.sch.id/api/",
+  baseURL: import.meta.env.VITE_API_URL,
   timeout: 50000,
 });
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Special handling for logout endpoint
-    if (config.url?.endsWith("/logout")) {
-      const token = localStorage.getItem("token");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    }
-
-    // Normal request handling
     const token = localStorage.getItem("token");
     const customAuth = (config as AxiosRequestConfig & { customAuth?: boolean }).customAuth;
 
@@ -60,12 +48,8 @@ axiosInstance.interceptors.response.use(
     }
 
     // Handle unauthorized errors (401)
-    if (error.response?.status === 401) {
-      // Special case: Don't clear token for logout 401 errors
-      if (!error.config.url?.endsWith("/logout")) {
-        localStorage.removeItem("token");
-        window.location.href = "/login";
-      }
+    if (error.response?.status === 401 && !error.config.url?.endsWith("/logout")) {
+      localStorage.removeItem("token");
     }
 
     return Promise.reject(error);
