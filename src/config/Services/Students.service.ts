@@ -2,12 +2,12 @@ import { IStudent } from "../Models/Student";
 import { ApiRequest } from "./Api.service";
 
 export const ApiStudents = {
-  getAll: () => ApiRequest({ url: "/students", method: "GET" }),
-  getById: (id: string) =>
-    ApiRequest({ url: `/studentsId/${id}`, method: "GET" }),
-  getByClassId: (class_id: number) =>
+  getAll: (): Promise<IStudent[]> => ApiRequest({ url: "/students", method: "GET" }),
+  getById: (id: string): Promise<IStudent> =>
+    ApiRequest({ url: `/students/${id}`, method: "GET" }),
+  getByClassId: (class_id: number): Promise<IStudent[]> =>
     ApiRequest({ url: `/students/class/${class_id}`, method: "GET" }),
-  create: (data: IStudent) =>
+  create: (data: IStudent): Promise<IStudent> =>
     ApiRequest({ url: "/students", method: "POST", body: data }),
   update: (id: string, data: IStudent) =>
     ApiRequest({
@@ -15,7 +15,7 @@ export const ApiStudents = {
       method: "POST",
       body: { ...data, _method: "PUT" },
     }),
-  uploadPhoto: (id: string, file: File): Promise<any> => {
+  uploadPhoto: (id: string, file: File): Promise<IStudent> => {
     const formData = new FormData();
     formData.append("profile_image", file);
 
@@ -26,7 +26,7 @@ export const ApiStudents = {
       isFormData: true,
     });
   },
-  deleteProfileImage: (id: string): Promise<any> =>
+  deleteProfileImage: (id: string): Promise<IStudent> =>
     ApiRequest({
       url: `/students/${id}/photo`,
       method: "POST",

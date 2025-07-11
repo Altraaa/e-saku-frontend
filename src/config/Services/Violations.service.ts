@@ -12,7 +12,7 @@ export const ApiViolations = {
     ApiRequest({ url: `/violations/teacher/${teacher_id}`, method: "GET" }),
   create: (data: Partial<IViolation>): Promise<IViolation> =>
     ApiRequest({ url: "/violations", method: "POST", body: data }),
-  uploadDocumentation: (id: number, file: File): Promise<any> => {
+  uploadDocumentation: (id: number, file: File): Promise<IViolation> => {
     const formData = new FormData();
     formData.append("image_documentation", file);
 
@@ -23,7 +23,7 @@ export const ApiViolations = {
       isFormData: true,
     });
   },
-  deleteDocumentation: (id: number): Promise<any> =>
+  deleteDocumentation: (id: number): Promise<IViolation> =>
     ApiRequest({
       url: `/violations/${id}/documentation`,
       method: "POST",

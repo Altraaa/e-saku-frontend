@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { useEffect, useCallback, useState } from "react";
 import { useLogout } from "../Api/useAuth";
+import toast from "react-hot-toast";
 
 export function ProtectedRoute() {
   const navigate = useNavigate();
@@ -38,6 +39,12 @@ export function ProtectedRoute() {
       // Clear all auth-related localStorage
       localStorage.clear();
 
+      // Show toast notification
+      toast.error("Sesi Anda telah berakhir. Silakan login kembali.", {
+        duration: 5000,
+        position: "top-center",
+      });
+
       // Force redirect to login
       navigate("/login", { replace: true });
     }
@@ -59,6 +66,10 @@ export function ProtectedRoute() {
       // Logout if inactive for 1 hour (3600000 ms)
       if (timeDifference > 60 * 60 * 1000) {
         console.log("Session expired due to inactivity");
+        toast.error("Sesi Anda telah berakhir karena tidak ada aktivitas.", {
+          duration: 5000,
+          position: "top-center",
+        });
         performLogout();
         return false;
       }
@@ -137,6 +148,10 @@ export function ProtectedRoute() {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "token" && !e.newValue) {
         setToken(null);
+        toast.error("Sesi Anda telah berakhir di tab lain.", {
+          duration: 5000,
+          position: "top-center",
+        });
         performLogout();
       }
     };

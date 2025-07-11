@@ -3,13 +3,14 @@ import axios, { AxiosRequestConfig } from "axios";
 interface ApiRequestProps {
   url: string;
   method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-  body?: any;
-  params?: any;
-  headers?: any;
+  body?: unknown;
+  params?: Record<string, unknown>;
+  headers?: Record<string, string>;
   authorization?: boolean;
   isMultipart?: boolean;
   isFormData?: boolean;
   customAuth?: boolean;
+  onUploadProgress?: (progressEvent: { loaded: number; total?: number }) => void;
 }
 
 export const DefaultHeaders = {
@@ -37,7 +38,7 @@ axiosInstance.interceptors.request.use(
 
     // Normal request handling
     const token = localStorage.getItem("token");
-    const customAuth = (config as any).customAuth;
+    const customAuth = (config as AxiosRequestConfig & { customAuth?: boolean }).customAuth;
 
     if (token && customAuth !== false) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -81,6 +82,7 @@ export const ApiRequest = async ({
   authorization = true,
   isMultipart = false,
   isFormData = false,
+  onUploadProgress,
 }: ApiRequestProps) => {
   try {
     const isFileUpload = isFormData || isMultipart;
@@ -100,6 +102,7 @@ export const ApiRequest = async ({
       headers: finalHeaders,
       params,
       data: body ? (isFileUpload ? body : JSON.stringify(body)) : undefined,
+      onUploadProgress: isFileUpload ? onUploadProgress : undefined,
     };
 
     const response = await axiosInstance.request(config);
@@ -109,8 +112,11 @@ export const ApiRequest = async ({
     }
 
     return response.data;
-  } catch (error: any) {
-    console.error("API Request Error:", error);
-    throw error; 
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("API Request Error:", error);
+      throw error;
+    }
+    throw new Error("An unknown error occurred");
   }
 };

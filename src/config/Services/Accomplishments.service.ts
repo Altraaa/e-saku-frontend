@@ -23,7 +23,7 @@ export const ApiAccomplishments = {
     data: Partial<IAccomplishments>
   ): Promise<IAccomplishments> =>
     ApiRequest({ url: `/accomplishments/${id}`, method: "PUT", body: data }),
-  uploadDocumentation: (id: number, file: File): Promise<any> => {
+  uploadDocumentation: (id: number, file: File): Promise<IAccomplishments> => {
     const formData = new FormData();
     formData.append("image_documentation", file);
 
@@ -34,7 +34,7 @@ export const ApiAccomplishments = {
       isFormData: true,
     });
   },
-  deleteDocumentation: (id: number): Promise<any> =>
+  deleteDocumentation: (id: number): Promise<IAccomplishments> =>
     ApiRequest({
       url: `/accomplishments/${id}/documentation`,
       method: "POST",

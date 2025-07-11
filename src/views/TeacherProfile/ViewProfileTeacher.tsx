@@ -139,8 +139,9 @@ const ViewProfileTeacher = () => {
     fileInput.type = "file";
     fileInput.accept = "image/*";
 
-    fileInput.onchange = (e: any) => {
-      const file = e.target.files?.[0];
+    fileInput.onchange = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const file = target.files?.[0];
       if (file) {
         const localUrl = URL.createObjectURL(file);
         setPhotoUrl(localUrl);
