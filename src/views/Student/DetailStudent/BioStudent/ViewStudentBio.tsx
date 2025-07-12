@@ -5,7 +5,6 @@ import {
   Award,
   AlertTriangle,
   SquarePen,
-  Camera,
   Trash2,
   MoveLeft,
   BookOpen,
@@ -16,23 +15,32 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/ui/form";
-import { useStudentById } from "@/config/Api/useStudent";
+import {
+  useStudentById,
+  useStudentDeleteProfile,
+  useStudentUpload,
+} from "@/config/Api/useStudent";
 import { useClassroomById } from "@/config/Api/useClasroom";
 import { IStudent } from "@/config/Models/Student";
 import { IClassroom } from "@/config/Models/Classroom";
 import toast from "react-hot-toast";
+import ConfirmationModal from "@/components/ui/confirmation";
 
 const ViewStudentBio = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const studentId = id ?? "";
-  const { data: student, isLoading, refetch } = useStudentById(studentId);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<IStudent | null>(null);
   const [classroomData, setClassroomData] = useState<IClassroom | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+
+  const { data: student, isLoading, refetch } = useStudentById(studentId);
+  const uploadMutation = useStudentUpload();
+  const deleteProfileMutation = useStudentDeleteProfile();
 
   useEffect(() => {
     if (!isLoading) {
@@ -81,27 +89,65 @@ const ViewStudentBio = () => {
     setIsEditing(!isEditing);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const localUrl = URL.createObjectURL(file);
-      setPhotoUrl(localUrl);
-      setSelectedFile(file);
-    }
+  // Start Profile Image
+  const handleChangeAvatar = () => {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+
+    fileInput.onchange = (e: any) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const localUrl = URL.createObjectURL(file);
+        setPhotoUrl(localUrl);
+        setSelectedFile(file);
+        console.log("File selected:", file);
+      } else {
+        console.log("No file selected");
+      }
+    };
+
+    fileInput.click();
   };
 
   const handleSavePhoto = () => {
-    // Placeholder: Implement photo upload API call if available
-    toast.success("Foto profil berhasil diubah! (Simulasi)");
-    setSelectedFile(null);
+    if (!selectedFile || !studentId) return;
+    console.log("studentId", studentId);
+
+    uploadMutation.mutate(
+      { id: studentId, file: selectedFile },
+      {
+        onSuccess: () => {
+          toast.success("Foto profil berhasil diubah!");
+          setSelectedFile(null);
+        },
+        onError: () => {
+          toast.error("Gagal mengubah foto profil!");
+        },
+      }
+    );
   };
 
-  const handleDeletePhoto = () => {
-    // Placeholder: Implement photo delete API call if available
-    setPhotoUrl(undefined);
-    setSelectedFile(null);
-    toast.success("Foto profil berhasil dihapus! (Simulasi)");
+  const handleDeleteProfile = () => {
+    setDeleteModalOpen(true);
   };
+
+  const handleConfirmDelete = () => {
+    setDeleteModalOpen(false);
+    if (!studentId) return;
+
+    deleteProfileMutation.mutate(studentId, {
+      onSuccess: () => {
+        toast.success("Foto profil berhasil dihapus!");
+        setPhotoUrl(undefined);
+        setSelectedFile(null);
+      },
+      onError: () => {
+        toast.error("Gagal menghapus foto profil!");
+      },
+    });
+  };
+  // End Profile Image
 
   const handleSaveChanges = () => {
     // Placeholder: Implement student update API call
@@ -129,7 +175,9 @@ const ViewStudentBio = () => {
   const imageSrc = photoUrl
     ? photoUrl
     : formData?.profile_image
-    ? `${import.meta.env.VITE_API_URL?.replace("/api", "/public")}${formData.profile_image}`
+    ? `${import.meta.env.VITE_API_URL?.replace("/api", "/public")}${
+        formData.profile_image
+      }`
     : "";
 
   return (
@@ -144,7 +192,9 @@ const ViewStudentBio = () => {
             <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 group-hover:border-green-500 group-hover:bg-green-50 transition-all">
               <MoveLeft className="h-4 w-4" />
             </div>
-            <span className="font-medium text-sm md:text-base">Back to Class</span>
+            <span className="font-medium text-sm md:text-base">
+              Back to Class
+            </span>
           </button>
           <div className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 md:mb-4 mt-2 md:mt-4">
             Biodata Siswa
@@ -183,40 +233,34 @@ const ViewStudentBio = () => {
               </div>
 
               <div className="space-y-2 w-full">
-                <input
-                  type="file"
-                  id="photo-upload"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                <label
-                  htmlFor="photo-upload"
-                  className="cursor-pointer w-full block text-center bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold transition-all"
-                >
-                  <Camera size={16} className="inline-block mr-2" />
-                  Ubah Foto
-                </label>
-
-                {selectedFile && (
+                {selectedFile ? (
                   <Button
                     onClick={handleSavePhoto}
                     disabled={!selectedFile}
-                    variant="default"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-all"
+                    type="button"
+                    className="w-full bg-blue-600 p-3 font-semibold text-white rounded-md hover:bg-blue-500 transition-all duration-200 text-sm md:text-base"
                   >
-                    Simpan Foto
+                    Save Profile Picture
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleChangeAvatar}
+                    type="button"
+                    className="w-full bg-blue-600 p-3 font-semibold text-white rounded-md hover:bg-blue-500 transition-all duration-200 text-sm md:text-base"
+                  >
+                    Update Profile Picture
                   </Button>
                 )}
 
                 <Button
-                  onClick={handleDeletePhoto}
+                  onClick={handleDeleteProfile}
                   variant="default"
                   className="w-full bg-red-600 hover:bg-red-700 text-white transition-all"
                 >
                   <Trash2 size={16} className="inline-block mr-2" />
                   Hapus Foto
                 </Button>
+
                 {/* Edit Control Bar */}
                 <div className="flex justify-center gap-2">
                   {isEditing ? (
@@ -312,8 +356,13 @@ const ViewStudentBio = () => {
                       <FormInput
                         type="text"
                         value={formData.nis}
-                        onChange={(e) => handleInputChange("nis", e.target.value)}
-                        className="w-full" id={""} label={""}                      />
+                        onChange={(e) =>
+                          handleInputChange("nis", e.target.value)
+                        }
+                        className="w-full"
+                        id={""}
+                        label={""}
+                      />
                     ) : (
                       <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                         {formData.nis || "Tidak diatur"}
@@ -329,8 +378,13 @@ const ViewStudentBio = () => {
                       <FormInput
                         type="text"
                         value={formData.nisn}
-                        onChange={(e) => handleInputChange("nisn", e.target.value)}
-                        className="w-full" id={""} label={""}                      />
+                        onChange={(e) =>
+                          handleInputChange("nisn", e.target.value)
+                        }
+                        className="w-full"
+                        id={""}
+                        label={""}
+                      />
                     ) : (
                       <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                         {formData.nisn || "Tidak diatur"}
@@ -347,8 +401,13 @@ const ViewStudentBio = () => {
                     <FormInput
                       type="text"
                       value={formData.name}
-                      onChange={(e) => handleInputChange("name", e.target.value)}
-                      className="w-full" id={""} label={""}                    />
+                      onChange={(e) =>
+                        handleInputChange("name", e.target.value)
+                      }
+                      className="w-full"
+                      id={""}
+                      label={""}
+                    />
                   ) : (
                     <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                       {formData.name}
@@ -401,7 +460,9 @@ const ViewStudentBio = () => {
                     Alamat
                   </label>
                   <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
-                    {formData.address && formData.sub_district && formData.district
+                    {formData.address &&
+                    formData.sub_district &&
+                    formData.district
                       ? `${formData.address}, ${formData.sub_district}, ${formData.district}`
                       : "Tidak diatur"}
                   </div>
@@ -454,8 +515,13 @@ const ViewStudentBio = () => {
                       <FormInput
                         type="text"
                         value={formData.father_name}
-                        onChange={(e) => handleInputChange("father_name", e.target.value)}
-                        className="w-full" id={""} label={""}                      />
+                        onChange={(e) =>
+                          handleInputChange("father_name", e.target.value)
+                        }
+                        className="w-full"
+                        id={""}
+                        label={""}
+                      />
                     ) : (
                       <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                         {formData.father_name || "Tidak diatur"}
@@ -471,8 +537,13 @@ const ViewStudentBio = () => {
                       <FormInput
                         type="text"
                         value={formData.father_job}
-                        onChange={(e) => handleInputChange("father_job", e.target.value)}
-                        className="w-full" id={""} label={""}                      />
+                        onChange={(e) =>
+                          handleInputChange("father_job", e.target.value)
+                        }
+                        className="w-full"
+                        id={""}
+                        label={""}
+                      />
                     ) : (
                       <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                         {formData.father_job || "Tidak diatur"}
@@ -490,8 +561,13 @@ const ViewStudentBio = () => {
                       <FormInput
                         type="text"
                         value={formData.mother_name}
-                        onChange={(e) => handleInputChange("mother_name", e.target.value)}
-                        className="w-full" id={""} label={""}                      />
+                        onChange={(e) =>
+                          handleInputChange("mother_name", e.target.value)
+                        }
+                        className="w-full"
+                        id={""}
+                        label={""}
+                      />
                     ) : (
                       <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                         {formData.mother_name || "Tidak diatur"}
@@ -507,8 +583,13 @@ const ViewStudentBio = () => {
                       <FormInput
                         type="text"
                         value={formData.mother_job}
-                        onChange={(e) => handleInputChange("mother_job", e.target.value)}
-                        className="w-full" id={""} label={""}                      />
+                        onChange={(e) =>
+                          handleInputChange("mother_job", e.target.value)
+                        }
+                        className="w-full"
+                        id={""}
+                        label={""}
+                      />
                     ) : (
                       <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                         {formData.mother_job || "Tidak diatur"}
@@ -542,8 +623,13 @@ const ViewStudentBio = () => {
                       <FormInput
                         type="text"
                         value={formData.guardian_name || ""}
-                        onChange={(e) => handleInputChange("guardian_name", e.target.value)}
-                        className="w-full" id={""} label={""}                      />
+                        onChange={(e) =>
+                          handleInputChange("guardian_name", e.target.value)
+                        }
+                        className="w-full"
+                        id={""}
+                        label={""}
+                      />
                     ) : (
                       <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                         {formData.guardian_name || "Tidak diatur"}
@@ -559,8 +645,13 @@ const ViewStudentBio = () => {
                       <FormInput
                         type="text"
                         value={formData.guardian_job || ""}
-                        onChange={(e) => handleInputChange("guardian_job", e.target.value)}
-                        className="w-full" id={""} label={""}                      />
+                        onChange={(e) =>
+                          handleInputChange("guardian_job", e.target.value)
+                        }
+                        className="w-full"
+                        id={""}
+                        label={""}
+                      />
                     ) : (
                       <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                         {formData.guardian_job || "Tidak diatur"}
@@ -573,6 +664,13 @@ const ViewStudentBio = () => {
           </Card>
         </div>
       </div>
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        items="foto profil ini?"
+        type="delete"
+      />
     </div>
   );
 };
