@@ -6,7 +6,8 @@ export interface IStudent {
   name: string;
   nis: string;
   nisn: string;
-  email?: string | null;
+  email?: string;
+  class_id?: number;
   place_of_birth: string;
   birth_date: string;
   gender: string;
@@ -27,7 +28,6 @@ export interface IStudent {
   point_total: number;
   created_at: string;
   updated_at: string;
-  class_id: number;
   violations_sum_points: number;
   accomplishments_sum_points: number;
   classroom?: IClassroom;
