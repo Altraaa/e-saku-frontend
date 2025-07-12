@@ -299,9 +299,6 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
         isOpen={isLogoutModalOpen}
         onClose={() => setLogoutModalOpen(false)}
         onConfirm={confirmLogout}
-        title="Confirm Logout"
-        description="Are you sure you want to log out?"
-        confirmText="Yes"
         type="logout"
       />
 
