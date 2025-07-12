@@ -10,7 +10,7 @@ export const ApiStudents = {
     ApiRequest({ url: `/students/class/${class_id}`, method: "GET" }),
   create: (data: IStudentCreate): Promise<IStudent> =>
     ApiRequest({ url: "/students", method: "POST", body: data }),
-  update: (id: string, data: IStudent) =>
+  update: (id: string, data: Partial<IStudent>): Promise<IStudent> =>
     ApiRequest({
       url: `/students/${id}`,
       method: "POST",
