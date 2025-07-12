@@ -764,9 +764,7 @@ const ViewProfileTeacher = () => {
         isOpen={isDeleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
-        description="Apa kamu yakin untuk menghapus foto profile ini?"
-        title="Hapus Foto Profil"
-        confirmText="Hapus"
+        items="foto profil ini?"
         type="delete"
       />
     </div>

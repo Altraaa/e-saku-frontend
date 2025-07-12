@@ -1295,9 +1295,7 @@ const ViewStudentByClass: React.FC = () => {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             onConfirm={handleConfirmDelete}
-            title="Confirm Deletion"
-            description="Are you sure you want to delete this Students?"
-            confirmText="Delete"
+            items="siswa ini"
             cancelText="Cancel"
             type="delete"
           />
@@ -1305,9 +1303,7 @@ const ViewStudentByClass: React.FC = () => {
             isOpen={isModalDeleteAllOpen}
             onClose={() => setIsModalDeleteAllOpen(false)}
             onConfirm={handleConfirmDeleteByClass}
-            title="Confirm Deletion"
-            description="Are you sure you want to delete this all data of Students?"
-            confirmText="Delete"
+            items="siswa di kelas ini"
             cancelText="Cancel"
             type="delete"
           />
@@ -1315,11 +1311,9 @@ const ViewStudentByClass: React.FC = () => {
             isOpen={isModalExportOpen}
             onClose={() => setIsModalExportOpen(false)}
             onConfirm={handleConfirmExportData}
-            title="Konfirmasi Export Data"
-            description="Apakah Anda yakin ingin mengekspor data ini?"
-            confirmText="Export"
+            items="siswa di kelas ini"
             cancelText="Cancel"
-            type="add"
+            type="export"
           />
         </>
       )}

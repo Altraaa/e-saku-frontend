@@ -619,18 +619,14 @@ const ViewEditStudentBio = () => {
           isOpen={isEditModalOpen}
           onClose={() => setEditModalOpen(false)}
           onConfirm={confirmEdit}
-          title="Confirm Edit"
-          description="Are you sure you want to save changes?"
-          confirmText="Save"
+          items="di profil siswa ini?"
           type="update"
         />
         <ConfirmationModal
           isOpen={isDeleteModalOpen}
           onClose={() => setDeleteModalOpen(false)}
           onConfirm={handleConfirmDelete}
-          description="Apa kamu yakin untuk menghapus foto profile ini?"
-          title="Hapus Foto Profil"
-          confirmText="Hapus"
+          items="foto profil ini?"
           type="delete"
         />
       </div>
