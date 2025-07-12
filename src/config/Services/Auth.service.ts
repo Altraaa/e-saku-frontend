@@ -11,9 +11,11 @@ export const ApiAuth = {
     }),
 
   logout: () => {
+
     return ApiRequest({
       url: "/logout",
       method: "POST",
+      authorization: false,
     });
   },
 };
