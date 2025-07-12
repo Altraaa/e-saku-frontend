@@ -11,19 +11,9 @@ export const ApiAuth = {
     }),
 
   logout: () => {
-    // Get token before making the request
-    const token = localStorage.getItem("token");
-
     return ApiRequest({
       url: "/logout",
       method: "POST",
-      headers: token
-        ? {
-            Authorization: `Bearer ${token}`,
-            "Cache-Control": "no-cache",
-          }
-        : {},
-      customAuth: true,
     });
   },
 };
