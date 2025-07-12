@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Bell, Menu } from "lucide-react";
 import { Button } from "../ui/button";
 import { Tooltip } from "@radix-ui/react-tooltip";
-import { motion } from "framer-motion"; // Corrected the motion import
 import { useSidebar } from "@/utils/context/sidebarContext";
 
 const Navbar = ({
@@ -45,18 +44,6 @@ const Navbar = ({
           </Button>
         </Tooltip>
       </div>
-
-      {/* Notification Popup */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: showNotification ? 1 : 0 }}
-        transition={{ duration: 0.5 }}
-        className="fixed bottom-4 right-4 w-64 sm:w-72 p-4 bg-green-500 text-white rounded-lg shadow-lg z-50"
-      >
-        <div className="font-semibold text-sm sm:text-base">
-          You have new notifications!
-        </div>
-      </motion.div>
     </div>
   );
 };
