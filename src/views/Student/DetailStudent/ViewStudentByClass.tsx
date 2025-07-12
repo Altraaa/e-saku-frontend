@@ -1303,7 +1303,7 @@ const ViewStudentByClass: React.FC = () => {
             isOpen={isModalDeleteAllOpen}
             onClose={() => setIsModalDeleteAllOpen(false)}
             onConfirm={handleConfirmDeleteByClass}
-            items="siswa di kelas ini"
+            items="siswa di kelas ini?"
             cancelText="Cancel"
             type="delete"
           />
@@ -1311,7 +1311,7 @@ const ViewStudentByClass: React.FC = () => {
             isOpen={isModalExportOpen}
             onClose={() => setIsModalExportOpen(false)}
             onConfirm={handleConfirmExportData}
-            items="siswa di kelas ini"
+            items="siswa di kelas ini?"
             cancelText="Cancel"
             type="export"
           />
