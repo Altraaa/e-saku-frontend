@@ -235,168 +235,199 @@ const ViewManageRules: React.FC = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+
+  const checkForDuplicates = (
+    value: string | number,
+    data: any[],
+    field: string
+  ) => {
+    return data.some((item) => item[field].toLowerCase() === (value as string).toLowerCase());
+  };
+
+
   // Save function
-  const performSave = async () => {
-    const isRule = activeTab === "rules";
-    const isType = activeAchievementTab === "types";
-    const isRank = activeAchievementTab === "ranks";
-    const isLevel = activeAchievementTab === "levels";
+const performSave = async () => {
+  const isRule = activeTab === "rules";
+  const isType = activeAchievementTab === "types";
+  const isRank = activeAchievementTab === "ranks";
+  const isLevel = activeAchievementTab === "levels";
 
-    let isValid = false;
-    let itemName = "";
+  let isValid = false;
+  let itemName = "";
 
-    if (isRule) {
-      isValid =
-        !!formData.name && (formData.points ?? 0) > 0;
-      itemName = formData.name || "Rule";
-    } else if (isType) {
-      isValid = !!formData.type && (formData.point ?? 0) > 0;
-      itemName = formData.type || "Type";
-    } else if (isRank) {
-      isValid = !!formData.rank && (formData.point ?? 0) > 0;
-      itemName = formData.rank || "Rank";
-    } else if (isLevel) {
-      isValid = !!formData.level && (formData.point ?? 0) > 0;
-      itemName = formData.level || "Level";
-    }
-
-    if (!isValid) {
-      toast.error("Please fill all fields with valid values.");
+  // Check for duplicate rule, type, rank, or level before saving
+  if (isRule) {
+    // Check if rule name already exists
+    if (checkForDuplicates(formData.name || "", rules, "name")) {
+      toast.error("Rule name already exists.");
       return;
     }
+    isValid = !!formData.name && (formData.points ?? 0) > 0;
+    itemName = formData.name || "Rule";
+  } else if (isType) {
+    // Check if achievement type already exists
+    if (checkForDuplicates(formData.type || "", typesData, "type")) {
+      toast.error("Achievement type already exists.");
+      return;
+    }
+    isValid = !!formData.type && (formData.point ?? 0) > 0;
+    itemName = formData.type || "Achievement Type";
+  } else if (isRank) {
+    // Check if achievement rank already exists
+    if (checkForDuplicates(formData.rank || "", ranksData, "rank")) {
+      toast.error("Achievement rank already exists.");
+      return;
+    }
+    isValid = !!formData.rank && (formData.point ?? 0) > 0;
+    itemName = formData.rank || "Achievement Rank";
+  } else if (isLevel) {
+    // Check if achievement level already exists
+    if (checkForDuplicates(formData.level || "", levelsData, "level")) {
+      toast.error("Achievement level already exists.");
+      return;
+    }
+    isValid = !!formData.level && (formData.point ?? 0) > 0;
+    itemName = formData.level || "Achievement Level";
+  }
 
-    const loadingId = toast.loading("Saving...");
+  if (!isValid) {
+    toast.error("Please fill all fields with valid values.");
+    return;
+  }
 
-    try {
-      if (editingItem) {
-        // Update
-        if (isRule) {
-          await ApiRules.update((editingItem as IRules).id, formData as IRules);
-          const updatedRules = await fetchRules();
-          setRules(updatedRules);
-          toast.success(`${itemName} updated successfully!`);
-        } else if (isType) {
-          updateType.mutate(
-            {
-              id: (editingItem as IType).id,
-              data: formData as Partial<IType>,
-            },
-            {
-              onSuccess: () => {
-                toast.dismiss(loadingId);
-                refetchTypes();
-                toast.success(`${itemName} updated successfully!`);
-              },
-              onError: (error) => {
-                toast.dismiss(loadingId);
-                console.error("Update type error:", error);
-                toast.error("Failed to update type.");
-              },
-            }
-          );
-          return;
-        } else if (isRank) {
-          updateRank.mutate(
-            {
-              id: (editingItem as IRank).id,
-              data: formData as Partial<IRank>,
-            },
-            {
-              onSuccess: () => {
-                toast.dismiss(loadingId);
-                refetchRanks();
-                toast.success(`${itemName} updated successfully!`);
-              },
-              onError: (error) => {
-                toast.dismiss(loadingId);
-                console.error("Update rank error:", error);
-                toast.error("Failed to update rank.");
-              },
-            }
-          );
-          return;
-        } else if (isLevel) {
-          updateLevel.mutate(
-            {
-              id: (editingItem as ILevel).id,
-              data: formData as Partial<ILevel>,
-            },
-            {
-              onSuccess: () => {
-                toast.dismiss(loadingId);
-                refetchLevels();
-                toast.success(`${itemName} updated successfully!`);
-              },
-              onError: (error) => {
-                toast.dismiss(loadingId);
-                console.error("Update level error:", error);
-                toast.error("Failed to update level.");
-              },
-            }
-          );
-          return;
-        }
-      } else {
-        // Add new
-        if (isRule) {
-          const added = await ApiRules.create(formData as IRules);
-          setRules((prev) => [...prev, added]);
-          toast.success(`${itemName} added successfully!`);
-        } else if (isType) {
-          createType.mutate(formData as IType, {
+  const loadingId = toast.loading("Saving...");
+
+  try {
+    if (editingItem) {
+      // Update existing item
+      if (isRule) {
+        await ApiRules.update((editingItem as IRules).id, formData as IRules);
+        const updatedRules = await fetchRules();
+        setRules(updatedRules);
+        toast.success(`${itemName} updated successfully!`);
+      } else if (isType) {
+        updateType.mutate(
+          {
+            id: (editingItem as IType).id,
+            data: formData as Partial<IType>,
+          },
+          {
             onSuccess: () => {
               toast.dismiss(loadingId);
               refetchTypes();
-              toast.success(`${itemName} added successfully!`);
+              toast.success(`${itemName} updated successfully!`);
             },
             onError: (error) => {
               toast.dismiss(loadingId);
-              console.error("Create type error:", error);
-              toast.error("Failed to add type.");
+              console.error("Update type error:", error);
+              toast.error("Failed to update type.");
             },
-          });
-          return;
-        } else if (isRank) {
-          createRank.mutate(formData as IRank, {
+          }
+        );
+        return;
+      } else if (isRank) {
+        updateRank.mutate(
+          {
+            id: (editingItem as IRank).id,
+            data: formData as Partial<IRank>,
+          },
+          {
             onSuccess: () => {
               toast.dismiss(loadingId);
               refetchRanks();
-              toast.success(`${itemName} added successfully!`);
+              toast.success(`${itemName} updated successfully!`);
             },
             onError: (error) => {
               toast.dismiss(loadingId);
-              console.error("Create rank error:", error);
-              toast.error("Failed to add rank.");
+              console.error("Update rank error:", error);
+              toast.error("Failed to update rank.");
             },
-          });
-          return;
-        } else if (isLevel) {
-          createLevel.mutate(formData as ILevel, {
+          }
+        );
+        return;
+      } else if (isLevel) {
+        updateLevel.mutate(
+          {
+            id: (editingItem as ILevel).id,
+            data: formData as Partial<ILevel>,
+          },
+          {
             onSuccess: () => {
               toast.dismiss(loadingId);
               refetchLevels();
-              toast.success(`${itemName} added successfully!`);
+              toast.success(`${itemName} updated successfully!`);
             },
             onError: (error) => {
               toast.dismiss(loadingId);
-              console.error("Create level error:", error);
-              toast.error("Failed to add level.");
+              console.error("Update level error:", error);
+              toast.error("Failed to update level.");
             },
-          });
-          return;
-        }
+          }
+        );
+        return;
       }
-
-      toast.dismiss(loadingId);
-      setFormData({});
-      setIsAddDialogOpen(false);
-      setIsEditDialogOpen(false);
-    } catch (error) {
-      toast.dismiss(loadingId);
-      console.error("Unexpected save error:", error);
-      toast.error("Failed to save. Please try again.");
+    } else {
+      // Add new item
+      if (isRule) {
+        const added = await ApiRules.create(formData as IRules);
+        setRules((prev) => [...prev, added]);
+        toast.success(`${itemName} added successfully!`);
+      } else if (isType) {
+        createType.mutate(formData as IType, {
+          onSuccess: () => {
+            toast.dismiss(loadingId);
+            refetchTypes();
+            toast.success(`${itemName} added successfully!`);
+          },
+          onError: (error) => {
+            toast.dismiss(loadingId);
+            console.error("Create type error:", error);
+            toast.error("Failed to add type.");
+          },
+        });
+        return;
+      } else if (isRank) {
+        createRank.mutate(formData as IRank, {
+          onSuccess: () => {
+            toast.dismiss(loadingId);
+            refetchRanks();
+            toast.success(`${itemName} added successfully!`);
+          },
+          onError: (error) => {
+            toast.dismiss(loadingId);
+            console.error("Create rank error:", error);
+            toast.error("Failed to add rank.");
+          },
+        });
+        return;
+      } else if (isLevel) {
+        createLevel.mutate(formData as ILevel, {
+          onSuccess: () => {
+            toast.dismiss(loadingId);
+            refetchLevels();
+            toast.success(`${itemName} added successfully!`);
+          },
+          onError: (error) => {
+            toast.dismiss(loadingId);
+            console.error("Create level error:", error);
+            toast.error("Failed to add level.");
+          },
+        });
+        return;
+      }
     }
-  };
+
+    toast.dismiss(loadingId);
+    setFormData({});
+    setIsAddDialogOpen(false);
+    setIsEditDialogOpen(false);
+  } catch (error) {
+    toast.dismiss(loadingId);
+    console.error("Unexpected save error:", error);
+    toast.error("Failed to save. Please try again.");
+  }
+};
+
 
   // Confirm save action
   const confirmSave = () => {
