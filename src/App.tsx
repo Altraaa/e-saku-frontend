@@ -15,7 +15,6 @@ import History from "./pages/History";
 import Login from "./pages/Login";
 import StudentByClass from "./pages/StudentByClass";
 import StudentBio from "./pages/StudentBio";
-import EditStudentBio from "./pages/EditStudentBio";
 import BioAccomplisments from "./pages/BioAccomplisments";
 import BioViolations from "./pages/BioViolations";
 import Help from "./pages/Help";
@@ -79,7 +78,6 @@ export function AppContent() {
           <Route path="/history" element={<History />} />
           <Route path="student/class/:id" element={<StudentByClass />} />
           <Route path="/studentbio/:id" element={<StudentBio />} />
-          <Route path="/studentbio/edit/:id" element={<EditStudentBio />} />
           <Route
             path="/studentbio/accomplishments/:id"
             element={<BioAccomplisments />}
