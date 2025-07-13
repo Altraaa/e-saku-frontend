@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiStudents } from "../Services/Students.service";
 import { IStudent } from "../Models/Student";
+import { IStudentCreate } from "../Models/StudentCreate";
 
 //fetch all student
 export const useStudent = () => {
@@ -33,7 +34,7 @@ export const useStudentCreate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: IStudent) => ApiStudents.create(data),
+    mutationFn: (data: IStudentCreate) => ApiStudents.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
     },
@@ -48,14 +49,11 @@ export const useStudentUpdate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: IStudent }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<IStudent> }) =>
       ApiStudents.update(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
       queryClient.invalidateQueries({ queryKey: ["student", id] });
-    },
-    onError: (error) => {
-      console.error("Error updating student:", error);
     },
   });
 };
