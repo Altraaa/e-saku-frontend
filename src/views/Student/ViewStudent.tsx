@@ -1,4 +1,4 @@
-import { Search, Plus, X, GraduationCap } from "lucide-react";
+import { Search, Plus, X, GraduationCap, Trash2, MoreVertical, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -16,7 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   useClassroomByTeacherId,
   useClassroomCreate,
@@ -31,6 +31,8 @@ const ViewStudent = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [programFilter, setProgramFilter] = useState<string>("all");
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [isAddClassModalOpen, setIsAddClassModalOpen] =
     useState<boolean>(false);
   const [submitStatus, setSubmitStatus] = useState<
@@ -80,6 +82,19 @@ const ViewStudent = () => {
       setSubmitError("");
     }
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const validateForm = () => {
     if (!newClass.name.trim()) {
@@ -191,6 +206,26 @@ const ViewStudent = () => {
   if (isLoading || classroomsLoading) {
     return <StudentSkeleton />;
   }
+
+  const handleMenuToggle = (classroomId: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation(); 
+    setOpenMenuId(openMenuId === classroomId ? null : classroomId);
+  };
+
+  const handleEdit = (classroomId: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Edit clicked for classroom:', classroomId);
+    setOpenMenuId(null);
+  };
+
+  const handleDelete = (classroomId: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Delete clicked for classroom:', classroomId);
+    setOpenMenuId(null);
+  };
 
   return (
     <div className="container mx-auto px-2 sm:px-4 md:py-4 max-w-full">
@@ -520,6 +555,34 @@ const ViewStudent = () => {
             >
               <Card className="bg-white shadow-md hover:shadow-lg hover:border-green-500 hover:border transition-all duration-200 relative rounded-lg min-h-[200px] sm:min-h-[220px]">
                 <div className="w-2 h-full absolute left-0 top-0 bg-green-500 rounded-l-lg"></div>
+                  <div className="absolute top-3 right-3 z-10" ref={menuRef}>
+                    <button
+                      onClick={(e) => handleMenuToggle(classroom.id, e)}
+                      className="p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                    >    
+                      <MoreVertical className="w-5 h-5 text-gray-500" />
+                    </button>
+                    
+                    {/* Dropdown menu */}
+                    {openMenuId === classroom.id && (
+                      <div className="absolute right-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                        <button
+                          onClick={(e) => handleEdit(classroom.id, e)}
+                          className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => handleDelete(classroom.id, e)}
+                          className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center h-full justify-center">
                   <CardHeader className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-gray-200 flex items-center justify-center p-0 mb-3 sm:mb-4">
                     <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-400">
