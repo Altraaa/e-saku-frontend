@@ -1,14 +1,19 @@
 import { IStudent } from "./Student";
+import { IRank } from "./AccomplishmentsRanks";
+import { IType } from "./AccomplismentsType";
+import { ILevel } from "./AccomplishmentsLevel";
+
 
 export interface IAccomplishments {
     id: number;
     student_id: string;
-    accomplishment_type: string;
+    type_id: IType
+    // accomplishment_type: string;
     description: string;
     accomplishment_date: string;
     violation_date: string;
-    level: number;
-    rank: string
+    level_id: ILevel;
+    rank_id: IRank
     image_documentation: string | null;
     points: number;
     created_at: string;
