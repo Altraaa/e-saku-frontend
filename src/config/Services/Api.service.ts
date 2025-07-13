@@ -10,7 +10,10 @@ interface ApiRequestProps {
   isMultipart?: boolean;
   isFormData?: boolean;
   customAuth?: boolean;
-  onUploadProgress?: (progressEvent: { loaded: number; total?: number }) => void;
+  onUploadProgress?: (progressEvent: {
+    loaded: number;
+    total?: number;
+  }) => void;
   responseType?: "json" | "blob";
 }
 
@@ -27,7 +30,8 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-    const customAuth = (config as AxiosRequestConfig & { customAuth?: boolean }).customAuth;
+    const customAuth = (config as AxiosRequestConfig & { customAuth?: boolean })
+      .customAuth;
 
     if (token && customAuth !== false) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -49,7 +53,10 @@ axiosInstance.interceptors.response.use(
     }
 
     // Handle unauthorized errors (401)
-    if (error.response?.status === 401 && !error.config.url?.endsWith("/logout")) {
+    if (
+      error.response?.status === 401 &&
+      !error.config.url?.endsWith("/logout")
+    ) {
       localStorage.removeItem("token");
     }
 
@@ -109,5 +116,24 @@ export const ApiRequest = async ({
       throw error;
     }
     throw new Error("An unknown error occurred");
+  }
+};
+
+export const logoutRequest = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_URL}/logout`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    // Silently handle errors
+    return null;
   }
 };
