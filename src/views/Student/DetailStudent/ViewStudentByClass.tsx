@@ -12,7 +12,8 @@ import {
   Trash,
   ArrowLeft,
   Plus,
-  UploadIcon, // Add ArrowLeft icon for back button
+  UploadIcon,
+  MoveLeft, // Add ArrowLeft icon for back button
 } from "lucide-react";
 import {
   Table,
@@ -153,6 +154,7 @@ const ViewStudentByClass: React.FC = () => {
   const queryClient = useQueryClient();
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
   const { data: classes } = useClassroom();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Get user type from localStorage
@@ -486,14 +488,25 @@ const ViewStudentByClass: React.FC = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      <Button
+        variant="ghost"
+        onClick={() => navigate(-1)}
+        className="group flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors cursor-pointer"
+      >
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 group-hover:border-green-500 group-hover:bg-green-50 transition-all">
+          <MoveLeft className="h-4 w-4" />
+        </div>
+        <span className="font-medium text-sm md:text-base">
+          Back to Classes
+        </span>
+      </Button>
       <ClassHeader
         className={classroom?.name || ""}
         teacherName={teacherName}
-        showBackButton={userType === "student"} // Show back button for students
+        showBackButton={userType === "student"}
       />
 
-      <div className="flex flex-col md:flex-row justify-between gap-2">
-        {/* Add Student Button */}
+      <div className="flex flex-col md:flex-row justify-between gap-4 ">
         <Dialog
           open={isAddStudentModalOpen}
           onOpenChange={setIsAddStudentModalOpen}
@@ -721,256 +734,255 @@ const ViewStudentByClass: React.FC = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Import Excel Button */}
-        <Button
-          onClick={handleFileExport}
-          variant="outline"
-          className="text-green-600 hover:text-white hover:bg-green-600 border border-green-500 transition-all duration-300 w-full sm:w-auto"
-        >
-          <UploadIcon className="mr-2 h-4 w-4" />
-          Export Excel
-        </Button>
-
-        <Dialog
-          open={isImportModalOpen}
-          onOpenChange={(open) => {
-            setIsImportModalOpen(open);
-            if (!open) {
-              resetUploadState();
-            } else {
-              resetUploadState();
-            }
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button
-              variant="default"
-              className="hover:bg-[#009616] hover:text-white transition-all duration-300 w-full sm:w-auto"
-            >
-              <Download className="mr-2 h-4 w-4 flex-shrink-0" />
-              <span className="truncate">Import Excel</span>
-            </Button>
-          </DialogTrigger>
-          <DialogContent
-            className="max-w-[95vw] sm:max-w-[500px] lg:max-w-[600px] p-3 sm:p-4 lg:p-6 max-h-[90vh] overflow-y-auto"
-            onDragOver={(e) => e.preventDefault()}
+        {/* Left buttons group with better spacing */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          {/* Import Excel Button */}
+          <Button
+            onClick={handleFileExport}
+            variant="outline"
+            className="text-green-600 hover:text-white hover:bg-green-600 border border-green-500 transition-all duration-300 w-full sm:w-auto"
           >
-            <DialogHeader>
-              <DialogTitle className="text-base sm:text-lg lg:text-xl leading-tight">
-                Import Student Data untuk {classroom?.name}
-              </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm leading-relaxed">
-                Upload file Excel (.xls atau .xlsx) yang berisi data siswa untuk
-                kelas ini
-              </DialogDescription>
-            </DialogHeader>
+            <UploadIcon className="mr-2 h-4 w-4" />
+            Export Excel
+          </Button>
 
-            <div className="grid gap-3 sm:gap-4 py-3 sm:py-4">
-              {uploadStatus === "success" ? (
-                <div className="bg-gray-50 rounded-lg border border-gray-200 p-3 sm:p-4 mb-3 sm:mb-4">
-                  <div className="text-green-600 flex items-start sm:items-center space-x-3">
-                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
-                      <Check className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm sm:text-lg font-semibold">
-                        Upload Berhasil!
-                      </p>
-                      <p className="text-xs sm:text-sm text-gray-600 break-words">
-                        Data siswa berhasil diunggah ke kelas {classroom?.name}.
-                      </p>
+          <Dialog
+            open={isImportModalOpen}
+            onOpenChange={(open) => {
+              setIsImportModalOpen(open);
+              if (!open) {
+                resetUploadState();
+              } else {
+                resetUploadState();
+              }
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button
+                variant="default"
+                className="hover:bg-[#009616] hover:text-white transition-all duration-300 w-full sm:w-auto"
+              >
+                <Download className="mr-2 h-4 w-4 flex-shrink-0" />
+                <span className="truncate">Import Excel</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent
+              className="max-w-[95vw] sm:max-w-[500px] lg:max-w-[600px] p-3 sm:p-4 lg:p-6 max-h-[90vh] overflow-y-auto"
+              onDragOver={(e) => e.preventDefault()}
+            >
+              <DialogHeader>
+                <DialogTitle className="text-base sm:text-lg lg:text-xl leading-tight">
+                  Import Student Data untuk {classroom?.name}
+                </DialogTitle>
+                <DialogDescription className="text-xs sm:text-sm leading-relaxed">
+                  Upload file Excel (.xls atau .xlsx) yang berisi data siswa untuk
+                  kelas ini
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="grid gap-3 sm:gap-4 py-3 sm:py-4">
+                {uploadStatus === "success" ? (
+                  <div className="bg-gray-50 rounded-lg border border-gray-200 p-3 sm:p-4 mb-3 sm:mb-4">
+                    <div className="text-green-600 flex items-start sm:items-center space-x-3">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
+                        <Check className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm sm:text-lg font-semibold">
+                          Upload Berhasil!
+                        </p>
+                        <p className="text-xs sm:text-sm text-gray-600 break-words">
+                          Data siswa berhasil diunggah ke kelas {classroom?.name}.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-3 sm:space-y-4">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                      onChange={handleFileSelect}
-                      className="hidden"
-                      id="excel-upload"
-                    />
+                ) : (
+                  <>
+                    <div className="space-y-3 sm:space-y-4">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        id="excel-upload"
+                      />
 
-                    {!selectedFile ? (
-                      <div
-                        onDragEnter={handleDragEnter}
-                        onDragLeave={handleDragLeave}
-                        onDragOver={handleDragOver}
-                        onDrop={handleDrop}
-                        className={`relative transition-all duration-200 ${
-                          isDragging ? "scale-100" : ""
-                        }`}
-                      >
-                        <label
-                          htmlFor="excel-upload"
-                          className={`flex flex-col items-center justify-center w-full h-24 sm:h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
-                            isDragging
-                              ? "border-green-500 bg-green-50"
-                              : "border-gray-300 bg-gray-50 hover:border-green-500 hover:bg-gray-100"
+                      {!selectedFile ? (
+                        <div
+                          onDragEnter={handleDragEnter}
+                          onDragLeave={handleDragLeave}
+                          onDragOver={handleDragOver}
+                          onDrop={handleDrop}
+                          className={`relative transition-all duration-200 ${
+                            isDragging ? "scale-100" : ""
                           }`}
                         >
-                          <Upload
-                            className={`w-6 h-6 sm:w-8 sm:h-8 mb-1 sm:mb-2 transition-all duration-200 ${
+                          <label
+                            htmlFor="excel-upload"
+                            className={`flex flex-col items-center justify-center w-full h-24 sm:h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
                               isDragging
-                                ? "text-green-600 scale-100"
-                                : "text-gray-400"
-                            }`}
-                          />
-                          <span
-                            className={`text-xs sm:text-sm text-center px-2 transition-colors duration-200 ${
-                              isDragging
-                                ? "text-green-600 font-medium"
-                                : "text-gray-600"
+                                ? "border-green-500 bg-green-50"
+                                : "border-gray-300 bg-gray-50 hover:border-green-500 hover:bg-gray-100"
                             }`}
                           >
-                            {isDragging
-                              ? "Drop your Excel file here"
-                              : "Click to upload or drag & drop"}
-                          </span>
-                          <span className="text-xs text-gray-400 mt-0.5 sm:mt-1 px-2 text-center">
-                            .xls or .xlsx (max 10MB)
-                          </span>
-                        </label>
-                        {isDragging && (
-                          <div className="absolute inset-0 rounded-lg bg-green-500 bg-opacity-10 pointer-events-none animate-pulse" />
-                        )}
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between rounded-lg border border-green-200 p-3 sm:p-4 bg-green-50 mb-3 sm:mb-4">
-                        <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-                          <FileSpreadsheet className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 flex-shrink-0" />
-                          <div className="truncate min-w-0">
-                            <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
-                              {selectedFile.name}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                            </p>
-                          </div>
+                            <Upload
+                              className={`w-6 h-6 sm:w-8 sm:h-8 mb-1 sm:mb-2 transition-all duration-200 ${
+                                isDragging
+                                  ? "text-green-600 scale-100"
+                                  : "text-gray-400"
+                              }`}
+                            />
+                            <span
+                              className={`text-xs sm:text-sm text-center px-2 transition-colors duration-200 ${
+                                isDragging
+                                  ? "text-green-600 font-medium"
+                                  : "text-gray-600"
+                              }`}
+                            >
+                              {isDragging
+                                ? "Drop your Excel file here"
+                                : "Click to upload or drag & drop"}
+                            </span>
+                            <span className="text-xs text-gray-400 mt-0.5 sm:mt-1 px-2 text-center">
+                              .xls or .xlsx (max 10MB)
+                            </span>
+                          </label>
+                          {isDragging && (
+                            <div className="absolute inset-0 rounded-lg bg-green-500 bg-opacity-10 pointer-events-none animate-pulse" />
+                          )}
                         </div>
-                        <button
-                          onClick={handleRemoveFile}
-                          className="text-gray-400 hover:text-red-500 transition-colors p-1 ml-2 flex-shrink-0"
-                          disabled={uploadStatus === "uploading"}
-                        >
-                          <X className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </button>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="flex items-center justify-between rounded-lg border border-green-200 p-3 sm:p-4 bg-green-50 mb-3 sm:mb-4">
+                          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                            <FileSpreadsheet className="w-6 h-6 sm:w-8 sm:h-8 text-green-600 flex-shrink-0" />
+                            <div className="truncate min-w-0">
+                              <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
+                                {selectedFile.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={handleRemoveFile}
+                            className="text-gray-400 hover:text-red-500 transition-colors p-1 ml-2 flex-shrink-0"
+                            disabled={uploadStatus === "uploading"}
+                          >
+                            <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                          </button>
+                        </div>
+                      )}
 
-                    {uploadError && (
-                      <div className="flex items-start space-x-2 text-xs sm:text-sm text-red-600 bg-red-50 p-2 sm:p-3 rounded-lg border border-red-200">
-                        <X className="w-4 h-4 flex-shrink-0 mt-0.5 sm:mt-0" />
-                        <span className="break-words">{uploadError}</span>
-                      </div>
-                    )}
+                      {uploadError && (
+                        <div className="flex items-start space-x-2 text-xs sm:text-sm text-red-600 bg-red-50 p-2 sm:p-3 rounded-lg border border-red-200">
+                          <X className="w-4 h-4 flex-shrink-0 mt-0.5 sm:mt-0" />
+                          <span className="break-words">{uploadError}</span>
+                        </div>
+                      )}
 
-                    {uploadStatus === "uploading" && (
-                      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                        <div
-                          className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${uploadProgress}%` }}
-                        />
-                      </div>
-                    )}
-                  </div>
+                      {uploadStatus === "uploading" && (
+                        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                          <div
+                            className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
 
-                  <div className="bg-gray-50 rounded-lg border border-gray-200 p-3 sm:p-4 mb-3 sm:mb-4">
-                    <h4 className="text-xs sm:text-sm font-medium mb-2">
-                      Persyaratan File:
-                    </h4>
-                    <ul className="text-xs text-gray-600 space-y-1">
-                      <li className="flex items-start">
-                        <span className="mr-1 flex-shrink-0">•</span>
-                        <span>Format Excel (.xls atau .xlsx)</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="mr-1 flex-shrink-0">•</span>
-                        <span>Kolom wajib: Nama, NIS, Email</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="mr-1 flex-shrink-0">•</span>
-                        <span>Ukuran file maksimal: 10MB</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="mr-1 flex-shrink-0">•</span>
-                        <span>NIS siswa tidak boleh duplikat</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="mr-1 flex-shrink-0">•</span>
-                        <span className="break-words">
-                          Siswa akan ditambahkan ke kelas {classroom?.name}
-                        </span>
-                      </li>
-                    </ul>
-                  </div>
-                </>
-              )}
-
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                {uploadStatus !== "success" && (
-                  <Button
-                    variant="outline"
-                    className="text-green-600 hover:text-green-700 hover:bg-green-50 order-3 sm:order-1"
-                    onClick={downloadTemplate}
-                    disabled={uploadStatus === "uploading"}
-                  >
-                    <FileSpreadsheet className="w-4 h-4 mr-2" />
-                    Download Template
-                  </Button>
+                    <div className="bg-gray-50 rounded-lg border border-gray-200 p-3 sm:p-4 mb-3 sm:mb-4">
+                      <h4 className="text-xs sm:text-sm font-medium mb-2">
+                        Persyaratan File:
+                      </h4>
+                      <ul className="text-xs text-gray-600 space-y-1">
+                        <li className="flex items-start">
+                          <span className="mr-1 flex-shrink-0">•</span>
+                          <span>Format Excel (.xls atau .xlsx)</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-1 flex-shrink-0">•</span>
+                          <span>Kolom wajib: Nama, NIS, Email</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-1 flex-shrink-0">•</span>
+                          <span>Ukuran file maksimal: 10MB</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-1 flex-shrink-0">•</span>
+                          <span>NIS siswa tidak boleh duplikat</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="mr-1 flex-shrink-0">•</span>
+                          <span className="break-words">
+                            Siswa akan ditambahkan ke kelas {classroom?.name}
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
+                  </>
                 )}
 
-                <div className="flex gap-2 order-1 sm:order-2">
-                  {uploadStatus === "success" ? (
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  {uploadStatus !== "success" && (
                     <Button
-                      onClick={() => setIsImportModalOpen(false)}
-                      className="bg-green-500 hover:bg-green-600 text-white flex-1 sm:flex-none"
+                      variant="outline"
+                      className="text-green-600 hover:text-green-700 hover:bg-green-50 order-3 sm:order-1"
+                      onClick={downloadTemplate}
+                      disabled={uploadStatus === "uploading"}
                     >
-                      Continue
+                      <FileSpreadsheet className="w-4 h-4 mr-2" />
+                      Download Template
                     </Button>
-                  ) : (
-                    <>
+                  )}
+
+                  <div className="flex gap-2 order-1 sm:order-2">
+                    {uploadStatus === "success" ? (
                       <Button
-                        variant="outline"
                         onClick={() => setIsImportModalOpen(false)}
-                        disabled={uploadStatus === "uploading"}
-                        className="flex-1 sm:flex-none"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={handleFileUpload}
-                        disabled={!selectedFile || uploadStatus === "uploading"}
                         className="bg-green-500 hover:bg-green-600 text-white flex-1 sm:flex-none"
                       >
-                        {uploadStatus === "uploading" ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            <span className="hidden sm:inline">
-                              Uploading... {uploadProgress}%
-                            </span>
-                            <span className="sm:hidden">{uploadProgress}%</span>
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="w-4 h-4 mr-2" />
-                            Upload File
-                          </>
-                        )}
+                        Continue
                       </Button>
-                    </>
-                  )}
+                    ) : (
+                      <>
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsImportModalOpen(false)}
+                          disabled={uploadStatus === "uploading"}
+                          className="flex-1 sm:flex-none"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleFileUpload}
+                          disabled={!selectedFile || uploadStatus === "uploading"}
+                          className="bg-green-500 hover:bg-green-600 text-white flex-1 sm:flex-none"
+                        >
+                          {uploadStatus === "uploading" ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              <span className="hidden sm:inline">
+                                Uploading... {uploadProgress}%
+                              </span>
+                              <span className="sm:hidden">{uploadProgress}%</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4 mr-2" />
+                              Upload File
+                            </>
+                          )}
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Delete Students Button */}
-        <div>
+            </DialogContent>
+          </Dialog>
           <Button
             className="hover:bg-red-700 hover:text-white bg-red-600 transition-all duration-300 w-full sm:w-auto"
             onClick={() => handleDeleteStudentByClass(classId)}
