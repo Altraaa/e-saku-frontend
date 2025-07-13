@@ -26,12 +26,13 @@ import { Link } from "react-router-dom";
 import { IClassroom } from "@/config/Models/Classroom";
 import { IMajor } from "@/config/Models/Major";
 import StudentSkeleton from "@/components/shared/component/StudentSekeleton";
+import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
 
 const ViewStudent = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [programFilter, setProgramFilter] = useState<string>("all");
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [openPopoverId, setOpenPopoverId] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [isAddClassModalOpen, setIsAddClassModalOpen] =
     useState<boolean>(false);
@@ -86,7 +87,7 @@ const ViewStudent = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setOpenMenuId(null);
+        setOpenPopoverId(null);
       }
     };
 
@@ -207,24 +208,18 @@ const ViewStudent = () => {
     return <StudentSkeleton />;
   }
 
-  const handleMenuToggle = (classroomId: number, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation(); 
-    setOpenMenuId(openMenuId === classroomId ? null : classroomId);
-  };
-
   const handleEdit = (classroomId: number, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Edit clicked for classroom:', classroomId);
-    setOpenMenuId(null);
-  };
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Edit clicked for classroom:', classroomId);
+      setOpenPopoverId(null);
+    };
 
   const handleDelete = (classroomId: number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     console.log('Delete clicked for classroom:', classroomId);
-    setOpenMenuId(null);
+    setOpenPopoverId(null);
   };
 
   return (
@@ -555,34 +550,51 @@ const ViewStudent = () => {
             >
               <Card className="bg-white shadow-md hover:shadow-lg hover:border-green-500 hover:border transition-all duration-200 relative rounded-lg min-h-[200px] sm:min-h-[220px]">
                 <div className="w-2 h-full absolute left-0 top-0 bg-green-500 rounded-l-lg"></div>
-                  <div className="absolute top-3 right-3 z-10" ref={menuRef}>
-                    <button
-                      onClick={(e) => handleMenuToggle(classroom.id, e)}
-                      className="p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
-                    >    
-                      <MoreVertical className="w-5 h-5 text-gray-500" />
-                    </button>
-                    
-                    {/* Dropdown menu */}
-                    {openMenuId === classroom.id && (
-                      <div className="absolute right-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                <div className="absolute top-3 right-3 z-10">
+                  <Popover 
+                    open={openPopoverId === classroom.id}
+                    onOpenChange={(open) => setOpenPopoverId(open ? classroom.id : null)}
+                  >
+                    <PopoverTrigger asChild>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          // Toggle the popover state
+                          setOpenPopoverId(openPopoverId === classroom.id ? null : classroom.id);
+                        }}
+                        className="p-2 rounded-full hover:bg-gray-100 transition-all duration-200 hover:shadow-md active:scale-95"
+                      >
+                        <MoreVertical className="w-4 h-4 text-gray-600" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent 
+                      className="w-44 p-1 shadow-lg border border-gray-200 bg-white rounded-lg animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2"
+                      side="bottom"
+                      align="end"
+                      sideOffset={5}
+                    >
+                      <div className="flex flex-col space-y-1">
                         <button
                           onClick={(e) => handleEdit(classroom.id, e)}
-                          className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                          className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors duration-200 w-full text-left"
                         >
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit
+                          <Edit className="w-4 h-4 mr-3 text-gray-500" />
+                          Edit Class
                         </button>
+                        <hr className="border-gray-100" />
                         <button
                           onClick={(e) => handleDelete(classroom.id, e)}
-                          className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
+                          className="flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors duration-200 w-full text-left"
                         >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
+                          <Trash2 className="w-4 h-4 mr-3 text-red-500" />
+                          Delete Class
                         </button>
                       </div>
-                    )}
-                  </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
                 <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center h-full justify-center">
                   <CardHeader className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-gray-200 flex items-center justify-center p-0 mb-3 sm:mb-4">
                     <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-400">
