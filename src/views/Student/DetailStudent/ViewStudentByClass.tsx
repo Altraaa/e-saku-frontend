@@ -1295,30 +1295,30 @@ const ViewStudentByClass: React.FC = () => {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             onConfirm={handleConfirmDelete}
-            title="Confirm Deletion"
-            description="Are you sure you want to delete this Students?"
-            confirmText="Delete"
-            cancelText="Cancel"
+            title="Hapus Siswa"
+            description="Apakah anda yakin ingin menghapus siswa ini? Data yang dihapus tidak dapat dikembalikan."
+            confirmText="Hapus"
+            cancelText="Batal"
             type="delete"
           />
           <ConfirmationModal
             isOpen={isModalDeleteAllOpen}
             onClose={() => setIsModalDeleteAllOpen(false)}
             onConfirm={handleConfirmDeleteByClass}
-            title="Confirm Deletion"
-            description="Are you sure you want to delete this all data of Students?"
-            confirmText="Delete"
-            cancelText="Cancel"
+            title="Hapus Siswa Kelas Ini"
+            description="Apakah anda yakin ingin menghapus semua siswa di kelas ini? Data yang dihapus tidak dapat dikembalikan."
+            confirmText="Hapus "
+            cancelText="Batal"
             type="delete"
           />
           <ConfirmationModal
             isOpen={isModalExportOpen}
             onClose={() => setIsModalExportOpen(false)}
             onConfirm={handleConfirmExportData}
-            title="Konfirmasi Export Data"
-            description="Apakah Anda yakin ingin mengekspor data ini?"
-            confirmText="Export"
-            cancelText="Cancel"
+            title="Konfirmasi Ekspor Data"
+            description="Apakah Anda yakin ingin mengekspor data kelas ini ke dalam file excel?"
+            confirmText="Ekspor"
+            cancelText="Batal"
             type="add"
           />
         </>

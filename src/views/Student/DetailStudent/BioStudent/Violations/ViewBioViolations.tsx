@@ -791,10 +791,10 @@ const ViewBioViolations = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Confirm Deletion"
-        description="Are you sure you want to delete this violation?"
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="Hapus Pelanggaran Ini"
+        description="Apakah anda yakin ingin menghapus data pelanggaran siswa ini? Data yang dihapus tidak dapat dikembalikan."
+        confirmText="Hapus"
+        cancelText="Batal"
         type="delete"
       />
 
