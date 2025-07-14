@@ -121,16 +121,7 @@ export const ApiRequest = async ({
 
 export const logoutRequest = async () => {
   try {
-    const token = localStorage.getItem("token");
-    const response = await axios.post(
-      `${import.meta.env.VITE_API_URL}/logout`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/logout`);
     return response.data;
   } catch (error) {
     // Silently handle errors

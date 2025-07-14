@@ -30,17 +30,9 @@ export type ViolationTypeOptions =
   | "tidak-seragam"
   | "lainnya"
   | "";
-export type AchievementTypeOptions =
-  | "akademik"
-  | "olahraga"
-  | "kesenian"
-  | "lainnya"
-  | "";
-export type AchievementLevelOptions =
-  | "kota"
-  | "provinsi"
-  | "nasional"
-  | "internasional"
-  | "";
+// AchievementTypeOptions sekarang menggunakan string karena data diambil dari API
+export type AchievementTypeOptions = string;
+// AchievementLevelOptions sekarang menggunakan string karena data diambil dari API
+export type AchievementLevelOptions = string;
 
 export type FormValidator = (value: string) => string | undefined;
