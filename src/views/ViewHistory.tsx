@@ -774,13 +774,9 @@ const ViewHistory = () => {
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
-        items={
-          itemToDelete
-            ? itemToDelete.type === "violation"
-              ? "pelanggaran ini?"
-              : "prestasi ini?"
-            : ""
-        }
+        title="Hapus Data"
+        description="Apakah Anda yakin ingin menghapus data ini? Data yang dihapus tidak dapat dikembalikan."
+        confirmText="Hapus"
         cancelText="Batal"
         type="delete"
       />
@@ -788,9 +784,11 @@ const ViewHistory = () => {
         isOpen={isModalExportOpen}
         onClose={() => setIsModalExportOpen(false)}
         onConfirm={handleConfirmExportData}
-        items="histori?"
-        cancelText="Cancel"
-        type="export"
+        title="Konfirmasi Ekspor Data"
+        description="Apakah Anda yakin ingin mengekspor data kelas ini ke dalam file excel?"
+        confirmText="Ekspor"
+        cancelText="Batal"
+        type="add"
       />
     </>
   );

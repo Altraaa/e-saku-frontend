@@ -13,6 +13,9 @@ interface ConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  title: string;
+  description: string;
+  confirmText:string;
   cancelText?: string;
   items?: string;
   type: "delete" | "update" | "add" | "logout" | "report" | "export"; // Tambahkan tipe report
@@ -24,36 +27,24 @@ const typeStyles = {
     bgColor: "bg-red-100",
     buttonColor:
       "outline-none focus:outline-none focus:border-none bg-red-500 hover:bg-red-600",
-    title: "Konfirmasi Hapus",
-    description: "Apakah Anda yakin ingin menghapus",
-    confirmText: "Yes",
   },
   update: {
     icon: <Info className="w-8 h-8 text-blue-500" />,
     bgColor: "bg-blue-100",
     buttonColor:
       "outline-none focus:outline-none focus:border-none bg-blue-500 hover:bg-blue-600",
-    title: "Perbarui Data? ",
-    description: "Apakah Anda yakin ingin mempebarui data",
-    confirmText: "Yes",
   },
   add: {
     icon: <PlusCircle className="w-8 h-8 text-green-500" />,
     bgColor: "bg-green-100",
     buttonColor:
       "outline-none focus:outline-none focus:border-none bg-green-500 hover:bg-green-600",
-    title: "Tambah Data?",
-    description: "Apakah Anda yakin ingin menambah data",
-    confirmText: "Yes",
   },
   logout: {
     icon: <AlertTriangle className="w-8 h-8 text-red-500" />,
     bgColor: "bg-red-100",
     buttonColor:
       "outline-none focus:outline-none focus:border-none bg-red-500 hover:bg-red-600",
-    title: "Konfirmasi Keluar",
-    description: "Apakah Anda yakin ingin keluar?",
-    confirmText: "Yes",
   },
   // Tambahkan style untuk tipe report
   report: {
@@ -61,18 +52,12 @@ const typeStyles = {
     bgColor: "bg-purple-100",
     buttonColor:
       "outline-none focus:outline-none focus:border-none bg-black hover:bg-black/80",
-    title: "Konfirmasi Laporan",
-    description: "Apakah Anda yakin ingin mengirim laporan?",
-    confirmText: "Yes",
   },
   export: {
     icon: <UploadIcon className="w-8 h-8 text-green-500" />,
     bgColor: "bg-green-100",
     buttonColor:
       "outline-none focus:outline-none focus:border-none bg-green-500 hover:bg-green-600",
-    title: "Export Data?",
-    description: "Apakah Anda yakin ingin mengekspor data",
-    confirmText: "Yes",
   },
 };
 
@@ -80,7 +65,9 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
-  items,
+  title,
+  description,
+  confirmText,
   cancelText = "Batal",
   type,
 }) => {
@@ -92,10 +79,10 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             {typeStyles[type].icon}
           </div>
           <DialogTitle className="text-lg sm:text-xl md:text-2xl font-semibold mt-3">
-            {typeStyles[type].title}
+            {title}
           </DialogTitle>
           <DialogDescription className="text-gray-600 text-center md:text-lg px-4">
-            {typeStyles[type].description} {items}
+            {description}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-3 md:mt-3 sm:mt-4">
@@ -103,7 +90,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             onClick={onConfirm}
             className={`${typeStyles[type].buttonColor} text-white text-base sm:text-lg`}
           >
-            {typeStyles[type].confirmText}
+            {confirmText}
           </Button>
           <Button
             onClick={onClose}

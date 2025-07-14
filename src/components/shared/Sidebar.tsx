@@ -299,6 +299,9 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
         isOpen={isLogoutModalOpen}
         onClose={() => setLogoutModalOpen(false)}
         onConfirm={confirmLogout}
+        title="Konfirmasi Keluar"
+        description="Apakah anda yakin ingin keluar?"
+        confirmText="Keluar"
         type="logout"
       />
 

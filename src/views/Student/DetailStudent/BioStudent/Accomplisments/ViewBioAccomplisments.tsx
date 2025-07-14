@@ -124,11 +124,11 @@ const ViewBioAccomplishments = () => {
   const formattedAccomplishments = studentAccomplishments.map(
     (accomplishment) => ({
       id: accomplishment.id,
-      type: accomplishment.accomplishment_type,
-      rank: accomplishment.rank,
+      type: accomplishment.type_id,
+      rank: accomplishment.rank_id,
       description: accomplishment.description,
       date: accomplishment.accomplishment_date,
-      level: accomplishment.level,
+      level: accomplishment.level_id,
       image_documentation: accomplishment.image_documentation,
       points: accomplishment.points,
       created_at: accomplishment.created_at,
@@ -174,7 +174,7 @@ const ViewBioAccomplishments = () => {
     (accomplishment) => {
       if (
         filters.searchTerm &&
-        !accomplishment.type
+        !accomplishment.type.type
           .toLowerCase()
           .includes(filters.searchTerm.toLowerCase()) &&
         !accomplishment.description
@@ -713,10 +713,10 @@ const ViewBioAccomplishments = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Confirm Deletion"
-        description="Are you sure you want to delete this accomplishment?"
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="Hapus Prestasi Ini"
+        description="Apakah anda yakin ingin menghapus prestasi siswa ini? Data yang dihapus tidak dapat dikembalikan."
+        confirmText="Hapus"
+        cancelText="Batal"
         type="delete"
       />
     </div>
