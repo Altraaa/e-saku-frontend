@@ -46,7 +46,9 @@ const ViewReport = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isViolationDetailModalOpen, setIsViolationDetailModalOpen] =
     useState(false);
-  const [violationDetails, setViolationDetails] = useState<ITeacherReport | undefined>(undefined);
+  const [violationDetails, setViolationDetails] = useState<
+    ITeacherReport | undefined
+  >(undefined);
   const [filters, setFilters] = useState({
     selectedDate: "",
     searchTerm: "",
@@ -58,7 +60,9 @@ const ViewReport = () => {
   const { data: reports, isLoading: isReportsLoading } = useReports();
   const { mutate: deleteReport } = useReportDelete();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [reportToDelete, setReportToDelete] = useState<ITeacherReport | undefined>(undefined);
+  const [reportToDelete, setReportToDelete] = useState<
+    ITeacherReport | undefined
+  >(undefined);
 
   // Get logged-in teacher ID from localStorage
   const teacherId = Number(localStorage.getItem("teacher_id"));
@@ -374,15 +378,14 @@ const ViewReport = () => {
                             >
                               <SquarePen className="h-6 w-6" />
                             </Button>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => handleDeleteClick(report)}
-                                className="text-red-500 hover:text-red-600 transition-colors p-2 rounded-lg"
-                              >
-                                <Trash2 className="h-6 w-6" />
-                              </Button>
-                            
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleDeleteClick(report)}
+                              className="text-red-500 hover:text-red-600 transition-colors p-2 rounded-lg"
+                            >
+                              <Trash2 className="h-6 w-6" />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -463,14 +466,14 @@ const ViewReport = () => {
                           </Button>
                         </TableCell>
                         <TableCell className="text-center font-normal">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleDeleteClick(report)}
-                              className="text-red-500 hover:text-red-600 transition-colors p-2 rounded-lg"
-                            >
-                              <Trash2 className="h-6 w-6" />
-                            </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleDeleteClick(report)}
+                            className="text-red-500 hover:text-red-600 transition-colors p-2 rounded-lg"
+                          >
+                            <Trash2 className="h-6 w-6" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))
@@ -561,14 +564,14 @@ const ViewReport = () => {
                         <SquarePen className="h-6 w-6" />
                       </Button>
                       {report.reported_by === teacherId && (
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleDeleteClick(report)}
-                        className="text-red-500 hover:text-red-600"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleDeleteClick(report)}
+                          className="text-red-500 hover:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       )}
                     </div>
                   </div>

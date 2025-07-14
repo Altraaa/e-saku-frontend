@@ -53,16 +53,16 @@ export const ApiAccomplishments = {
 
 export const ApiAccomplishmentsType = {
   getAll: (): Promise<IType[]> =>
-    ApiRequest({ url: "/accomplishments/types", method: "GET" }),
+    ApiRequest({ url: "/accomplishments-types", method: "GET" }),
   getById: (id: number): Promise<IType> =>
-    ApiRequest({ url: `/accomplishments/types/${id}`, method: "GET" }),
+    ApiRequest({ url: `/accomplishments-types/${id}`, method: "GET" }),
   create: (data: Partial<IType>): Promise<IType> =>
-    ApiRequest({ url: "/accomplishments/types", method: "POST", body: data }),
+    ApiRequest({ url: "/accomplishments-types", method: "POST", body: data }),
   update: (id: number, data: Partial<IType>): Promise<IType> =>
-    ApiRequest({ url: `/accomplishments/types/${id}`, method: "PUT", body: data }),
+    ApiRequest({ url: `/accomplishments-types/${id}`, method: "PUT", body: data }),
   delete: (id: number): Promise<{ message: string }> =>
     ApiRequest({
-      url: `/accomplishments/types/${id}`,
+      url: `/accomplishments-types/${id}`,
       method: "POST",
       body: { _method: "DELETE" },
     }),
@@ -70,16 +70,20 @@ export const ApiAccomplishmentsType = {
 
 export const ApiAccomplishmentsLevel = {
   getAll: (): Promise<ILevel[]> =>
-    ApiRequest({ url: "/accomplishments/levels", method: "GET" }),
+    ApiRequest({ url: "/accomplishments-levels", method: "GET" }),
   getById: (id: number): Promise<ILevel> =>
-    ApiRequest({ url: `/accomplishments/levels/${id}`, method: "GET" }),
+    ApiRequest({ url: `/accomplishments-levels/${id}`, method: "GET" }),
   create: (data: Partial<ILevel>): Promise<ILevel> =>
-    ApiRequest({ url: "/accomplishments/levels", method: "POST", body: data }),
+    ApiRequest({ url: "/accomplishments-levels", method: "POST", body: data }),
   update: (id: number, data: Partial<ILevel>): Promise<ILevel> =>
-    ApiRequest({ url: `/accomplishments/levels/${id}`, method: "PUT", body: data }),
+    ApiRequest({
+      url: `/accomplishments-levels/${id}`,
+      method: "PUT",
+      body: data,
+    }),
   delete: (id: number): Promise<{ message: string }> =>
     ApiRequest({
-      url: `/accomplishments/levels/${id}`,
+      url: `/accomplishments-levels/${id}`,
       method: "POST",
       body: { _method: "DELETE" },
     }),
@@ -87,16 +91,16 @@ export const ApiAccomplishmentsLevel = {
 
 export const ApiAccomplishmentsRank = {
   getAll: (): Promise<IRank[]> =>
-    ApiRequest({ url: "/accomplishments/ranks", method: "GET" }),
+    ApiRequest({ url: "/accomplishments-ranks", method: "GET" }),
   getById: (id: number): Promise<IRank> =>
-    ApiRequest({ url: `/accomplishments/ranks/${id}`, method: "GET" }),
+    ApiRequest({ url: `/accomplishments-ranks/${id}`, method: "GET" }),
   create: (data: Partial<IRank>): Promise<IRank> =>
-    ApiRequest({ url: "/accomplishments/ranks", method: "POST", body: data }),
+    ApiRequest({ url: "/accomplishments-ranks", method: "POST", body: data }),
   update: (id: number, data: Partial<IRank>): Promise<IRank> =>
-    ApiRequest({ url: `/accomplishments/ranks/${id}`, method: "PUT", body: data }),
+    ApiRequest({ url: `/accomplishments-ranks/${id}`, method: "PUT", body: data }),
   delete: (id: number): Promise<{ message: string }> =>
     ApiRequest({
-      url: `/accomplishments/ranks/${id}`,
+      url: `/accomplishments-ranks/${id}`,
       method: "POST",
       body: { _method: "DELETE" },
     }),

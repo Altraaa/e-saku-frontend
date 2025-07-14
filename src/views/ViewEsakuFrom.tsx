@@ -74,23 +74,17 @@ import {
   useAccomplishmentCreate,
   useAccomplishmentsDocumentationUpload,
 } from "@/config/Api/useAccomplishments";
+import { useAccomplishmentsLevel } from "@/config/Api/useAccomplishmentsLevel";
+import { useAccomplishmentsRanks } from "@/config/Api/useAccomplishmentsRanks";
+import { useAccomplishmentsType } from "@/config/Api/useAccomplismentsType";
 import { useReportCreate } from "@/config/Api/useTeacherReport";
 import ConfirmationModal from "@/components/ui/confirmation";
 import { Checkbox } from "@/components/ui/checkbox";
 import toast from "react-hot-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const RankOptions = [
-  "Juara 1",
-  "Juara 2",
-  "Juara 3",
-  "Harapan 1",
-  "Harapan 2",
-  "Harapan 3",
-  "Peserta",
-  "lainnya",
-] as const;
-export type RankOptions = (typeof RankOptions)[number];
+// Rank options will be fetched from API
+export type RankOptions = string;
 const followUpOptions = [
   "tidak-perlu",
   "pemanggilan",
@@ -160,6 +154,11 @@ const ESakuForm: React.FC = () => {
   const uploadViolationDocumentation = useViolationsDocumentationUpload();
   const uploadAccomplishmentDocumentation =
     useAccomplishmentsDocumentationUpload();
+
+  // Fetch accomplishment types, levels, and ranks from API
+  const { data: accomplishmentTypes = [] } = useAccomplishmentsType();
+  const { data: accomplishmentLevels = [] } = useAccomplishmentsLevel();
+  const { data: accomplishmentRanks = [] } = useAccomplishmentsRanks();
 
   const formRef = useRef<HTMLDivElement>(null);
   const dragCounter = useRef<number>(0);
@@ -278,6 +277,81 @@ const ESakuForm: React.FC = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (inputType === "achievement") {
+      let totalPoints = 0;
+
+      const typePoint =
+        accomplishmentTypes.find((t) => t.type === achievementTypeOptions)
+          ?.point || 0;
+      const levelPoint =
+        accomplishmentLevels.find((l) => l.level === achievementLevel)?.point ||
+        0;
+      const rankPoint =
+        accomplishmentRanks.find((r) => r.rank === rank)?.point || 0;
+      totalPoints = typePoint + levelPoint + rankPoint;
+      setPoint(String(totalPoints));
+    }
+  }, [
+    achievementTypeOptions,
+    achievementLevel,
+    rank,
+    accomplishmentTypes,
+    accomplishmentLevels,
+    accomplishmentRanks,
+    inputType,
+  ]);
+
+  // Handler untuk perubahan jenis prestasi
+  const handleAchievementTypeChange = (value: string) => {
+    setAchievementTypeOptions(value as AchievementTypeOptions);
+
+    // Update poin berdasarkan jenis prestasi
+    const selectedType = accomplishmentTypes.find(
+      (type) => type.type === value
+    );
+    if (selectedType) {
+      setPoint(selectedType.point.toString());
+    }
+  };
+
+   const handleAchievementLevelChange = (value: string) => {
+     setAchievementLevel(value as AchievementLevelOptions);
+
+     // Update poin berdasarkan tingkatan
+     const selectedType = accomplishmentTypes.find(
+       (type) => type.type === achievementTypeOptions
+     );
+     const selectedLevel = accomplishmentLevels.find(
+       (level) => level.level === value
+     );
+
+     if (selectedType && selectedLevel) {
+       const totalPoints = selectedType.point + selectedLevel.point;
+       setPoint(totalPoints.toString());
+     }
+   };
+
+    const handleRankChange = (value: string) => {
+      setRank(value);
+
+      // Update poin berdasarkan peringkat
+      const selectedType = accomplishmentTypes.find(
+        (type) => type.type === achievementTypeOptions
+      );
+      const selectedLevel = accomplishmentLevels.find(
+        (level) => level.level === achievementLevel
+      );
+      const selectedRank = accomplishmentRanks.find((r) => r.rank === value);
+
+      if (selectedType && selectedLevel && selectedRank) {
+        const totalPoints =
+          selectedType.point + selectedLevel.point + selectedRank.point;
+        setPoint(totalPoints.toString());
+      }
+    };
+
 
   useEffect(() => {
     const dynamicFieldChecks: Partial<
@@ -559,24 +633,24 @@ const ESakuForm: React.FC = () => {
         }
       );
     } else {
-      const levelMap: Record<string, number> = {
-        kota: 1,
-        provinsi: 2,
-        nasional: 3,
-        internasional: 4,
-      };
+      // Dapatkan ID dari data yang dipilih
+      const selectedType = accomplishmentTypes.find(
+        (type) => type.type === achievementTypeOptions
+      );
+      const selectedLevel = accomplishmentLevels.find(
+        (level) => level.level === achievementLevel
+      );
+      const selectedRank = accomplishmentRanks.find((r) => r.rank === rank);
 
       createAccomplishment(
         {
           student_id: studentObj.id.toString(),
           description,
-          accomplishment_type:
-            achievementTypeOptions === "lainnya"
-              ? customAchievement
-              : achievementTypeOptions,
+          type_id: selectedType?.id || 0,
           accomplishment_date: date.toISOString().split("T")[0],
-          level: levelMap[achievementLevel] ?? 0,
+          level_id: selectedLevel?.id || 0,
           points: parseInt(point),
+          rank_id: rank === "lainnya" ? 0 : selectedRank?.id || 0,
           rank: rank === "lainnya" ? customRank : rank,
         },
         {
@@ -650,22 +724,22 @@ const ESakuForm: React.FC = () => {
       points: selectedRule?.points ?? 0,
     };
 
-    const levelMap: Record<string, number> = {
-      kota: 1,
-      provinsi: 2,
-      nasional: 3,
-      internasional: 4,
-    };
+    // Dapatkan ID dari data yang dipilih
+    const selectedType = accomplishmentTypes.find(
+      (type) => type.type === achievementTypeOptions
+    );
+    const selectedLevel = accomplishmentLevels.find(
+      (level) => level.level === achievementLevel
+    );
+    const selectedRank = accomplishmentRanks.find((r) => r.rank === rank);
 
     if (inputType === "achievement") {
       // For achievements, include the rank and points
       reportData = {
         ...reportData,
-        accomplishment_type:
-          achievementTypeOptions === "lainnya"
-            ? customAchievement
-            : achievementTypeOptions,
-        level: levelMap[achievementLevel] ?? 0,
+        type_id: selectedType?.id || 0,
+        level_id: selectedLevel?.id || 0,
+        rank_id: rank === "lainnya" ? 0 : selectedRank?.id || 0,
         points: parseInt(point),
         rank: rank === "lainnya" ? customRank : rank,
       };
@@ -813,7 +887,7 @@ const ESakuForm: React.FC = () => {
       }
     }, 100);
   };
-  
+
   return (
     <div className="space-y-4 sm:space-y-6" ref={formRef}>
       <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 mb-6 shadow-md">
@@ -1169,11 +1243,7 @@ const ESakuForm: React.FC = () => {
                         >
                           <Select
                             value={achievementTypeOptions}
-                            onValueChange={(value: string) =>
-                              setAchievementTypeOptions(
-                                value as AchievementTypeOptions
-                              )
-                            }
+                            onValueChange={handleAchievementTypeChange}
                           >
                             <SelectTrigger
                               className={`${inputClass} ${
@@ -1185,13 +1255,17 @@ const ESakuForm: React.FC = () => {
                               <SelectValue placeholder="Pilih Jenis Prestasi" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="akademik">Akademik</SelectItem>
-                              <SelectItem value="non-akademik">
-                                Non Akademik
-                              </SelectItem>
-                              <SelectItem value="olahraga">Olahraga</SelectItem>
-                              <SelectItem value="seni">Seni</SelectItem>
-                              <SelectItem value="lainnya">Lainnya</SelectItem>
+                              {accomplishmentTypes.length > 0 ? (
+                                accomplishmentTypes.map((type) => (
+                                  <SelectItem key={type.id} value={type.type}>
+                                    {type.type}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="no-data" disabled>
+                                  Tidak ada data jenis prestasi
+                                </SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                         </FormFieldGroup>
@@ -1228,10 +1302,7 @@ const ESakuForm: React.FC = () => {
                           required
                           error={errors.rank}
                         >
-                          <Select
-                            value={rank}
-                            onValueChange={(value: string) => setRank(value)}
-                          >
+                          <Select value={rank} onValueChange={handleRankChange}>
                             <SelectTrigger
                               className={`${inputClass} ${
                                 errors.rank ? inputErrorClass : ""
@@ -1240,19 +1311,20 @@ const ESakuForm: React.FC = () => {
                               <SelectValue placeholder="Pilih Peringkat" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Juara 1">Juara 1</SelectItem>
-                              <SelectItem value="Juara 2">Juara 2</SelectItem>
-                              <SelectItem value="Juara 3">Juara 3</SelectItem>
-                              <SelectItem value="Harapan 1">
-                                Harapan 1
-                              </SelectItem>
-                              <SelectItem value="Harapan 2">
-                                Harapan 2
-                              </SelectItem>
-                              <SelectItem value="Harapan 3">
-                                Harapan 3
-                              </SelectItem>
-                              <SelectItem value="Peserta">Peserta</SelectItem>
+                              {accomplishmentRanks.length > 0 ? (
+                                accomplishmentRanks.map((rankItem) => (
+                                  <SelectItem
+                                    key={rankItem.id}
+                                    value={rankItem.rank}
+                                  >
+                                    {rankItem.rank}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="no-data" disabled>
+                                  Tidak ada data peringkat
+                                </SelectItem>
+                              )}
                               <SelectItem value="lainnya">Lainnya</SelectItem>
                             </SelectContent>
                           </Select>
@@ -1269,11 +1341,7 @@ const ESakuForm: React.FC = () => {
                           >
                             <Select
                               value={achievementLevel}
-                              onValueChange={(value: string) =>
-                                setAchievementLevel(
-                                  value as AchievementLevelOptions
-                                )
-                              }
+                              onValueChange={handleAchievementLevelChange}
                             >
                               <SelectTrigger
                                 className={`${inputClass} ${
@@ -1283,16 +1351,20 @@ const ESakuForm: React.FC = () => {
                                 <SelectValue placeholder="Pilih Tingkatan Prestasi" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="kota">Se-Kota</SelectItem>
-                                <SelectItem value="provinsi">
-                                  Se-Provinsi
-                                </SelectItem>
-                                <SelectItem value="nasional">
-                                  Nasional
-                                </SelectItem>
-                                <SelectItem value="internasional">
-                                  Internasional
-                                </SelectItem>
+                                {accomplishmentLevels.length > 0 ? (
+                                  accomplishmentLevels.map((level) => (
+                                    <SelectItem
+                                      key={level.id}
+                                      value={level.level}
+                                    >
+                                      {level.level}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <SelectItem value="no-data" disabled>
+                                    Tidak ada data tingkatan prestasi
+                                  </SelectItem>
+                                )}
                               </SelectContent>
                             </Select>
                           </FormFieldGroup>
@@ -1322,15 +1394,10 @@ const ESakuForm: React.FC = () => {
                             error={errors.point}
                           >
                             <Input
-                              id="point"
                               type="number"
-                              min="1"
                               value={point}
-                              onChange={(e) => setPoint(e.target.value)}
-                              placeholder="Masukkan poin prestasi"
-                              className={`${inputClass} ${
-                                errors.point ? inputErrorClass : ""
-                              }`}
+                              className={`${inputClass} bg-gray-100`}
+                              readOnly
                             />
                           </FormFieldGroup>
                         </div>
@@ -1419,73 +1486,73 @@ const ESakuForm: React.FC = () => {
                       </>
                     }
                   >
-                {!selectedFile ? (
-                  <div
-                    onDragEnter={handleDragEnter}
-                    onDragLeave={handleDragLeave}
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                    className={`relative transition-all duration-200 ${
-                      isDragging ? "scale-100" : ""
-                    }`}
-                  >
-                    <label
-                      htmlFor="file-upload"
-                      className={`flex flex-col items-center justify-center w-full h-24 sm:h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
-                        isDragging
-                          ? "border-green-500 bg-green-50"
-                          : "border-gray-300 bg-gray-50 hover:border-green-500 hover:bg-gray-100"
-                      }`}
-                    >
-                      <Upload
-                        className={`w-6 h-6 sm:w-8 sm:h-8 mb-1 sm:mb-2 transition-all duration-200 ${
-                          isDragging
-                            ? "text-green-600 scale-100"
-                            : "text-gray-400"
-                        }`}
-                      />
-                      <span
-                        className={`text-xs sm:text-sm text-center px-2 transition-colors duration-200 ${
-                          isDragging
-                            ? "text-green-600 font-medium"
-                            : "text-gray-600"
+                    {!selectedFile ? (
+                      <div
+                        onDragEnter={handleDragEnter}
+                        onDragLeave={handleDragLeave}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                        className={`relative transition-all duration-200 ${
+                          isDragging ? "scale-100" : ""
                         }`}
                       >
-                        {isDragging
-                          ? "Drop your file here"
-                          : "Click to upload or drag & drop"}
-                      </span>
-                      <span className="text-xs text-gray-400 mt-0.5 sm:mt-1 px-2 text-center">
-                        .jpg, .jpeg, .png, .gif (max 10MB)
-                      </span>
-                    </label>
-                    {isDragging && (
-                      <div className="absolute inset-0 rounded-lg bg-green-500 bg-opacity-10 pointer-events-none animate-pulse" />
+                        <label
+                          htmlFor="file-upload"
+                          className={`flex flex-col items-center justify-center w-full h-24 sm:h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                            isDragging
+                              ? "border-green-500 bg-green-50"
+                              : "border-gray-300 bg-gray-50 hover:border-green-500 hover:bg-gray-100"
+                          }`}
+                        >
+                          <Upload
+                            className={`w-6 h-6 sm:w-8 sm:h-8 mb-1 sm:mb-2 transition-all duration-200 ${
+                              isDragging
+                                ? "text-green-600 scale-100"
+                                : "text-gray-400"
+                            }`}
+                          />
+                          <span
+                            className={`text-xs sm:text-sm text-center px-2 transition-colors duration-200 ${
+                              isDragging
+                                ? "text-green-600 font-medium"
+                                : "text-gray-600"
+                            }`}
+                          >
+                            {isDragging
+                              ? "Drop your file here"
+                              : "Click to upload or drag & drop"}
+                          </span>
+                          <span className="text-xs text-gray-400 mt-0.5 sm:mt-1 px-2 text-center">
+                            .jpg, .jpeg, .png, .gif (max 10MB)
+                          </span>
+                        </label>
+                        {isDragging && (
+                          <div className="absolute inset-0 rounded-lg bg-green-500 bg-opacity-10 pointer-events-none animate-pulse" />
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3 mt-2 rounded-md border border-green-300 bg-green-50 px-3 py-2 shadow-sm">
+                        <File className="h-5 w-5 text-green-600 flex-shrink-0" />
+                        <span className="truncate font-medium text-green-700">
+                          {selectedFile.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedFile(null)}
+                          className="text-red-500 hover:text-red-600 transition-colors ml-auto"
+                          aria-label="Remove file"
+                        >
+                          &times;
+                        </button>
+                      </div>
                     )}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3 mt-2 rounded-md border border-green-300 bg-green-50 px-3 py-2 shadow-sm">
-                    <File className="h-5 w-5 text-green-600 flex-shrink-0" />
-                    <span className="truncate font-medium text-green-700">
-                      {selectedFile.name}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedFile(null)}
-                      className="text-red-500 hover:text-red-600 transition-colors ml-auto"
-                      aria-label="Remove file"
-                    >
-                      &times;
-                    </button>
-                  </div>
-                )}
-                <input
-                  id="file-upload"
-                  type="file"
-                  accept=".jpg,.jpeg,.png,.gif,image/*"
-                  onChange={handleChangeDocumentation}
-                  className="hidden"
-                />
+                    <input
+                      id="file-upload"
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.gif,image/*"
+                      onChange={handleChangeDocumentation}
+                      className="hidden"
+                    />
                   </FormFieldGroup>
                 </div>
               </>
