@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, ChangeEvent } from "react";
 import {
-  ArrowDown,
-  ArrowUp,
   Layers,
   School,
   Search,
@@ -601,13 +599,6 @@ const ViewDashboard = () => {
                 <div className="bg-green-600/40 p-2 rounded-lg">
                   <AlertTriangle className="h-6 w-6" />
                 </div>
-                <Badge
-                  variant="secondary"
-                  className="bg-white text-red-500 rounded-full"
-                >
-                  <ArrowDown className="h-3 w-3 mr-1" />
-                  <span>5%</span>
-                </Badge>
               </div>
               <div className="space-y-1">
                 <p className="text-2xl md:text-3xl font-bold">
@@ -626,13 +617,6 @@ const ViewDashboard = () => {
                 <div className="bg-green-600/40 p-2 rounded-lg">
                   <Users className="h-6 w-6" />
                 </div>
-                <Badge
-                  variant="secondary"
-                  className="bg-white text-green-600 rounded-full"
-                >
-                  <ArrowUp className="h-3 w-3 mr-1" />
-                  <span>10%</span>
-                </Badge>
               </div>
               <div className="space-y-1">
                 <p className="text-2xl md:text-3xl font-bold">
