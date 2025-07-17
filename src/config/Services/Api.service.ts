@@ -118,13 +118,3 @@ export const ApiRequest = async ({
     throw new Error("An unknown error occurred");
   }
 };
-
-export const logoutRequest = async () => {
-  try {
-    const response = await axios.post(`${import.meta.env.VITE_API_URL}/logout`);
-    return response.data;
-  } catch (error) {
-    // Silently handle errors
-    return null;
-  }
-};

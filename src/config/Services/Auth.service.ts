@@ -1,4 +1,4 @@
-import { ApiRequest, logoutRequest } from "./Api.service";
+import { ApiRequest } from "./Api.service";
 import { ILoginRequest } from "../Models/LoginRequest";
 
 export const ApiAuth = {
@@ -11,10 +11,9 @@ export const ApiAuth = {
     }),
 
   logout: async () => {
-    try {
-      await logoutRequest();
-    } catch {
-      // Silently handle errors
-    }
+    await ApiRequest({
+      url: "/logout",
+      method: "POST",
+    });
   },
 };

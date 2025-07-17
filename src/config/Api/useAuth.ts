@@ -87,16 +87,13 @@ export const useLogout = () => {
   const logout = async () => {
     setIsLoading(true);
     try {
-      // Hanya panggil API jika token ada
       const token = localStorage.getItem("token");
       if (token) {
         await ApiAuth.logout();
       }
     } catch (error) {
-      console.error("Logout API error:", error);
-      // Tidak melempar error ke luar
+      console.error("Logout error:", error);
     } finally {
-      // Selalu bersihkan storage
       localStorage.clear();
       setIsLoading(false);
     }
