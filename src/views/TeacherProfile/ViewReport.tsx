@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
   AlertTriangle,
   X,
@@ -74,6 +74,76 @@ const ViewReport = () => {
       setIsLoading(false);
     }
   }, [isReportsLoading]);
+
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const allTabRef = useRef<HTMLButtonElement>(null);
+  const myTabRef = useRef<HTMLButtonElement>(null);
+
+  const handleTabChange = (tab: "all" | "my") => {
+    setActiveTab(tab);
+    
+    const tabRef = tab === "all" ? allTabRef : myTabRef;
+    if (tabRef.current && tabsRef.current) {
+      const tabRect = tabRef.current.getBoundingClientRect();
+      const containerRect = tabsRef.current.getBoundingClientRect();
+      
+      setIndicatorStyle({
+        left: tabRect.left - containerRect.left,
+        width: tabRect.width
+      });
+    }
+  };
+
+  useEffect(() => {
+  if (!isLoading) {
+    const timer = setTimeout(() => {
+      const initialTabElement = allTabRef.current;
+      
+      if (initialTabElement && tabsRef.current) {
+        const tabRect = initialTabElement.getBoundingClientRect();
+        const navRect = tabsRef.current.getBoundingClientRect();
+        
+        setIndicatorStyle({
+          left: tabRect.left - navRect.left,
+          width: tabRect.width
+        });
+      }
+    }, 50); 
+    
+    return () => clearTimeout(timer);
+  }
+}, [isLoading]);
+
+useEffect(() => {
+  const updateIndicator = () => {
+    let activeTabElement;
+    if (activeTab === "all") {
+      activeTabElement = allTabRef.current;
+    } else {
+      activeTabElement = myTabRef.current;
+    }
+    
+    if (activeTabElement && tabsRef.current) {
+      const tabRect = activeTabElement.getBoundingClientRect();
+      const navRect = tabsRef.current.getBoundingClientRect();
+      
+      setIndicatorStyle({
+        left: tabRect.left - navRect.left,
+        width: tabRect.width
+      });
+    }
+  };
+  
+  if (tabsRef.current) {
+    updateIndicator();
+  }
+  
+  window.addEventListener('resize', updateIndicator);
+  return () => {
+    window.removeEventListener('resize', updateIndicator);
+  };
+}, [activeTab]);
 
   const handleRowsPerPageChange = (value: string) => {
     setRowsPerPage(value);
@@ -219,33 +289,41 @@ const ViewReport = () => {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex border-b border-gray-200">
-        <button
-          className={`py-4 px-6 font-medium text-sm sm:text-base relative ${
-            activeTab === "all"
-              ? "text-red-600"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-          onClick={() => setActiveTab("all")}
-        >
-          Laporan Masuk
-          {activeTab === "all" && (
-            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600 rounded-full"></span>
-          )}
-        </button>
-        <button
-          className={`py-4 px-6 font-medium text-sm sm:text-base relative ${
-            activeTab === "my"
-              ? "text-red-600"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-          onClick={() => setActiveTab("my")}
-        >
-          Laporan Keluar
-          {activeTab === "my" && (
-            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600 rounded-full"></span>
-          )}
-        </button>
+      <div className="mb-6">
+        <div className="relative">
+          <nav className="flex border-b border-gray-200" ref={tabsRef}>
+            <button
+              ref={allTabRef}
+              className={`py-4 px-6 font-medium text-sm sm:text-base transition-all duration-300 ease-in-out ${
+                activeTab === "all"
+                  ? "text-red-600 bg-red-50/50"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+              onClick={() => handleTabChange("all")}
+            >
+              Laporan Masuk
+            </button>
+            <button
+              ref={myTabRef}
+              className={`py-4 px-6 font-medium text-sm sm:text-base transition-all duration-300 ease-in-out ${
+                activeTab === "my"
+                  ? "text-red-600 bg-red-50/50"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+              onClick={() => handleTabChange("my")}
+            >
+              Laporan Keluar
+            </button>
+
+            <div 
+              className="absolute bottom-0 h-0.5 bg-red-600 rounded-full transition-all duration-300 ease-in-out"
+              style={{ 
+                left: `${indicatorStyle.left}px`, 
+                width: `${indicatorStyle.width}px` 
+              }}
+            />
+          </nav>
+        </div>
       </div>
 
       {/* Filters and Search */}

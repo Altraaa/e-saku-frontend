@@ -413,7 +413,7 @@ const ViewManageRules: React.FC = () => {
                       <TableRow className="bg-gray-50 hover:bg-gray-50">
                         <TableHead className="w-12 text-center px-6 font-medium text-black">No</TableHead>
                         <TableHead className="text-center font-medium text-black">Achievement</TableHead>
-                        <TableHead className="text-left font-medium text-black">Level</TableHead>
+                        <TableHead className="text-center font-medium text-black">Level</TableHead>
                         <TableHead className="text-center font-medium text-black">Points</TableHead>
                         <TableHead className="text-center font-medium text-black">Actions</TableHead>
                       </TableRow>
@@ -450,6 +450,246 @@ const ViewManageRules: React.FC = () => {
                             <Award className="mx-auto h-12 w-12 text-gray-300 mb-4" />
                             <p className="text-lg font-medium mb-2">No achievements found</p>
                             <p className="text-sm">{achievementsSearchText || selectedAchievementLevel !== "all" ? "Try adjusting your search or filter criteria" : "Start by adding your first achievement"}</p>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+
+                  {/* Achievements Pagination */}
+                  {filteredAchievements.length > 0 && (
+                    <div className="px-4 sm:px-6 pt-4 pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center border-t space-y-4 sm:space-y-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                        <div className="text-sm text-gray-500 text-center sm:text-left">
+                          Showing {paginatedAchievements.length} of {filteredAchievements.length} achievements
+                        </div>
+                        <div className="flex items-center justify-center sm:justify-start space-x-2">
+                          <span className="text-sm text-gray-600">Rows:</span>
+                          <Select value={String(achievementsRowsPerPage)} onValueChange={(value) => { setAchievementsRowsPerPage(parseInt(value)); setAchievementsCurrentPage(1); }}>
+                            <SelectTrigger className="w-16 h-8 border-gray-200 focus:ring-green-400 rounded-lg">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="w-16 min-w-[4rem]">
+                              <SelectItem value="5">5</SelectItem>
+                              <SelectItem value="10">10</SelectItem>
+                              <SelectItem value="20">20</SelectItem>
+                              <SelectItem value="30">30</SelectItem>
+                              <SelectItem value="50">50</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-center space-x-2">
+                        <Button variant="outline" size="icon" className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors" onClick={() => setAchievementsCurrentPage(prev => Math.max(prev - 1, 1))} disabled={achievementsCurrentPage === 1}>
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+
+                        <div className="text-sm text-gray-600 px-2">
+                          Page {achievementsCurrentPage} of {achievementsTotalPages}
+                        </div>
+
+                        <Button variant="outline" size="icon" className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors" onClick={() => setAchievementsCurrentPage(prev => Math.min(prev + 1, achievementsTotalPages))} disabled={achievementsCurrentPage >= achievementsTotalPages}>
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <div className="h-0.5 bg-gradient-to-r from-green-400 to-green-500"></div>
+            <div className="px-6 pt-4 pb-4 border-b border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                <CardTitle className="text-xl font-bold text-gray-900">Achievement Type Management</CardTitle>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <Button onClick={handleAdd} className="bg-green-500 hover:bg-green-600 text-white transition-all duration-300 w-full sm:w-auto">
+                    <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">Add Achievement Type</span>
+                  </Button>
+                  <div className="relative flex w-full">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <Input placeholder="Search achievements..." onChange={handleSearchChange(setAchievementsSearchText, setAchievementsCurrentPage)} className="pl-9 bg-white border-gray-200 w-full rounded-lg" />
+                  </div>
+                  <Select value={selectedAchievementLevel} onValueChange={setSelectedAchievementLevel}>
+                    <SelectTrigger className="w-full sm:w-48">
+                      <SelectValue placeholder="Filter by level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Levels</SelectItem>
+                      {achievementLevels.map(level => (
+                        <SelectItem key={level} value={level}>{level}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto pt-3">
+              {isLoadingAchievements ? (
+                <LoadingSpinner />
+              ) : (
+                <>
+                  {/* Achievements Table */}
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 hover:bg-gray-50">
+                        <TableHead className="w-12 text-center px-6 font-medium text-black">No</TableHead>
+                        <TableHead className="text-center font-medium text-black">Type</TableHead>
+                        <TableHead className="text-center font-medium text-black">Points</TableHead>
+                        <TableHead className="text-center font-medium text-black">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedAchievements.length > 0 ? (
+                        paginatedAchievements.map((achievement, index) => (
+                          <TableRow key={achievement.id} className="border-b hover:bg-gray-50">
+                            <TableCell className="text-center px-6 font-normal">{(achievementsCurrentPage - 1) * achievementsRowsPerPage + index + 1}</TableCell>
+                            <TableCell className="text-center">
+                              <Badge variant="outline" className={`text-xs ${getLevelBadgeClass(achievement.level)}`}>{achievement.level}</Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge className={`text-white ${getPointBadgeClass(achievement.points)}`}>{achievement.points}</Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className="flex justify-center gap-3 items-center">
+                                <Button variant="outline" size="icon" onClick={() => handleEdit(achievement)} className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 border-blue-200">
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button variant="outline" size="icon" onClick={() => handleDelete(achievement.id, false)} className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200">
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-12 text-gray-500">
+                            <Award className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                            <p className="text-lg font-medium mb-2">No achievements Type found</p>
+                            <p className="text-sm">{achievementsSearchText || selectedAchievementLevel !== "all" ? "Try adjusting your search or filter criteria" : "Start by adding your first achievements type"}</p>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+
+                  {/* Achievements Pagination */}
+                  {filteredAchievements.length > 0 && (
+                    <div className="px-4 sm:px-6 pt-4 pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center border-t space-y-4 sm:space-y-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                        <div className="text-sm text-gray-500 text-center sm:text-left">
+                          Showing {paginatedAchievements.length} of {filteredAchievements.length} achievements
+                        </div>
+                        <div className="flex items-center justify-center sm:justify-start space-x-2">
+                          <span className="text-sm text-gray-600">Rows:</span>
+                          <Select value={String(achievementsRowsPerPage)} onValueChange={(value) => { setAchievementsRowsPerPage(parseInt(value)); setAchievementsCurrentPage(1); }}>
+                            <SelectTrigger className="w-16 h-8 border-gray-200 focus:ring-green-400 rounded-lg">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="w-16 min-w-[4rem]">
+                              <SelectItem value="5">5</SelectItem>
+                              <SelectItem value="10">10</SelectItem>
+                              <SelectItem value="20">20</SelectItem>
+                              <SelectItem value="30">30</SelectItem>
+                              <SelectItem value="50">50</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-center space-x-2">
+                        <Button variant="outline" size="icon" className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors" onClick={() => setAchievementsCurrentPage(prev => Math.max(prev - 1, 1))} disabled={achievementsCurrentPage === 1}>
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+
+                        <div className="text-sm text-gray-600 px-2">
+                          Page {achievementsCurrentPage} of {achievementsTotalPages}
+                        </div>
+
+                        <Button variant="outline" size="icon" className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors" onClick={() => setAchievementsCurrentPage(prev => Math.min(prev + 1, achievementsTotalPages))} disabled={achievementsCurrentPage >= achievementsTotalPages}>
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <div className="h-0.5 bg-gradient-to-r from-green-400 to-green-500"></div>
+            <div className="px-6 pt-4 pb-4 border-b border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                <CardTitle className="text-xl font-bold text-gray-900">Achievement Level Management</CardTitle>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <Button onClick={handleAdd} className="bg-green-500 hover:bg-green-600 text-white transition-all duration-300 w-full sm:w-auto">
+                    <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">Add Achievement Level</span>
+                  </Button>
+                  <div className="relative flex w-full">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <Input placeholder="Search achievements..." onChange={handleSearchChange(setAchievementsSearchText, setAchievementsCurrentPage)} className="pl-9 bg-white border-gray-200 w-full rounded-lg" />
+                  </div>
+                  <Select value={selectedAchievementLevel} onValueChange={setSelectedAchievementLevel}>
+                    <SelectTrigger className="w-full sm:w-48">
+                      <SelectValue placeholder="Filter by level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Levels</SelectItem>
+                      {achievementLevels.map(level => (
+                        <SelectItem key={level} value={level}>{level}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto pt-3">
+              {isLoadingAchievements ? (
+                <LoadingSpinner />
+              ) : (
+                <>
+                  {/* Achievements Table */}
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 hover:bg-gray-50">
+                        <TableHead className="w-12 text-center px-6 font-medium text-black">No</TableHead>
+                        <TableHead className="text-center font-medium text-black">Level</TableHead>
+                        <TableHead className="text-center font-medium text-black">Points</TableHead>
+                        <TableHead className="text-center font-medium text-black">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedAchievements.length > 0 ? (
+                        paginatedAchievements.map((achievement, index) => (
+                          <TableRow key={achievement.id} className="border-b hover:bg-gray-50">
+                            <TableCell className="text-center px-6 font-normal">{(achievementsCurrentPage - 1) * achievementsRowsPerPage + index + 1}</TableCell>
+                            <TableCell className="text-center">
+                              <Badge variant="outline" className={`text-xs ${getLevelBadgeClass(achievement.level)}`}>{achievement.level}</Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge className={`text-white ${getPointBadgeClass(achievement.points)}`}>{achievement.points}</Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className="flex justify-center gap-3 items-center">
+                                <Button variant="outline" size="icon" onClick={() => handleEdit(achievement)} className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 border-blue-200">
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button variant="outline" size="icon" onClick={() => handleDelete(achievement.id, false)} className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200">
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-12 text-gray-500">
+                            <Award className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                            <p className="text-lg font-medium mb-2">No achievements level found</p>
+                            <p className="text-sm">{achievementsSearchText || selectedAchievementLevel !== "all" ? "Try adjusting your search or filter criteria" : "Start by adding your first achievement level"}</p>
                           </TableCell>
                         </TableRow>
                       )}

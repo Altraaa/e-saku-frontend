@@ -324,6 +324,7 @@ const ViewHistory = () => {
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
         <div className="w-full flex justify-between sm:w-[180px]">
           <div className="flex gap-4 w-full">
+            <div className="bg-white">
             <Select onValueChange={handleHistoryChange} value={selectedHistory}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Pilih Histori" />
@@ -339,6 +340,7 @@ const ViewHistory = () => {
                 </SelectGroup>
               </SelectContent>
             </Select>
+            </div>
             <Button
               onClick={handleFileExport}
               variant="outline"
