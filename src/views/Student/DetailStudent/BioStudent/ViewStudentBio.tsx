@@ -122,6 +122,12 @@ const ViewStudentBio = () => {
       }
     }
   };
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('edit') === '1') {
+      toggleEditMode(); // Memicu toggleEditMode jika query string ada
+    }
+  }, []);
 
   // Start Profile Image
   const handleChangeAvatar = () => {

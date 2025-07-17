@@ -1122,7 +1122,7 @@ const ViewStudentByClass: React.FC = () => {
                           <TableCell className="text-center font-normal">
                             <div className="flex justify-center gap-3 items-center">
                               <Link
-                                to={`/studentbio/edit/${student.id}`}
+                                to={`/studentbio/${student.id}?edit=1`}
                                 className="text-blue-500 hover:text-blue-600 transition-colors"
                               >
                                 <SquarePen className="h-4 w-4" />
