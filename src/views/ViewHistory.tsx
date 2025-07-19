@@ -1,4 +1,4 @@
-// ViewHistory Component - Responsive Version
+// ViewHistory Component - Updated to fetch accomplishment details
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -42,11 +42,13 @@ import {
 } from "@/config/Api/useAccomplishments";
 import { IAccomplishments } from "@/config/Models/Accomplishments";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LevelLabel } from "@/config/Models/LevelMap";
 import toast from "react-hot-toast";
 import ConfirmationModal from "@/components/ui/confirmation";
 import { Link } from "react-router-dom";
 import { useStudentHistoryExport } from "@/config/Api/useStudent";
+import { useAccomplishmentsType } from "@/config/Api/useAccomplismentsType";
+import { useAccomplishmentsRanks } from "@/config/Api/useAccomplishmentsRanks";
+import { useAccomplishmentsLevel } from "@/config/Api/useAccomplishmentsLevel";
 
 // Helper function to format date as YYYY-MM-DD in local time
 const formatDate = (date: Date) => {
@@ -66,8 +68,16 @@ const formatDisplayDate = (dateString: string) => {
   });
 };
 
+interface EnhancedAccomplishment extends IAccomplishments {
+  typeName: string;
+  rankName: string;
+  levelName: string;
+}
+
 const ViewHistory = () => {
-  const [selectedHistory, setSelectedHistory] = useState("violationhistory");
+  const [selectedHistory, setSelectedHistory] = useState<
+    "violationhistory" | "accomplishmenthistory"
+  >("violationhistory");
   const [classType, setClassType] = useState<string>("");
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -97,6 +107,33 @@ const ViewHistory = () => {
 
   const exportHistory = useStudentHistoryExport();
 
+  // Fetch accomplishment details
+  const { data: accomplishmentTypes } = useAccomplishmentsType();
+  const { data: accomplishmentRanks } = useAccomplishmentsRanks();
+  const { data: accomplishmentLevels } = useAccomplishmentsLevel();
+
+  // Create lookup objects for accomplishment details
+  const typeLookup = useMemo(() => {
+    return accomplishmentTypes?.reduce((acc, type) => {
+      acc[type.id] = type.type;
+      return acc;
+    }, {} as Record<number, string>);
+  }, [accomplishmentTypes]);
+
+  const rankLookup = useMemo(() => {
+    return accomplishmentRanks?.reduce((acc, rank) => {
+      acc[rank.id] = rank.rank;
+      return acc;
+    }, {} as Record<number, string>);
+  }, [accomplishmentRanks]);
+
+  const levelLookup = useMemo(() => {
+    return accomplishmentLevels?.reduce((acc, level) => {
+      acc[level.id] = level.level;
+      return acc;
+    }, {} as Record<number, string>);
+  }, [accomplishmentLevels]);
+
   // Fetch data hooks
   const {
     data: violationsData,
@@ -112,9 +149,24 @@ const ViewHistory = () => {
     error: errorAccomplishments,
   } = useAccomplishmentsByTeacherId(teacherId);
 
+  // Enhance accomplishments data with details
+  const enhancedAccomplishments = useMemo<EnhancedAccomplishment[]>(() => {
+    if (!accomplishmentsData || !typeLookup || !rankLookup || !levelLookup)
+      return [];
+
+    return accomplishmentsData.map((accomplishment) => ({
+      ...accomplishment,
+      typeName: typeLookup[accomplishment.type_id] || "Unknown",
+      rankName: rankLookup[accomplishment.rank_id] || "Unknown",
+      levelName: levelLookup[accomplishment.level_id] || "Unknown",
+    }));
+  }, [accomplishmentsData, typeLookup, rankLookup, levelLookup]);
+
   const handleHistoryChange = (value: string) => {
-    setSelectedHistory(value);
-    setCurrentPage(1);
+    if (value === "violationhistory" || value === "accomplishmenthistory") {
+      setSelectedHistory(value);
+      setCurrentPage(1);
+    }
   };
 
   const handleDateChange = (date: Date | undefined) => {
@@ -130,7 +182,6 @@ const ViewHistory = () => {
     setIsDeleteModalOpen(true);
   };
 
-  // Fungsi untuk konfirmasi delete
   const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
 
@@ -138,14 +189,10 @@ const ViewHistory = () => {
       if (itemToDelete.type === "violation") {
         await deleteViolation.mutateAsync(itemToDelete.id);
         toast.success("Data pelanggaran berhasil dihapus");
-
-        // Panggil refetch untuk memperbarui data
         await refetchViolations();
       } else {
         await deleteAccomplishment.mutateAsync(itemToDelete.id);
         toast.success("Data prestasi berhasil dihapus");
-
-        // Panggil refetch untuk memperbarui data
         await refetchAccomplishments();
       }
     } catch (error) {
@@ -187,7 +234,6 @@ const ViewHistory = () => {
     setCurrentPage(1);
   };
 
-  // Clear all filters
   const clearAllFilters = () => {
     setSelectedDate(null);
     setClassType("");
@@ -196,10 +242,7 @@ const ViewHistory = () => {
     setCurrentPage(1);
   };
 
-  // Check if any filter is active
   const isFilterActive = selectedDate || classType || searchText;
-
-  // Filter and paginate data
   const filteredData = useMemo(() => {
     if (selectedHistory === "violationhistory") {
       return (
@@ -219,13 +262,19 @@ const ViewHistory = () => {
       );
     } else {
       return (
-        accomplishmentsData?.filter(
+        enhancedAccomplishments?.filter(
           (accomplishment) =>
             searchText === "" ||
             accomplishment.student?.name
               ?.toLowerCase()
               .includes(searchText.toLowerCase()) ||
-            accomplishment.accomplishment_type
+            accomplishment.typeName
+              ?.toLowerCase()
+              .includes(searchText.toLowerCase()) ||
+            accomplishment.rankName
+              ?.toLowerCase()
+              .includes(searchText.toLowerCase()) ||
+            accomplishment.levelName
               ?.toLowerCase()
               .includes(searchText.toLowerCase()) ||
             accomplishment.accomplishment_date
@@ -234,7 +283,7 @@ const ViewHistory = () => {
         ) || []
       );
     }
-  }, [searchText, violationsData, accomplishmentsData, selectedHistory]);
+  }, [searchText, violationsData, enhancedAccomplishments, selectedHistory]);
 
   // Apply date filter with proper timezone handling
   const filteredDataWithDate = useMemo(() => {
@@ -325,21 +374,24 @@ const ViewHistory = () => {
         <div className="w-full flex justify-between sm:w-[180px]">
           <div className="flex gap-4 w-full">
             <div className="bg-white">
-            <Select onValueChange={handleHistoryChange} value={selectedHistory}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Pilih Histori" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="violationhistory">
-                    Histori Pelanggaran
-                  </SelectItem>
-                  <SelectItem value="accomplishmenthistory">
-                    Histori Prestasi
-                  </SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+              <Select
+                onValueChange={handleHistoryChange}
+                value={selectedHistory}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Pilih Histori" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="violationhistory">
+                      Histori Pelanggaran
+                    </SelectItem>
+                    <SelectItem value="accomplishmenthistory">
+                      Histori Prestasi
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
             <Button
               onClick={handleFileExport}
@@ -525,15 +577,13 @@ const ViewHistory = () => {
                       ) : (
                         <>
                           <TableCell className="text-center font-normal">
-                            {(item as IAccomplishments).accomplishment_type}
+                            {(item as EnhancedAccomplishment).typeName}
                           </TableCell>
                           <TableCell className="text-center font-normal">
-                            {(item as IAccomplishments).rank}
+                            {(item as EnhancedAccomplishment).rankName}
                           </TableCell>
                           <TableCell className="text-center font-normal">
-                            <LevelLabel
-                              level={(item as IAccomplishments).level}
-                            />
+                            {(item as EnhancedAccomplishment).levelName || "-"}
                           </TableCell>
                         </>
                       )}
@@ -681,15 +731,15 @@ const ViewHistory = () => {
                     <>
                       <div className="text-sm text-gray-600 mt-2">
                         <span className="font-medium">Prestasi:</span>{" "}
-                        {(item as IAccomplishments).accomplishment_type || "-"}
+                        {(item as EnhancedAccomplishment).typeName || "-"}
                       </div>
                       <div className="text-sm text-gray-600">
                         <span className="font-medium">Peringkat:</span>{" "}
-                        {(item as IAccomplishments).rank || "-"}
+                        {(item as EnhancedAccomplishment).rankName || "-"}
                       </div>
                       <div className="text-sm text-gray-600">
                         <span className="font-medium">Tingkat:</span>{" "}
-                        <LevelLabel level={(item as IAccomplishments).level} />
+                        {(item as EnhancedAccomplishment).levelName || "-"}
                       </div>
                     </>
                   )}
