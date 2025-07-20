@@ -24,32 +24,28 @@ export const useLogin = () => {
       localStorage.setItem("login_time", new Date().toISOString());
       localStorage.setItem("last_activity", new Date().toISOString());
 
-      if (data.user?.teacher_id) {
-        localStorage.setItem("teacher_id", data.user.teacher_id);
-        localStorage.setItem("user_type", "teacher");
+      const { user } = data;
 
-        if (data.user.role) {
-          localStorage.setItem("role", data.user.role);
-        }
-      } else if (data.user?.student_id) {
-        localStorage.setItem("student_id", data.user.student_id);
+      if (user?.teacher_id) {
+        localStorage.setItem("teacher_id", user.teacher_id);
+        localStorage.setItem("user_type", "teacher");
+        if (user.role) localStorage.setItem("role", user.role);
+      } else if (user?.student_id) {
+        localStorage.setItem("student_id", user.student_id);
         localStorage.setItem("user_type", "student");
       }
 
       navigate("/");
       return data;
     } catch (error: any) {
-      console.error("Login failed:", error);
+      const res = error.response;
 
-      if (error.response) {
-        const status = error.response.status;
-
-        switch (status) {
+      if (res) {
+        switch (res.status) {
           case 422:
-            const errors = error.response.data.errors;
             const mappedErrors: Record<string, string> = {};
-            Object.keys(errors).forEach((key) => {
-              mappedErrors[key] = errors[key][0];
+            Object.keys(res.data.errors).forEach((key) => {
+              mappedErrors[key] = res.data.errors[key][0];
             });
             setFieldErrors(mappedErrors);
             break;
@@ -61,7 +57,6 @@ export const useLogin = () => {
             break;
           default:
             setErrorMessage("Terjadi kesalahan pada server");
-            break;
         }
       } else if (error.request) {
         setErrorMessage("Tidak ada respons dari server");
@@ -86,10 +81,15 @@ export const useLogin = () => {
 };
 
 export const useLogout = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [hasLoggedOut, setHasLoggedOut] = useState(false);
 
   const logout = async () => {
+    if (hasLoggedOut) return;
+    setHasLoggedOut(true);
     setIsLoading(true);
+
     try {
       const token = localStorage.getItem("token");
       if (token) {
@@ -99,6 +99,7 @@ export const useLogout = () => {
       console.error("Logout error:", error);
     } finally {
       localStorage.clear();
+      navigate("/login", { replace: true });
       setIsLoading(false);
     }
   };
@@ -110,16 +111,14 @@ export const useCurrentUser = () => {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
   const userType = localStorage.getItem("user_type");
-  const teacherId = localStorage.getItem("teacher_id");
-  const studentId = localStorage.getItem("student_id");
 
   return {
     isAuthenticated: !!token,
-    userType,
-    teacherId,
-    studentId,
     isTeacher: userType === "teacher",
     isStudent: userType === "student",
+    userType,
+    teacherId: localStorage.getItem("teacher_id"),
+    studentId: localStorage.getItem("student_id"),
     role,
     isMaster: role === "master",
   };
