@@ -56,7 +56,7 @@ export const useRulesDelete = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => ApiRules.delete(id),
+    mutationFn: (id: string) => ApiRules.delete(id),
     onSuccess: (_, id) => {
       queryClient.setQueryData(["rules-of-conduct"], (oldData: IRules[] | undefined) =>
         oldData ? oldData.filter((rules) => rules.id !== id) : []

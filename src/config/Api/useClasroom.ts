@@ -53,9 +53,11 @@ export const useClassroomUpdate = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<IClassroom> }) =>
       ApiClassrooms.update(id, data),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ["classes"] });
-      queryClient.invalidateQueries({ queryKey: ["classes", id] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["teacherClasses"] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["classes", variables.id] 
+      });
     },
   });
 };
@@ -63,10 +65,14 @@ export const useClassroomUpdate = () => {
 //delete classroom
 export const useClassroomDelete = () => {
   const queryClient = useQueryClient();
+  const teacher_id = parseInt(localStorage.getItem("teacher_id") || "0", 10);
 
   return useMutation({
     mutationFn: (id: number) => ApiClassrooms.delete(id),
     onSuccess: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: ["teacherClasses", teacher_id] 
+      });
       queryClient.invalidateQueries({ queryKey: ["classes"] });
     },
   });

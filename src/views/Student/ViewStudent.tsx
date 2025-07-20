@@ -1,4 +1,12 @@
-import { Search, Plus, X, GraduationCap, Trash2, MoreVertical, Edit } from "lucide-react";
+import {
+  Search,
+  Plus,
+  X,
+  GraduationCap,
+  Trash2,
+  MoreVertical,
+  Edit,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -20,13 +28,21 @@ import { useState, useEffect, useRef } from "react";
 import {
   useClassroomByTeacherId,
   useClassroomCreate,
+  useClassroomDelete,
+  useClassroomUpdate,
 } from "@/config/Api/useClasroom";
 import { useMajors } from "@/config/Api/useMajor";
 import { Link } from "react-router-dom";
 import { IClassroom } from "@/config/Models/Classroom";
 import { IMajor } from "@/config/Models/Major";
 import StudentSkeleton from "@/components/shared/component/StudentSekeleton";
-import { Popover, PopoverTrigger, PopoverContent } from "@radix-ui/react-popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@radix-ui/react-popover";
+import toast from "react-hot-toast";
+import ConfirmationModal from "@/components/ui/confirmation";
 
 const ViewStudent = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -40,6 +56,11 @@ const ViewStudent = () => {
     "idle" | "submitting" | "success" | "error"
   >("idle");
   const [submitError, setSubmitError] = useState<string>("");
+  // Di dalam komponen ViewStudent
+  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+  const [editingClass, setEditingClass] = useState<IClassroom | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<number | null>(null);
 
   const {
     data: classrooms,
@@ -53,6 +74,10 @@ const ViewStudent = () => {
   } = useMajors();
 
   const { mutate: createClassroom } = useClassroomCreate();
+
+  // Di dalam komponen ViewStudent
+  const { mutate: updateClassroom } = useClassroomUpdate();
+  const { mutate: deleteClassroom } = useClassroomDelete();
 
   const [newClass, setNewClass] = useState({
     name: "",
@@ -91,9 +116,9 @@ const ViewStudent = () => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -208,19 +233,40 @@ const ViewStudent = () => {
     return <StudentSkeleton />;
   }
 
-  const handleEdit = (classroomId: number, e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('Edit clicked for classroom:', classroomId);
-      setOpenPopoverId(null);
-    };
-
-  const handleDelete = (classroomId: number, e: React.MouseEvent) => {
+  const handleEdit = (classroom: IClassroom, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Delete clicked for classroom:', classroomId);
+    setEditingClass(classroom);
+    setIsEditModalOpen(true);
     setOpenPopoverId(null);
   };
+
+ const openDeleteConfirmation = (classroomId: number, e: React.MouseEvent) => {
+   e.preventDefault();
+   e.stopPropagation();
+   setClassToDelete(classroomId);
+   setIsDeleteModalOpen(true);
+   setOpenPopoverId(null);
+ };
+
+ // Fungsi untuk menghapus kelas setelah konfirmasi
+ const confirmDelete = () => {
+   if (classToDelete) {
+     deleteClassroom(classToDelete, {
+       onSuccess: () => {
+         toast.success("Kelas berhasil dihapus!");
+         setIsDeleteModalOpen(false);
+         setClassToDelete(null);
+       },
+       onError: (error) => {
+         console.error("Delete error:", error);
+         toast.error(`Gagal menghapus kelas: ${error.message}`);
+         setIsDeleteModalOpen(false);
+       },
+     });
+   }
+ };
+
 
   return (
     <div className="container mx-auto px-2 sm:px-4 md:py-4 max-w-full">
@@ -452,6 +498,176 @@ const ViewStudent = () => {
           </DialogContent>
         </Dialog>
 
+        <Dialog
+          open={isEditModalOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              setIsEditModalOpen(false);
+              setEditingClass(null);
+            }
+          }}
+        >
+          <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-3 sm:p-4 md:p-6 max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-base sm:text-lg md:text-xl">
+                Edit Class
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm md:text-base">
+                Update class information below
+              </DialogDescription>
+            </DialogHeader>
+
+            {editingClass && (
+              <div className="grid gap-3 sm:gap-4 py-2 sm:py-4">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="editClassName"
+                      className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
+                    >
+                      Class Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="editClassName"
+                      placeholder="Enter class name"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200 text-xs sm:text-sm md:text-base"
+                      value={editingClass.name}
+                      onChange={(e) =>
+                        setEditingClass({
+                          ...editingClass,
+                          name: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="editMajorSelect"
+                      className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
+                    >
+                      Major <span className="text-red-500">*</span>
+                    </label>
+                    <Select
+                      value={editingClass.major_id?.toString()}
+                      onValueChange={(value) =>
+                        setEditingClass({
+                          ...editingClass,
+                          major_id: parseInt(value),
+                        })
+                      }
+                    >
+                      <SelectTrigger className="border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-lg h-9 sm:h-10 bg-white text-xs sm:text-sm md:text-base">
+                        <SelectValue placeholder="Select a major" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {majors?.map((major) => (
+                          <SelectItem
+                            key={major.id}
+                            value={major.id.toString()}
+                            className="text-xs sm:text-sm md:text-base"
+                          >
+                            {major.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {submitError && (
+                    <Card className="border-red-200 bg-red-50">
+                      <CardContent className="p-3">
+                        <div className="flex items-center space-x-2 text-xs sm:text-sm text-red-600">
+                          <X className="w-4 h-4 flex-shrink-0" />
+                          <span>{submitError}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {submitStatus === "success" && (
+                    <Card className="border-green-200 bg-green-50">
+                      <CardContent className="p-3">
+                        <div className="flex items-center space-x-2 text-xs sm:text-sm text-green-600">
+                          <div className="w-4 h-4 flex-shrink-0">✓</div>
+                          <span>Class updated successfully!</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+
+                <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsEditModalOpen(false)}
+                    disabled={submitStatus === "submitting"}
+                    className="w-full sm:w-auto text-xs sm:text-sm"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (!editingClass.name.trim()) {
+                        setSubmitError("Class Name is required");
+                        return;
+                      }
+                      if (!editingClass.major_id) {
+                        setSubmitError("Majors are required");
+                        return;
+                      }
+
+                      setSubmitStatus("submitting");
+
+                      updateClassroom(
+                        {
+                          id: editingClass.id,
+                          data: {
+                            name: editingClass.name,
+                            major_id: editingClass.major_id,
+                          },
+                        },
+                        {
+                          onSuccess: () => {
+                            setSubmitStatus("success");
+                            setTimeout(() => {
+                              setIsEditModalOpen(false);
+                              setEditingClass(null);
+                            }, 1500);
+                          },
+                          onError: (error: any) => {
+                            setSubmitStatus("error");
+                            setSubmitError(
+                              error?.response?.data?.message ||
+                                "Failed to update class. Please try again."
+                            );
+                          },
+                        }
+                      );
+                    }}
+                    disabled={submitStatus === "submitting"}
+                    className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto text-xs sm:text-sm"
+                  >
+                    {submitStatus === "submitting" ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Updating Class...
+                      </>
+                    ) : submitStatus === "success" ? (
+                      <>
+                        <div className="w-4 h-4 mr-2">✓</div>
+                        Class Updated!
+                      </>
+                    ) : (
+                      "Update Class"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
         {/* Filter Controls */}
         <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full lg:w-auto">
           <div className="w-full sm:w-40 md:w-48">
@@ -551,9 +767,11 @@ const ViewStudent = () => {
               <Card className="bg-white shadow-md hover:shadow-lg hover:border-green-500 hover:border transition-all duration-200 relative rounded-lg min-h-[200px] sm:min-h-[220px]">
                 <div className="w-2 h-full absolute left-0 top-0 bg-green-500 rounded-l-lg"></div>
                 <div className="absolute top-3 right-3 z-10">
-                  <Popover 
+                  <Popover
                     open={openPopoverId === classroom.id}
-                    onOpenChange={(open) => setOpenPopoverId(open ? classroom.id : null)}
+                    onOpenChange={(open) =>
+                      setOpenPopoverId(open ? classroom.id : null)
+                    }
                   >
                     <PopoverTrigger asChild>
                       <button
@@ -561,14 +779,16 @@ const ViewStudent = () => {
                           e.preventDefault();
                           e.stopPropagation();
                           // Toggle the popover state
-                          setOpenPopoverId(openPopoverId === classroom.id ? null : classroom.id);
+                          setOpenPopoverId(
+                            openPopoverId === classroom.id ? null : classroom.id
+                          );
                         }}
                         className="p-2 rounded-full hover:bg-gray-100 transition-all duration-200 hover:shadow-md active:scale-95"
                       >
                         <MoreVertical className="w-4 h-4 text-gray-600" />
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent 
+                    <PopoverContent
                       className="w-44 p-1 shadow-lg border border-gray-200 bg-white rounded-lg animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2"
                       side="bottom"
                       align="end"
@@ -576,7 +796,7 @@ const ViewStudent = () => {
                     >
                       <div className="flex flex-col space-y-1">
                         <button
-                          onClick={(e) => handleEdit(classroom.id, e)}
+                          onClick={(e) => handleEdit(classroom, e)}
                           className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors duration-200 w-full text-left"
                         >
                           <Edit className="w-4 h-4 mr-3 text-gray-500" />
@@ -584,7 +804,9 @@ const ViewStudent = () => {
                         </button>
                         <hr className="border-gray-100" />
                         <button
-                          onClick={(e) => handleDelete(classroom.id, e)}
+                          onClick={(e) =>
+                            openDeleteConfirmation(classroom.id, e)
+                          }
                           className="flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors duration-200 w-full text-left"
                         >
                           <Trash2 className="w-4 h-4 mr-3 text-red-500" />
@@ -625,6 +847,16 @@ const ViewStudent = () => {
           ))
         )}
       </div>
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Konfirmasi Penghapusan"
+        description="Apakah Anda yakin ingin menghapus kelas ini? Data yang dihapus tidak dapat dikembalikan."
+        confirmText="Hapus"
+        cancelText="Batal"
+        type="delete"
+      />
     </div>
   );
 };
