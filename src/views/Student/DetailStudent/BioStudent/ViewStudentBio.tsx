@@ -924,7 +924,10 @@ const ViewStudentBio = () => {
         isOpen={isDeleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
-        items="foto profil ini?"
+        title="Konfirmasi Hapus Foto Profil"
+        description="Apakah Anda yakin ingin menghapus foto profil ini?"
+        confirmText="Hapus"
+        cancelText="Batal"
         type="delete"
       />
     </div>
