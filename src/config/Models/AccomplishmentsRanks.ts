@@ -1,5 +1,5 @@
 export interface IRank {
-    id: number;
+    id: string;
     rank:string;
     point: number;
 }

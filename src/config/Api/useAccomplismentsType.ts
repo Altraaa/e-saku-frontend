@@ -5,7 +5,7 @@ import { ApiAccomplishmentsType } from "../Services/Accomplishments.service";
 // Fetch all accomplishment types
 export const useAccomplishmentsType = () => {
   return useQuery<IType[]>({
-    queryKey: ["accomplishmentsType"],
+    queryKey: ["accomplishments-types"],
     queryFn: () => ApiAccomplishmentsType.getAll(),
   });
 };
@@ -13,7 +13,7 @@ export const useAccomplishmentsType = () => {
 // Fetch accomplishment type by ID
 export const useAccomplishmentsTypeById = (id: number) => {
   return useQuery<IType>({
-    queryKey: ["accomplishmentsType", id],
+    queryKey: ["accomplishments-types", id],
     queryFn: () => ApiAccomplishmentsType.getById(id),
     enabled: !!id,
   });
@@ -26,7 +26,7 @@ export const useAccomplishmentsTypeCreate = () => {
   return useMutation({
     mutationFn: (data: Partial<IType>) => ApiAccomplishmentsType.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accomplishmentsType"] });
+      queryClient.invalidateQueries({ queryKey: ["accomplishments-types"] });
     },
     onError: (error) => {
       console.error("Error creating accomplishment type:", error);
@@ -42,7 +42,7 @@ export const useAccomplishmentsTypeUpdate = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<IType> }) =>
       ApiAccomplishmentsType.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accomplishmentsType"] });
+      queryClient.invalidateQueries({ queryKey: ["accomplishments-types"] });
     },
     onError: (error) => {
       console.error("Error updating accomplishment type:", error);
@@ -55,9 +55,9 @@ export const useAccomplishmentsTypeDelete = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => ApiAccomplishmentsType.delete(id),
+    mutationFn: (id: string) => ApiAccomplishmentsType.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accomplishmentsType"] });
+      queryClient.invalidateQueries({ queryKey: ["accomplishments-types"] });
     },
     onError: (error) => {
       console.error("Error deleting accomplishment type:", error);

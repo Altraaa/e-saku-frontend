@@ -68,7 +68,7 @@ export const ApiAccomplishmentsType = {
       method: "POST",
       body: { ...data, _method: "PUT" },
     }),
-  delete: (id: number): Promise<{ message: string }> =>
+  delete: (id: string): Promise<{ message: string }> =>
     ApiRequest({
       url: `/accomplishments-types/${id}`,
       method: "POST",
