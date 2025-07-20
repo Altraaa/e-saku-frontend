@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   MoveLeft,
   SquarePen,
@@ -41,8 +41,10 @@ import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/shared/component/DatePicker";
 import ConfirmationModal from "@/components/ui/confirmation";
-import { LevelLabel } from "@/config/Models/LevelMap";
 import toast from "react-hot-toast";
+import { useAccomplishmentsType } from "@/config/Api/useAccomplismentsType";
+import { useAccomplishmentsRanks } from "@/config/Api/useAccomplishmentsRanks";
+import { useAccomplishmentsLevel } from "@/config/Api/useAccomplishmentsLevel";
 
 const ViewBioAccomplishments = () => {
   const [rowsPerPage, setRowsPerPage] = useState("10");
@@ -58,11 +60,41 @@ const ViewBioAccomplishments = () => {
   >(null);
   const { id } = useParams();
   const studentId = id ?? "";
+
+  // Fetch student data
   const {
     data: student,
     isLoading: studentLoading,
     error,
   } = useStudentById(studentId);
+
+  // Fetch accomplishment details
+  const { data: accomplishmentTypes } = useAccomplishmentsType();
+  const { data: accomplishmentRanks } = useAccomplishmentsRanks();
+  const { data: accomplishmentLevels } = useAccomplishmentsLevel();
+
+  // Create lookup objects for accomplishment details
+  const typeLookup = useMemo(() => {
+    return accomplishmentTypes?.reduce((acc, type) => {
+      acc[type.id] = type.type;
+      return acc;
+    }, {} as Record<number, string>);
+  }, [accomplishmentTypes]);
+
+  const rankLookup = useMemo(() => {
+    return accomplishmentRanks?.reduce((acc, rank) => {
+      acc[rank.id] = rank.rank;
+      return acc;
+    }, {} as Record<number, string>);
+  }, [accomplishmentRanks]);
+
+  const levelLookup = useMemo(() => {
+    return accomplishmentLevels?.reduce((acc, level) => {
+      acc[level.id] = level.level;
+      return acc;
+    }, {} as Record<number, string>);
+  }, [accomplishmentLevels]);
+
   const deleteDocumentation = useAccomplishmentsDocumentationDelete();
   const { data: accomplishments } = useAccomplishmentById(
     accomplishmentsDelete ?? 0
@@ -75,13 +107,11 @@ const ViewBioAccomplishments = () => {
   const deleteAccomplishment = useAccomplishmentDelete();
 
   useEffect(() => {
-    // Cek tipe pengguna dari localStorage
+    // Check user type from localStorage
     const teacherId = localStorage.getItem("teacher_id");
     const studentId = localStorage.getItem("student_id");
     setUserType(teacherId ? "teacher" : studentId ? "student" : "teacher");
   }, []);
-
-  if (studentLoading) return <div>Loading...</div>;
 
   const handleRowsPerPageChange = (value: string) => {
     setRowsPerPage(value);
@@ -121,34 +151,37 @@ const ViewBioAccomplishments = () => {
     }
   };
 
-  const formattedAccomplishments = studentAccomplishments.map(
-    (accomplishment) => ({
+  // Format accomplishments with details
+  const formattedAccomplishments = useMemo(() => {
+    return studentAccomplishments.map((accomplishment) => ({
       id: accomplishment.id,
-      type: accomplishment.type_id,
-      rank: accomplishment.rank_id,
+      type: typeLookup?.[accomplishment.type_id] || "Unknown",
+      rank: rankLookup?.[accomplishment.rank_id] || "Unknown",
       description: accomplishment.description,
       date: accomplishment.accomplishment_date,
-      level: accomplishment.level_id,
+      level: levelLookup?.[accomplishment.level_id] || "Unknown",
       image_documentation: accomplishment.image_documentation,
       points: accomplishment.points,
       created_at: accomplishment.created_at,
       updated_at: accomplishment.updated_at,
-      // documentation_image: "/docs/sample-doc.png",
-    })
-  );
+    }));
+  }, [studentAccomplishments, typeLookup, rankLookup, levelLookup]);
 
-  const totalPoints = studentAccomplishments.reduce(
-    (sum, accomplishment) => sum + accomplishment.points,
-    0
-  );
+  const totalPoints = useMemo(() => {
+    return studentAccomplishments.reduce(
+      (sum, accomplishment) => sum + accomplishment.points,
+      0
+    );
+  }, [studentAccomplishments]);
 
-  const lastAccomplishmentDate =
-    studentAccomplishments.length > 0
+  const lastAccomplishmentDate = useMemo(() => {
+    return studentAccomplishments.length > 0
       ? studentAccomplishments.reduce((latest, accomplishment) => {
           const currentDate = new Date(accomplishment.accomplishment_date);
           return currentDate > latest ? currentDate : latest;
         }, new Date(studentAccomplishments[0].accomplishment_date))
       : null;
+  }, [studentAccomplishments]);
 
   const formatStatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -170,11 +203,11 @@ const ViewBioAccomplishments = () => {
     (filter) => filter !== ""
   );
 
-  const filteredAccomplishments = formattedAccomplishments.filter(
-    (accomplishment) => {
+  const filteredAccomplishments = useMemo(() => {
+    return formattedAccomplishments.filter((accomplishment) => {
       if (
         filters.searchTerm &&
-        !accomplishment.type.type
+        !accomplishment.type
           .toLowerCase()
           .includes(filters.searchTerm.toLowerCase()) &&
         !accomplishment.description
@@ -193,8 +226,8 @@ const ViewBioAccomplishments = () => {
         }
       }
       return true;
-    }
-  );
+    });
+  }, [formattedAccomplishments, filters]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilters((prev) => ({
@@ -466,7 +499,7 @@ const ViewBioAccomplishments = () => {
                             variant="outline"
                             className="ml-2 bg-purple-50 text-purple-700 border-purple-200 text-xs"
                           >
-                            <LevelLabel level={accomplishment.level} />
+                            {accomplishment.level}
                           </Badge>
                         </div>
                         <div>
@@ -576,7 +609,7 @@ const ViewBioAccomplishments = () => {
                           variant="outline"
                           className="bg-purple-50 text-purple-700 border-purple-200"
                         >
-                          <LevelLabel level={accomplishment.level} />
+                          {accomplishment.level}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center py-4">
