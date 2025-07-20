@@ -5,7 +5,7 @@ import { IRules } from "../Models/Rules";
 //fetch all rules
 export const useRules = () => {
   return useQuery<IRules[]>({
-    queryKey: ["rules"],
+    queryKey: ["rules-of-conduct"],
     queryFn: () => ApiRules.getAll(),
   });
 };
@@ -26,7 +26,7 @@ export const useRulesCreate = () => {
   return useMutation({
     mutationFn: ApiRules.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["rules"] });
+      queryClient.invalidateQueries({ queryKey: ["rules-of-conduct"] });
     },
     onError: (error) => {
       console.error("Error creating rules:", error);
@@ -42,7 +42,7 @@ export const useRulesUpdate = () => {
     mutationFn: ({ id, data }: { id: number; data: IRules }) =>
       ApiRules.update(id, data),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ["rules"] });
+      queryClient.invalidateQueries({ queryKey: ["rules-of-conduct"] });
       queryClient.invalidateQueries({ queryKey: ["rules-of-conduct", id] });
     },
     onError: (error) => {
@@ -58,7 +58,7 @@ export const useRulesDelete = () => {
   return useMutation({
     mutationFn: (id: number) => ApiRules.delete(id),
     onSuccess: (_, id) => {
-      queryClient.setQueryData(["rules"], (oldData: IRules[] | undefined) =>
+      queryClient.setQueryData(["rules-of-conduct"], (oldData: IRules[] | undefined) =>
         oldData ? oldData.filter((rules) => rules.id !== id) : []
       );
     },
