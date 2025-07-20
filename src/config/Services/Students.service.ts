@@ -1,9 +1,10 @@
-import { IStudent } from "../Models/Student";
+import { IStudent, IStudentUpdatePassword } from "../Models/Student";
 import { IStudentCreate } from "../Models/StudentCreate";
 import { ApiRequest } from "./Api.service";
 
 export const ApiStudents = {
-  getAll: (): Promise<IStudent[]> => ApiRequest({ url: "/students", method: "GET" }),
+  getAll: (): Promise<IStudent[]> =>
+    ApiRequest({ url: "/students", method: "GET" }),
   getById: (id: string): Promise<IStudent> =>
     ApiRequest({ url: `/students/${id}`, method: "GET" }),
   getByClassId: (class_id: number): Promise<IStudent[]> =>
@@ -27,6 +28,15 @@ export const ApiStudents = {
       isFormData: true,
     });
   },
+  updatePassword: (
+    id: string,
+    data: Partial<IStudentUpdatePassword>
+  ): Promise<{ message: string }> =>
+    ApiRequest({
+      url: `/students/${id}/update-password`,
+      method: "POST",
+      body: { ...data, _method: "PUT" },
+    }),
   deleteProfileImage: (id: string): Promise<IStudent> =>
     ApiRequest({
       url: `/students/${id}/photo`,
@@ -53,7 +63,7 @@ export const ApiStudents = {
     }),
   exportHistory: (): Promise<Blob> =>
     ApiRequest({
-      url: `/history/export`,  
+      url: `/history/export`,
       method: "GET",
       responseType: "blob",
     }),

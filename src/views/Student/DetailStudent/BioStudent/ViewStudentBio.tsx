@@ -11,6 +11,9 @@ import {
   Users,
   Save,
   X,
+  Lock,
+  EyeOff,
+  Eye,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +22,7 @@ import {
   useStudentById,
   useStudentDeleteProfile,
   useStudentUpdate,
+  useStudentUpdatePassword,
   useStudentUpload,
 } from "@/config/Api/useStudent";
 import { useClassroomById } from "@/config/Api/useClasroom";
@@ -38,10 +42,20 @@ const ViewStudentBio = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
 
+  const [password, setPassword] = useState<string>("");
+  const [isEditingPassword, setIsEditingPassword] = useState<boolean>(false);
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [passwordError, setPasswordError] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+
   const { data: student, isLoading, refetch } = useStudentById(studentId);
   const uploadMutation = useStudentUpload();
   const deleteProfileMutation = useStudentDeleteProfile();
   const updateMutation = useStudentUpdate();
+  const updatePassword = useStudentUpdatePassword();
 
   const [formData, setFormData] = useState<IStudent>({
     id: 0,
@@ -84,6 +98,16 @@ const ViewStudentBio = () => {
   }, [isLoading]);
 
   useEffect(() => {
+    if (!isEditingPassword) {
+      setPassword("");
+      setConfirmPassword("");
+      setPasswordError("");
+      setShowPassword(false);
+      setShowConfirmPassword(false);
+    }
+  }, [isEditingPassword]);
+
+  useEffect(() => {
     if (student) {
       setFormData(student);
       if (student.profile_image) {
@@ -122,9 +146,18 @@ const ViewStudentBio = () => {
       }
     }
   };
+
+  const togglePasswordVisibility = (field: "password" | "confirmPassword") => {
+    if (field === "password") {
+      setShowPassword(!showPassword);
+    } else {
+      setShowConfirmPassword(!showConfirmPassword);
+    }
+  };
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('edit') === '1') {
+    if (urlParams.get("edit") === "1") {
       toggleEditMode(); // Memicu toggleEditMode jika query string ada
     }
   }, []);
@@ -228,6 +261,55 @@ const ViewStudentBio = () => {
         onError: (error) => {
           console.error("Error updating data:", error);
           toast.error("Gagal memperbarui profil. Coba lagi.");
+        },
+      }
+    );
+  };
+
+  const handleUpdatePassword = () => {
+    if (password && password.length < 6) {
+      setPasswordError("Password harus minimal 6 karakter");
+      return false;
+    }
+
+    if (!password) {
+      setPasswordError("Masukkan password baru");
+      return;
+    }
+
+    if (!confirmPassword) {
+      setPasswordError("Konfirmasi password harus diisi");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setPasswordError("Password dan konfirmasi tidak cocok");
+      return;
+    }
+
+    if (!studentId) {
+      console.error("ID guru tidak ditemukan");
+      return;
+    }
+
+    updatePassword.mutate(
+      {
+        id: studentId,
+        data: {
+          password,
+          password_confirmation: confirmPassword,
+        },
+      },
+      {
+        onSuccess: () => {
+          setSuccessMessage("Password berhasil diperbarui!");
+          toast.success("Password berhasil diperbarui!");
+          setPassword("");
+          setConfirmPassword("");
+          setIsEditingPassword(false);
+        },
+        onError: () => {
+          setPasswordError("Gagal memperbarui password. Coba lagi.");
         },
       }
     );
@@ -916,6 +998,145 @@ const ViewStudentBio = () => {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Update Password Card */}
+          <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
+            <CardHeader className="bg-white py-3 px-4">
+              <CardTitle className="text-black flex items-center">
+                <Lock className="mr-2 h-5 w-5" />
+                Manajemen Password
+              </CardTitle>
+              <div className="relative flex justify-center mt-5">
+                <div className="absolute w-full h-0.5 bg-green-400 rounded-full shadow-sm mt-1"></div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-black mb-1"
+                  >
+                    Password Baru
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      disabled={!isEditingPassword}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none pr-10"
+                      placeholder="Masukkan password baru"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility("password")}
+                      className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium text-black mb-1"
+                  >
+                    Konfirmasi Password Baru
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      disabled={!isEditingPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className={`w-full p-2 border rounded-lg focus:ring-2 outline-none pr-10 ${
+                        passwordError
+                          ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                          : "border-gray-300 focus:ring-green-500 focus:border-green-500"
+                      }`}
+                      placeholder="Konfirmasi password baru"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        togglePasswordVisibility("confirmPassword")
+                      }
+                      className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="text-sm text-gray-600">
+                  <p>Persyaratan password:</p>
+                  <ul className="list-disc pl-6 mt-1">
+                    <li>Minimal 6 karakter</li>
+                    <li>Kedua password harus cocok</li>
+                  </ul>
+                </div>
+              </div>
+              {!isEditing && !isEditingPassword ? (
+                <div className="flex flex-wrap gap-3 mt-4 justify-end">
+                  <Button
+                    onClick={() => setIsEditingPassword(true)}
+                    variant="default"
+                    className="hover:bg-[#009616] hover:text-white transition-all"
+                  >
+                    <Lock size={16} className="mr-2" />
+                    Perbarui Password
+                  </Button>
+                </div>
+              ) : isEditing ? (
+                <div className="flex flex-wrap gap-3 mt-4 justify-end">
+                  <Button
+                    onClick={() => setIsEditing(false)}
+                    variant="outline"
+                    className="hover:bg-gray-50 transition-all"
+                  >
+                    <X size={16} className="mr-2" />
+                    Batal
+                  </Button>
+                  <Button
+                    onClick={handleSaveChanges}
+                    variant="default"
+                    className="hover:bg-[#009616] hover:text-white transition-all"
+                  >
+                    <Save size={16} className="mr-2" />
+                    Simpan
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-3 mt-4 justify-end">
+                  <Button
+                    onClick={() => setIsEditingPassword(false)}
+                    variant="outline"
+                    className="hover:bg-gray-50 transition-all"
+                  >
+                    <X size={16} className="mr-2" />
+                    Batal
+                  </Button>
+                  <Button
+                    onClick={handleUpdatePassword}
+                    variant="default"
+                    className="hover:bg-[#009616] hover:text-white transition-all"
+                    disabled={!password || !confirmPassword}
+                  >
+                    <Lock size={16} className="mr-2" />
+                    Perbarui Password
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
