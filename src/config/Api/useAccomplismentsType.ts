@@ -39,7 +39,7 @@ export const useAccomplishmentsTypeUpdate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<IType> }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<IType> }) =>
       ApiAccomplishmentsType.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accomplishmentsType"] });

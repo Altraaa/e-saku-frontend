@@ -39,7 +39,7 @@ export const useRulesUpdate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: IRules }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<IRules> }) =>
       ApiRules.update(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["rules-of-conduct"] });

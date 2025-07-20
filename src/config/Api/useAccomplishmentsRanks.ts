@@ -39,7 +39,7 @@ export const useAccomplishmentsRankUpdate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<IRank> }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<IRank> }) =>
       ApiAccomplishmentsRank.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accomplishmentsRanks"] });
@@ -55,7 +55,7 @@ export const useAccomplishmentsRankDelete = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => ApiAccomplishmentsRank.delete(id),
+    mutationFn: (id: string) => ApiAccomplishmentsRank.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accomplishmentsRanks"] });
     },

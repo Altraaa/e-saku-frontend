@@ -71,7 +71,7 @@ export const useAccomplishmentUpdate = () => {
       id,
       data,
     }: {
-      id: number;
+      id: string;
       data: Partial<IAccomplishments>;
     }) => ApiAccomplishments.update(id, data),
     onSuccess: (_, { id }) => {

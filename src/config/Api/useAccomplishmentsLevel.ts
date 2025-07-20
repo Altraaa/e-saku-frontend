@@ -38,7 +38,7 @@ export const useAccomplishmentsLevelUpdate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<ILevel> }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<ILevel> }) =>
       ApiAccomplishmentsLevel.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accomplishmentsLevel"] });
@@ -54,7 +54,7 @@ export const useAccomplishmentsLevelDelete = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => ApiAccomplishmentsLevel.delete(id),
+    mutationFn: (id: string) => ApiAccomplishmentsLevel.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accomplishmentsLevel"] });
     },
