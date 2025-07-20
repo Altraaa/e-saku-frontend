@@ -14,7 +14,7 @@ export const ApiRules = {
       method: "POST",
       body: { ...data, _method: "PUT" },
     }),
-  delete: (id: number): Promise<{ message: string }> =>
+  delete: (id: string ): Promise<{ message: string }> =>
     ApiRequest({
       url: `/rules-of-conduct/${id}`,
       method: "POST",

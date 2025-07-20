@@ -65,7 +65,6 @@ import { IRank } from "@/config/Models/AccomplishmentsRanks";
 import { ILevel } from "@/config/Models/AccomplishmentsLevel";
 import ConfirmationModal from "@/components/ui/confirmation";
 
-
 const ViewManageRules: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("rules");
   const [activeAchievementTab, setActiveAchievementTab] =
@@ -270,56 +269,103 @@ const ViewManageRules: React.FC = () => {
 
     try {
       if (editingItem) {
-        // Update existing item
+        // Update
         if (isRule) {
-          const updated = await ApiRules.update(
-            (editingItem as IRules).id,
-            formData as IRules
-          );
-          setRules((prev) =>
-            prev.map((r) => (r.id === updated.id ? updated : r))
-          );
+          await ApiRules.update((editingItem as IRules).id, formData as IRules);
+          const updatedRules = await fetchRules();
+          setRules(updatedRules);
           toast.success(`${itemName} updated successfully!`);
         } else if (isType) {
-          await updateType.mutateAsync({
-            id: (editingItem as IType).id,
-            data: formData as Partial<IType>,
-          });
-          refetchTypes();
-          toast.success(`${itemName} updated successfully!`);
+          await updateType.mutateAsync(
+            {
+              id: (editingItem as IType).id,
+              data: formData as Partial<IType>,
+            },
+            {
+              onSuccess: () => {
+                refetchTypes();
+                toast.success(`${itemName} updated successfully!`);
+              },
+              onError: (error) => {
+                console.error("Update type error:", error);
+                toast.error("Failed to update type.");
+              },
+            }
+          );
         } else if (isRank) {
-          await updateRank.mutateAsync({
-            id: (editingItem as IRank).id,
-            data: formData as Partial<IRank>,
-          });
-          refetchRanks();
-          toast.success(`${itemName} updated successfully!`);
+          await updateRank.mutateAsync(
+            {
+              id: (editingItem as IRank).id,
+              data: formData as Partial<IRank>,
+            },
+            {
+              onSuccess: () => {
+                refetchRanks();
+                toast.success(`${itemName} updated successfully!`);
+              },
+              onError: (error) => {
+                console.error("Update rank error:", error);
+                toast.error("Failed to update rank.");
+              },
+            }
+          );
         } else if (isLevel) {
-          await updateLevel.mutateAsync({
-            id: (editingItem as ILevel).id,
-            data: formData as Partial<ILevel>,
-          });
-          refetchLevels();
-          toast.success(`${itemName} updated successfully!`);
+          await updateLevel.mutateAsync(
+            {
+              id: (editingItem as ILevel).id,
+              data: formData as Partial<ILevel>,
+            },
+            {
+              onSuccess: () => {
+                refetchLevels();
+                toast.success(`${itemName} updated successfully!`);
+              },
+              onError: (error) => {
+                console.error("Update level error:", error);
+                toast.error("Failed to update level.");
+              },
+            }
+          );
         }
       } else {
-        // Add new item
+        // Add new
         if (isRule) {
           const added = await ApiRules.create(formData as IRules);
           setRules((prev) => [...prev, added]);
           toast.success(`${itemName} added successfully!`);
         } else if (isType) {
-          await createType.mutateAsync(formData as IType);
-          refetchTypes();
-          toast.success(`${itemName} added successfully!`);
+          await createType.mutateAsync(formData as IType, {
+            onSuccess: () => {
+              refetchTypes();
+              toast.success(`${itemName} added successfully!`);
+            },
+            onError: (error) => {
+              console.error("Create type error:", error);
+              toast.error("Failed to add type.");
+            },
+          });
         } else if (isRank) {
-          await createRank.mutateAsync(formData as IRank);
-          refetchRanks();
-          toast.success(`${itemName} added successfully!`);
+          await createRank.mutateAsync(formData as IRank, {
+            onSuccess: () => {
+              refetchRanks();
+              toast.success(`${itemName} added successfully!`);
+            },
+            onError: (error) => {
+              console.error("Create rank error:", error);
+              toast.error("Failed to add rank.");
+            },
+          });
         } else if (isLevel) {
-          await createLevel.mutateAsync(formData as ILevel);
-          refetchLevels();
-          toast.success(`${itemName} added successfully!`);
+          await createLevel.mutateAsync(formData as ILevel, {
+            onSuccess: () => {
+              refetchLevels();
+              toast.success(`${itemName} added successfully!`);
+            },
+            onError: (error) => {
+              console.error("Create level error:", error);
+              toast.error("Failed to add level.");
+            },
+          });
         }
       }
 
@@ -327,7 +373,7 @@ const ViewManageRules: React.FC = () => {
       setIsAddDialogOpen(false);
       setIsEditDialogOpen(false);
     } catch (error) {
-      console.error("Failed to save:", error);
+      console.error("Unexpected save error:", error);
       toast.error("Failed to save. Please try again.");
     }
   };
@@ -360,33 +406,54 @@ const ViewManageRules: React.FC = () => {
   };
 
   // Delete function
-  const performDelete = async (id: number, isRule: boolean) => {
+  const performDelete = async (id: string, isRule: boolean) => {
     try {
       if (isRule) {
         await ApiRules.delete(id);
         setRules((prev) => prev.filter((r) => r.id !== id));
         toast.success("Rule deleted successfully!");
       } else if (activeAchievementTab === "types") {
-        await deleteType.mutateAsync(id);
-        refetchTypes();
-        toast.success("Achievement type deleted successfully!");
+        await deleteType.mutateAsync(id, {
+          onSuccess: () => {
+            refetchTypes();
+            toast.success("Achievement type deleted successfully!");
+          },
+          onError: (error) => {
+            console.error("Delete type error:", error);
+            toast.error("Failed to delete type. Please try again.");
+          },
+        });
       } else if (activeAchievementTab === "ranks") {
-        await deleteRank.mutateAsync(id);
-        refetchRanks();
-        toast.success("Achievement rank deleted successfully!");
+        await deleteRank.mutateAsync(id, {
+          onSuccess: () => {
+            refetchRanks();
+            toast.success("Achievement rank deleted successfully!");
+          },
+          onError: (error) => {
+            console.error("Delete rank error:", error);
+            toast.error("Failed to delete rank. Please try again.");
+          },
+        });
       } else if (activeAchievementTab === "levels") {
-        await deleteLevel.mutateAsync(id);
-        refetchLevels();
-        toast.success("Achievement level deleted successfully!");
+        await deleteLevel.mutateAsync(id, {
+          onSuccess: () => {
+            refetchLevels();
+            toast.success("Achievement level deleted successfully!");
+          },
+          onError: (error) => {
+            console.error("Delete level error:", error);
+            toast.error("Failed to delete level. Please try again.");
+          },
+        });
       }
     } catch (error) {
-      console.error("Failed to delete:", error);
+      console.error("Unexpected delete error:", error);
       toast.error("Failed to delete. Please try again.");
     }
   };
 
   // Confirm delete action
-  const confirmDelete = (id: number, isRule: boolean, itemName: string) => {
+  const confirmDelete = (id: string, isRule: boolean, itemName: string) => {
     const itemType = isRule
       ? "Rule"
       : activeAchievementTab === "types"
@@ -411,7 +478,35 @@ const ViewManageRules: React.FC = () => {
   // Edit handlers
   const handleEdit = (item: IRules | IType | IRank | ILevel) => {
     setEditingItem(item);
-    setFormData(item);
+
+    // FIX: Properly set formData based on item type
+    if ("name" in item) {
+      // Rules
+      setFormData({
+        name: item.name,
+        description: item.description,
+        points: item.points,
+      });
+    } else if ("type" in item) {
+      // Achievement type
+      setFormData({
+        type: item.type,
+        point: item.point,
+      });
+    } else if ("rank" in item) {
+      // Achievement rank
+      setFormData({
+        rank: item.rank,
+        point: item.point,
+      });
+    } else if ("level" in item) {
+      // Achievement level
+      setFormData({
+        level: item.level,
+        point: item.point,
+      });
+    }
+
     setIsEditDialogOpen(true);
   };
 

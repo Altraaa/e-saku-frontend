@@ -5,7 +5,7 @@ import { ApiAccomplishmentsRank } from "../Services/Accomplishments.service";
 // Fetch all ranks
 export const useAccomplishmentsRanks = () => {
   return useQuery<IRank[]>({
-    queryKey: ["accomplishmentsRanks"],
+    queryKey: ["accomplishments-ranks"],
     queryFn: () => ApiAccomplishmentsRank.getAll(),
   });
 }
@@ -13,7 +13,7 @@ export const useAccomplishmentsRanks = () => {
 // Fetch rank by ID
 export const useAccomplishmentsRankById = (id: number) => {
   return useQuery<IRank>({
-    queryKey: ["accomplishmentsRank", id],
+    queryKey: ["accomplishments-ranks", id],
     queryFn: () => ApiAccomplishmentsRank.getById(id),
     enabled: !!id,
   });
@@ -26,7 +26,7 @@ export const useAccomplishmentsRankCreate = () => {
   return useMutation({
     mutationFn: (data: Partial<IRank>) => ApiAccomplishmentsRank.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accomplishmentsRanks"] });
+      queryClient.invalidateQueries({ queryKey: ["accomplishments-ranks"] });
     },
     onError: (error) => {
       console.error("Error creating rank:", error);
@@ -42,7 +42,7 @@ export const useAccomplishmentsRankUpdate = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<IRank> }) =>
       ApiAccomplishmentsRank.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accomplishmentsRanks"] });
+      queryClient.invalidateQueries({ queryKey: ["accomplishments-ranks"] });
     },
     onError: (error) => {
       console.error("Error updating rank:", error);
@@ -57,7 +57,7 @@ export const useAccomplishmentsRankDelete = () => {
   return useMutation({
     mutationFn: (id: string) => ApiAccomplishmentsRank.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accomplishmentsRanks"] });
+      queryClient.invalidateQueries({ queryKey: ["accomplishments-ranks"] });
     },
     onError: (error) => {
       console.error("Error deleting rank:", error);

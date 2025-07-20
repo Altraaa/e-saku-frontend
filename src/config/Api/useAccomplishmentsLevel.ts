@@ -5,15 +5,16 @@ import { ApiAccomplishmentsLevel } from "../Services/Accomplishments.service";
 // Fetch all levels
 export const useAccomplishmentsLevel = () => {
   return useQuery<ILevel[]>({
-    queryKey: ["accomplishmentsLevel"],
+    queryKey: ['accomplishments-levels'],
     queryFn: () => ApiAccomplishmentsLevel.getAll(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
-}
+};
 
 // Fetch level by ID
 export const useAccomplishmentsLevelById = (id: number) => {
   return useQuery<ILevel>({
-    queryKey: ["accomplishmentsLevel", id],
+    queryKey: ["accomplishments-levels", id],
     queryFn: () => ApiAccomplishmentsLevel.getById(id),
     enabled: !!id,
   });
@@ -25,7 +26,7 @@ export const useAccomplishmentsLevelCreate = () => {
   return useMutation({
     mutationFn: (data: Partial<ILevel>) => ApiAccomplishmentsLevel.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accomplishmentsLevel"] });
+      queryClient.invalidateQueries({ queryKey: ["accomplishments-levels"] });
     },
     onError: (error) => {
       console.error("Error creating level:", error);
@@ -41,7 +42,7 @@ export const useAccomplishmentsLevelUpdate = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<ILevel> }) =>
       ApiAccomplishmentsLevel.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accomplishmentsLevel"] });
+      queryClient.invalidateQueries({ queryKey: ["accomplishments-levels"] });
     },
     onError: (error) => {
       console.error("Error updating level:", error);
@@ -56,7 +57,7 @@ export const useAccomplishmentsLevelDelete = () => {
   return useMutation({
     mutationFn: (id: string) => ApiAccomplishmentsLevel.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["accomplishmentsLevel"] });
+      queryClient.invalidateQueries({ queryKey: ["accomplishments-levels"] });
     },
     onError: (error) => {
       console.error("Error deleting level:", error);

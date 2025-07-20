@@ -1,5 +1,5 @@
 export interface IRules {
-  id: number;
+  id: string;
   name: string;
   description: string;
   points: number;
