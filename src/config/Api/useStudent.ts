@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiStudents } from "../Services/Students.service";
-import { IStudent } from "../Models/Student";
+import { IStudent, IStudentUpdatePassword } from "../Models/Student";
 import { IStudentCreate } from "../Models/StudentCreate";
 
 //fetch all student
@@ -40,6 +40,19 @@ export const useStudentCreate = () => {
     },
     onError: (error) => {
       console.error("Error creating student:", error);
+    },
+  });
+};
+
+// Update Password
+export const useStudentUpdatePassword = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<IStudentUpdatePassword> }) =>
+      ApiStudents.updatePassword(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["student", id] });
     },
   });
 };

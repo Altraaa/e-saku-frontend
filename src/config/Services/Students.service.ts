@@ -1,4 +1,4 @@
-import { IStudent } from "../Models/Student";
+import { IStudent, IStudentUpdatePassword } from "../Models/Student";
 import { IStudentCreate } from "../Models/StudentCreate";
 import { ApiRequest } from "./Api.service";
 
@@ -33,6 +33,15 @@ export const ApiStudents = {
       isFormData: true,
     });
   },
+  updatePassword: (
+    id: string,
+    data: Partial<IStudentUpdatePassword>
+  ): Promise<{ message: string }> =>
+    ApiRequest({
+      url: `/students/${id}/update-password`,
+      method: "POST",
+      body: { ...data, _method: "PUT" },
+    }),
   deleteProfileImage: (id: string): Promise<IStudent> =>
     ApiRequest({
       url: `/students/${id}/photo`,
