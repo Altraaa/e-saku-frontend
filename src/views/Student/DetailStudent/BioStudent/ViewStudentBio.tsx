@@ -516,6 +516,7 @@ const ViewStudentBio = () => {
                           handleInputChange("nis", e.target.value)
                         }
                         className="w-full"
+                        isRequired
                         id={formData.nis}
                         label={"NIS"}
                       />
@@ -540,6 +541,7 @@ const ViewStudentBio = () => {
                           handleInputChange("nisn", e.target.value)
                         }
                         className="w-full"
+                        isRequired
                         id={formData.nisn}
                         label={"NISN"}
                       />
@@ -565,6 +567,7 @@ const ViewStudentBio = () => {
                         handleInputChange("name", e.target.value)
                       }
                       className="w-full"
+                      isRequired
                       id={formData.name}
                       label={"Nama Lengkap"}
                     />
@@ -587,6 +590,7 @@ const ViewStudentBio = () => {
                       value={classroomData?.name}
                       disabled
                       className="w-full"
+                      isRequired
                       id={classroomData?.name || ""}
                       label={"Kelas"}
                     />
@@ -612,6 +616,7 @@ const ViewStudentBio = () => {
                           handleInputChange("place_of_birth", e.target.value)
                         }
                         className="w-full"
+                        isRequired
                         id={formData.place_of_birth}
                         label={"Tempat Lahir"}
                       />
@@ -624,6 +629,7 @@ const ViewStudentBio = () => {
                           handleInputChange("birth_date", e.target.value)
                         }
                         className="w-full"
+                        isRequired
                         id={formData.birth_date}
                         label={"Tanggal Lahir"}
                       />
@@ -652,6 +658,7 @@ const ViewStudentBio = () => {
                           handleInputChange("gender", e.target.value)
                         }
                         className="w-full"
+                        isRequired
                         id={formData.gender}
                         label={"Jenis Kelamin"}
                       />
@@ -680,8 +687,9 @@ const ViewStudentBio = () => {
                           handleInputChange("religion", e.target.value)
                         }
                         className="w-full"
+                        isRequired
                         id={formData.religion}
-                        label={"Jenis Kelamin"}
+                        label={"Agama"}
                       />
                     ) : (
                       <div>
@@ -787,6 +795,7 @@ const ViewStudentBio = () => {
                             handleInputChange("height", e.target.value)
                           }
                           className="w-full"
+                          isRequired
                           id={formData.height}
                           label={"Tinggi Badan (cm)"}
                         />
@@ -797,6 +806,7 @@ const ViewStudentBio = () => {
                             handleInputChange("weight", e.target.value)
                           }
                           className="w-full"
+                          isRequired
                           id={formData.weight}
                           label={"Berat Badan (kg)"}
                         />

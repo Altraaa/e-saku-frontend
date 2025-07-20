@@ -29,6 +29,7 @@ interface FormInputProps {
   required?: boolean;
   error?: string;
   className?: string;
+  isRequired?: boolean;
 }
 
 interface FormTextareaProps {
@@ -38,7 +39,7 @@ interface FormTextareaProps {
   placeholder?: string;
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   disabled?: boolean;
-  error?: string
+  error?: string;
 }
 
 interface FormSelectProps {
@@ -83,6 +84,7 @@ export function FormInput({
   required = true,
   error,
   className,
+  isRequired = false,
 }: FormInputProps) {
   if (type === "date") {
     return (
@@ -114,7 +116,9 @@ export function FormInput({
 
   return (
     <div className="grid gap-2">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id}>
+        {label} {isRequired && <span className="text-red-500">*</span>}
+      </Label>
       <Input
         id={id}
         type={type}
@@ -143,7 +147,7 @@ export function FormTextarea({
   placeholder,
   onChange,
   disabled,
-  error
+  error,
 }: FormTextareaProps) {
   return (
     <div className="grid gap-2">
@@ -169,7 +173,7 @@ export function FormSelect({
   value,
   onChange,
   disabled,
-  error
+  error,
 }: FormSelectProps) {
   return (
     <div className="grid gap-2">
@@ -195,9 +199,19 @@ export function FormSelect({
   );
 }
 
-export function FormButton({ children, isLoading, onClick, type}: FormButtonProps) {
+export function FormButton({
+  children,
+  isLoading,
+  onClick,
+  type,
+}: FormButtonProps) {
   return (
-    <Button type={type} className="w-full" disabled={isLoading} onClick={onClick}>
+    <Button
+      type={type}
+      className="w-full"
+      disabled={isLoading}
+      onClick={onClick}
+    >
       {isLoading ? "Loading..." : children}
     </Button>
   );
