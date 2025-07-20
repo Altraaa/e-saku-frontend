@@ -27,6 +27,10 @@ export const useLogin = () => {
       if (data.user?.teacher_id) {
         localStorage.setItem("teacher_id", data.user.teacher_id);
         localStorage.setItem("user_type", "teacher");
+
+        if (data.user.role) {
+          localStorage.setItem("role", data.user.role);
+        }
       } else if (data.user?.student_id) {
         localStorage.setItem("student_id", data.user.student_id);
         localStorage.setItem("user_type", "student");
@@ -104,6 +108,7 @@ export const useLogout = () => {
 
 export const useCurrentUser = () => {
   const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
   const userType = localStorage.getItem("user_type");
   const teacherId = localStorage.getItem("teacher_id");
   const studentId = localStorage.getItem("student_id");
@@ -115,5 +120,7 @@ export const useCurrentUser = () => {
     studentId,
     isTeacher: userType === "teacher",
     isStudent: userType === "student",
+    role,
+    isMaster: role === "master",
   };
 };
