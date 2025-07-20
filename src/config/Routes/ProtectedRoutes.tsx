@@ -2,7 +2,6 @@
 import { useEffect, useCallback, useRef } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useLogout } from "../Api/useAuth";
-import toast from "react-hot-toast";
 
 export function ProtectedRoute() {
   const token = localStorage.getItem("token");
@@ -17,10 +16,7 @@ export function ProtectedRoute() {
       isLoggingOutRef.current = true;
 
       await logout();
-      toast.error(message, {
-        duration: 5000,
-        position: "top-center",
-      });
+      localStorage.setItem("logout_message", message);
     },
     [logout]
   );

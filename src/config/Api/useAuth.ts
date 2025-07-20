@@ -81,7 +81,6 @@ export const useLogin = () => {
 };
 
 export const useLogout = () => {
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoggedOut, setHasLoggedOut] = useState(false);
 
@@ -99,7 +98,8 @@ export const useLogout = () => {
       console.error("Logout error:", error);
     } finally {
       localStorage.clear();
-      navigate("/login", { replace: true });
+      localStorage.setItem("logout_success", "");
+      window.location.href = "/login";
       setIsLoading(false);
     }
   };

@@ -3,11 +3,17 @@ import { IStudentCreate } from "../Models/StudentCreate";
 import { ApiRequest } from "./Api.service";
 
 export const ApiStudents = {
-  getAll: (): Promise<IStudent[]> => ApiRequest({ url: "/students", method: "GET" }),
+  getAll: (): Promise<IStudent[]> =>
+    ApiRequest({ url: "/students", method: "GET" }),
   getById: (id: string): Promise<IStudent> =>
     ApiRequest({ url: `/students/${id}`, method: "GET" }),
   getByClassId: (class_id: number): Promise<IStudent[]> =>
     ApiRequest({ url: `/students/class/${class_id}`, method: "GET" }),
+
+  // New method for getting student profile (for authenticated student)
+  getProfile: (): Promise<IStudent> =>
+    ApiRequest({ url: "/student/me", method: "GET" }),
+
   create: (data: IStudentCreate): Promise<IStudent> =>
     ApiRequest({ url: "/students", method: "POST", body: data }),
   update: (id: string, data: Partial<IStudent>): Promise<IStudent> =>
@@ -53,7 +59,7 @@ export const ApiStudents = {
     }),
   exportHistory: (): Promise<Blob> =>
     ApiRequest({
-      url: `/history/export`,  
+      url: `/history/export`,
       method: "GET",
       responseType: "blob",
     }),

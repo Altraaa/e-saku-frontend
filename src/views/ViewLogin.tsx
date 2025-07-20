@@ -2,9 +2,10 @@
 import { Form, FormInput, FormButton } from "@/components/ui/form";
 import esakulogo from "../assets/skensa.png";
 import esakulogin from "../assets/esakulogin.jpg";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLogin } from "@/config/Api/useAuth";
 import { AlertTriangle } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function ViewLogin() {
   const [identifier, setIdentifier] = useState("");
@@ -40,6 +41,35 @@ export default function ViewLogin() {
       setter(e.target.value);
     };
   };
+
+  useEffect(() => {
+    const reason = localStorage.getItem("logout_reason");
+    const success = localStorage.getItem("logout_success");
+    const delay = 300;
+    if (reason) {
+      setTimeout(() => {
+        toast.error(reason, {
+          duration: 5000,
+          position: "top-center",
+        });
+        localStorage.removeItem("logout_reason");
+      }, delay);
+      localStorage.removeItem("logout_reason");
+    }
+    if (success) {
+      setTimeout(
+        () => {
+          toast.success(success, {
+            duration: 5000,
+            position: "top-center",
+          });
+          localStorage.removeItem("logout_success");
+        },
+        reason ? 3500 : delay
+      );
+      localStorage.removeItem("logout_success");
+    }
+  }, []);
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">

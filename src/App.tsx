@@ -63,6 +63,7 @@ const LayoutWrapper = () => {
 
 export function AppContent() {
   const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
 
   return (
     <Routes>
@@ -72,7 +73,16 @@ export function AppContent() {
       />
       <Route element={<ProtectedRoute />}>
         <Route element={<LayoutWrapper />}>
-          <Route path="/" element={<Dashboard />} />
+          <Route
+            path="/"
+            element={
+              role === "student" ? (
+                <Navigate to="/profilestudent" />
+              ) : (
+                <Dashboard />
+              )
+            }
+          />
           <Route path="/student" element={<Student />} />
           <Route path="/esakuform" element={<ESakuForm />} />
           <Route path="/history" element={<History />} />

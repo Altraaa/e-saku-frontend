@@ -36,10 +36,11 @@ import {
 import { DatePicker } from "@/components/shared/component/DatePicker";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
-import { useStudentById } from "@/config/Api/useStudent";
 import { Link, useParams } from "react-router-dom";
 import ConfirmationModal from "@/components/ui/confirmation";
 import toast from "react-hot-toast";
+import { IStudent } from "@/config/Models/Student";
+import axios from "axios";
 
 const ViewBioViolations = () => {
   const [rowsPerPage, setRowsPerPage] = useState("10");
@@ -53,19 +54,48 @@ const ViewBioViolations = () => {
   );
   const { id } = useParams();
   const studentId = id ?? "";
-  const { data: student, isLoading: studentLoading } =
-    useStudentById(studentId);
   const deleteDocumentation = useViolationsDocumentationDelete();
   const {data: violations} = useViolationById(violationToDelete ?? 0);
+  const [student, setStudent] = useState<IStudent | null>(null);
+  const [studentLoading, setStudentLoading] = useState(true);
+
+   const fetchStudentProfile = async () => {
+     try {
+       const response = await axios.get(
+         `${import.meta.env.VITE_API_URL}/student/me`,
+         {
+           headers: {
+             Authorization: `Bearer ${localStorage.getItem("token")}`,
+           },
+         }
+       );
+       setStudent(response.data);
+     } catch (error) {
+       console.error("Gagal mengambil data profil:", error);
+       toast.error("Gagal memuat data profil");
+     } finally {
+       setStudentLoading(false);
+     }
+   };
+
+   useEffect(() => {
+     const teacherId = localStorage.getItem("teacher_id");
+     const studentId = localStorage.getItem("student_id");
+
+     setUserType(teacherId ? "teacher" : studentId ? "student" : "teacher");
+
+     if (studentId && !teacherId) {
+       // Jika user adalah student
+       fetchStudentProfile();
+     } else if (teacherId && id) {
+       // Jika teacher, gunakan hook yang sudah ada
+       setStudentLoading(false);
+     } else {
+       setStudentLoading(false);
+     }
+   }, [id]);
 
   const studentName = student ? student.name : "Loading...";
-
-  useEffect(() => {
-    // Cek tipe pengguna dari localStorage
-    const teacherId = localStorage.getItem("teacher_id");
-    const studentId = localStorage.getItem("student_id");
-    setUserType(teacherId ? "teacher" : studentId ? "student" : "teacher");
-  }, []);
 
   const [filters, setFilters] = useState({
     selectedDate: "",

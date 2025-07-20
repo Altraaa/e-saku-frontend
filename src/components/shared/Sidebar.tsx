@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Home,
   DiamondMinusIcon,
@@ -32,9 +32,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
     typeof window !== "undefined" ? window.innerWidth : 1024
   );
 
-  // Determine user type
-  const isTeacher = localStorage.getItem("teacher_id") !== null;
-  const isStudent = localStorage.getItem("student_id") !== null;
+  const role = localStorage.getItem("role") || "student";
 
   const isMobileScreen = windowWidth < 835;
 
@@ -60,66 +58,78 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleCloseSidebar = (e: React.MouseEvent) => {
-    if ((isMobile || isMobileScreen) && isOpen) {
-      e.stopPropagation();
-      toggleSidebar();
-    }
+ const handleCloseSidebar = useCallback(
+   (e: React.MouseEvent) => {
+     if ((isMobile || isMobileScreen) && isOpen) {
+       e.stopPropagation();
+       toggleSidebar();
+     }
+   },
+   [isMobile, isMobileScreen, isOpen, toggleSidebar]
+ );
+
+ // Perbaikan 2: Bungkus handleMenuItemClick
+ const handleMenuItemClick = useCallback(() => {
+   if (isMobile || isMobileScreen) {
+     closeSidebar();
+   }
+ }, [isMobile, isMobileScreen, closeSidebar]);
+
+  // Common items for all roles
+   const commonPlatformItems =
+     role === "student" ? [] : [{ label: "Dashboard", icon: Home, path: "/" }];
+
+   // Items rules untuk semua peran
+   const rulesItem = { label: "Rules", icon: DiamondMinusIcon, path: "/rules" };
+
+  // Role-based menu items
+  const rolePlatformItems: Record<string, any[]> = {
+    teacher: [
+      { label: "Student", icon: Users, path: "/student" },
+      { label: "E-saku Form", icon: FileText, path: "/esakuform" },
+      { label: "History", icon: History, path: "/history" },
+      { label: "Report", icon: MessageSquareWarning, path: "/report" },
+    ],
+    master: [
+      { label: "Student", icon: Users, path: "/student" },
+      { label: "E-saku Form", icon: FileText, path: "/esakuform" },
+      { label: "History", icon: History, path: "/history" },
+      { label: "Report", icon: MessageSquareWarning, path: "/report" },
+      { label: "Manage Rules", icon: FolderKanban, path: "/managerules" },
+    ],
+    student: [
+      {
+        label: "My Accomplishments",
+        icon: Users,
+        path: `/studentbio/accomplishments/${localStorage.getItem(
+          "student_id"
+        )}`,
+      },
+      {
+        label: "My Violations",
+        icon: Users,
+        path: `/studentbio/violations/${localStorage.getItem("student_id")}`,
+      },
+    ],
   };
-
-  const handleMenuItemClick = () => {
-    if (isMobile || isMobileScreen) {
-      closeSidebar();
-    }
-  };
-
-  // Common items for both teacher and student
-  const commonPlatformItems = [
-    { label: "Dashboard", icon: Home, path: "/" },
-    { label: "Rules", icon: DiamondMinusIcon, path: "/rules" },
-  ];
-
-  // Teacher-only items
-  const teacherPlatformItems = [
-    { label: "Student", icon: Users, path: "/student" },
-    { label: "E-saku Form", icon: FileText, path: "/esakuform" },
-    { label: "History", icon: History, path: "/history" },
-    { label: "Report", icon: MessageSquareWarning, path: "/report" },
-    { label: "Manage Rules", icon: FolderKanban, path: "/managerules" },
-  ];
-
-  // Student-only items
-  const studentPlatformItems = [
-    {
-      label: "My Accomplishments",
-      icon: Users,
-      path: `/studentbio/accomplishments/${localStorage.getItem("student_id")}`,
-    },
-    {
-      label: "My Violations",
-      icon: Users,
-      path: `/studentbio/violations/${localStorage.getItem("student_id")}`,
-    },
-  ];
-  
 
   // Combine common items with role-specific items
   const platformItems = [
-    ...commonPlatformItems,
-    ...(isTeacher ? teacherPlatformItems : []),
-    ...(isStudent ? studentPlatformItems : []),
+    ...commonPlatformItems, rulesItem,
+    ...(rolePlatformItems[role] || []),
   ];
 
-  // Account items (common for both)
+  // Account items (common for all)
   const accountItems = [{ label: "Help", icon: CircleHelp, path: "/help" }];
 
-  const teacherProfile = [
-    { label: "Profile", icon: User, path: "/profileteacher" },
-  ];
+  // Profile items based on role
+  const roleProfileItems: Record<string, any[]> = {
+    teacher: [{ label: "Profile", icon: User, path: "/profileteacher" }],
+    master: [{ label: "Profile", icon: User, path: "/profileteacher" }],
+    student: [{ label: "Profile", icon: User, path: "/profilestudent" }],
+  };
 
-  const studentProfile = [
-    { label: "Profile", icon: User, path: "/profilestudent" },
-  ];
+  const profileItems = roleProfileItems[role] || [];
 
   const isActivePath = (currentPath: string, itemPath: string): boolean => {
     const studentId = localStorage.getItem("student_id");
@@ -133,7 +143,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
       "/esakuform": [/^\/esakuform$/],
       "/history": [/^\/history$/],
       "/rules": [/^\/rules$/],
-      "/profilestudent": [/^\/profile$/],
+      "/profilestudent": [/^\/profilestudent$/],
       "/profileteacher": [/^\/profileteacher$/],
       [`/studentbio/accomplishments/${studentId}`]: [
         new RegExp(`^/studentbio/accomplishments/${studentId}$`),
@@ -238,38 +248,36 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
           ))}
         </ul>
 
-        {/* Render profile section based on user type */}
-        {(isTeacher || isStudent) && (
+        {/* Render profile section for all roles */}
+        {profileItems.length > 0 && (
           <>
             <div className="my-4 border-t border-gray-300" />
             <div className="text-xs font-semibold mb-3 text-muted-foreground uppercase">
               Account
             </div>
             <ul className="space-y-1 mt-4">
-              {(isTeacher ? teacherProfile : studentProfile).map(
-                (item, index) => (
-                  <li key={index}>
-                    <Link
-                      to={item.path}
-                      onClick={handleMenuItemClick}
-                      className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
+              {profileItems.map((item, index) => (
+                <li key={index}>
+                  <Link
+                    to={item.path}
+                    onClick={handleMenuItemClick}
+                    className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 group ${
+                      activeItem === item.path
+                        ? "bg-green-100 text-green-600 font-medium"
+                        : "hover:bg-gray-100 hover:text-black"
+                    }`}
+                  >
+                    <item.icon
+                      className={`w-5 h-5 flex-shrink-0 ${
                         activeItem === item.path
-                          ? "bg-green-100 text-green-600 font-medium"
-                          : "hover:bg-gray-100 hover:text-black"
+                          ? "text-green-600"
+                          : "text-gray-500"
                       }`}
-                    >
-                      <item.icon
-                        className={`w-5 h-5 flex-shrink-0 ${
-                          activeItem === item.path
-                            ? "text-green-600"
-                            : "text-gray-500"
-                        }`}
-                      />
-                      <span className="truncate">{item.label}</span>
-                    </Link>
-                  </li>
-                )
-              )}
+                    />
+                    <span className="truncate">{item.label}</span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </>
         )}
