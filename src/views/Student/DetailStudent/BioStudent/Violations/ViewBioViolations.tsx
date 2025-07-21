@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   MoveLeft,
-  SquarePen,
   Trash2,
   AlertTriangle,
   Calendar,
@@ -466,22 +465,6 @@ const ViewBioViolations = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center py-4 px-4">
-                        <div className="flex flex-col items-center gap-1">
-                          <div className="flex items-center gap-1 text-sm">
-                            <Calendar className="h-3 w-3 text-gray-400" />
-                            <span>{formatDisplayDate(violation.date)}</span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center py-4 px-4">
-                        <Badge
-                          variant="destructive"
-                          className="bg-red-100 text-red-700 border-red-200"
-                        >
-                          {violation.points}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center py-4 px-4">
                         {violation.image_documentation ? (
                           <button
                             onClick={handleOpenImageModal} // Memanggil fungsi untuk membuka modal
@@ -515,6 +498,22 @@ const ViewBioViolations = () => {
                             </div>
                           </div>
                         )}
+                      </TableCell>
+                      <TableCell className="text-center py-4 px-4">
+                        <Badge
+                          variant="destructive"
+                          className="bg-red-100 text-red-700 border-red-200"
+                        >
+                          {violation.points}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center py-4 px-4">
+                        <div className="flex flex-col items-center gap-1">
+                          <div className="flex items-center gap-1 text-sm">
+                            <Calendar className="h-3 w-3 text-gray-400" />
+                            <span>{formatDisplayDate(violation.date)}</span>
+                          </div>
+                        </div>
                       </TableCell>
                       <TableCell className="text-center py-4 px-4">
                         {userType !== "student" && (

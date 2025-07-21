@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import {
   MoveLeft,
-  SquarePen,
   Trash2,
   Trophy,
   Calendar,
