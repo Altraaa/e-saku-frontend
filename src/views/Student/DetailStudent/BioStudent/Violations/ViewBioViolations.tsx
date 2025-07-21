@@ -36,11 +36,10 @@ import {
 import { DatePicker } from "@/components/shared/component/DatePicker";
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
+import { useStudentById } from "@/config/Api/useStudent";
 import { Link, useParams } from "react-router-dom";
 import ConfirmationModal from "@/components/ui/confirmation";
 import toast from "react-hot-toast";
-import { IStudent } from "@/config/Models/Student";
-import axios from "axios";
 
 const ViewBioViolations = () => {
   const [rowsPerPage, setRowsPerPage] = useState("10");
@@ -54,48 +53,19 @@ const ViewBioViolations = () => {
   );
   const { id } = useParams();
   const studentId = id ?? "";
+  const { data: student, isLoading: studentLoading } =
+    useStudentById(studentId);
   const deleteDocumentation = useViolationsDocumentationDelete();
-  const {data: violations} = useViolationById(violationToDelete ?? 0);
-  const [student, setStudent] = useState<IStudent | null>(null);
-  const [studentLoading, setStudentLoading] = useState(true);
-
-   const fetchStudentProfile = async () => {
-     try {
-       const response = await axios.get(
-         `${import.meta.env.VITE_API_URL}/student/me`,
-         {
-           headers: {
-             Authorization: `Bearer ${localStorage.getItem("token")}`,
-           },
-         }
-       );
-       setStudent(response.data);
-     } catch (error) {
-       console.error("Gagal mengambil data profil:", error);
-       toast.error("Gagal memuat data profil");
-     } finally {
-       setStudentLoading(false);
-     }
-   };
-
-   useEffect(() => {
-     const teacherId = localStorage.getItem("teacher_id");
-     const studentId = localStorage.getItem("student_id");
-
-     setUserType(teacherId ? "teacher" : studentId ? "student" : "teacher");
-
-     if (studentId && !teacherId) {
-       // Jika user adalah student
-       fetchStudentProfile();
-     } else if (teacherId && id) {
-       // Jika teacher, gunakan hook yang sudah ada
-       setStudentLoading(false);
-     } else {
-       setStudentLoading(false);
-     }
-   }, [id]);
+  const { data: violations } = useViolationById(violationToDelete ?? 0);
 
   const studentName = student ? student.name : "Loading...";
+
+  useEffect(() => {
+    // Cek tipe pengguna dari localStorage
+    const teacherId = localStorage.getItem("teacher_id");
+    const studentId = localStorage.getItem("student_id");
+    setUserType(teacherId ? "teacher" : studentId ? "student" : "teacher");
+  }, []);
 
   const [filters, setFilters] = useState({
     selectedDate: "",
@@ -196,7 +166,6 @@ const ViewBioViolations = () => {
     created_at: violation.created_at,
     updated_at: violation.updated_at,
   }));
-  
 
   const filteredViolations = mappedViolations.filter((violation) => {
     if (
@@ -226,8 +195,6 @@ const ViewBioViolations = () => {
     (sum, violation) => sum + violation.points,
     0
   );
-
-  
 
   const itemsPerPage = parseInt(rowsPerPage);
   const totalPages = Math.ceil(filteredViolations.length / itemsPerPage);
@@ -461,9 +428,11 @@ const ViewBioViolations = () => {
                   <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">
                     Poin
                   </TableHead>
-                  <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">
-                    Aksi
-                  </TableHead>
+                  {userType !== "student" && (
+                    <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">
+                      Aksi
+                    </TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -548,31 +517,25 @@ const ViewBioViolations = () => {
                         )}
                       </TableCell>
                       <TableCell className="text-center py-4 px-4">
-                        <div className="flex justify-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 w-8 p-0 border-blue-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors"
-                            asChild
-                          >
-                            <a href={`/violation/edit/${violation.id}`}>
-                              <SquarePen className="h-4 w-4" />
-                            </a>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 w-8 p-0 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors"
-                            onClick={() => handleDeleteViolation(violation.id)}
-                            disabled={deleteViolation.isPending}
-                          >
-                            {deleteViolation.isPending ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
+                        {userType !== "student" && (
+                          <div className="flex justify-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-8 p-0 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors"
+                              onClick={() =>
+                                handleDeleteViolation(violation.id)
+                              }
+                              disabled={deleteViolation.isPending}
+                            >
+                              {deleteViolation.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))
@@ -625,31 +588,23 @@ const ViewBioViolations = () => {
                           {violation.points} poin
                         </Badge>
                       </div>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 w-7 p-0 border-blue-200 hover:bg-blue-50"
-                          asChild
-                        >
-                          <a href={`/violation/edit/${violation.id}`}>
-                            <SquarePen className="h-3 w-3" />
-                          </a>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 w-7 p-0 border-red-200 hover:bg-red-50"
-                          onClick={() => handleDeleteViolation(violation.id)}
-                          disabled={deleteViolation.isPending}
-                        >
-                          {deleteViolation.isPending ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-3 w-3" />
-                          )}
-                        </Button>
-                      </div>
+                      {userType !== "student" && (
+                        <div className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 w-7 p-0 border-red-200 hover:bg-red-50"
+                            onClick={() => handleDeleteViolation(violation.id)}
+                            disabled={deleteViolation.isPending}
+                          >
+                            {deleteViolation.isPending ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-2">

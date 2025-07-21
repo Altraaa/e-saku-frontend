@@ -63,7 +63,7 @@ const LayoutWrapper = () => {
 
 export function AppContent() {
   const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+  const role = localStorage.getItem("user_type");
 
   return (
     <Routes>

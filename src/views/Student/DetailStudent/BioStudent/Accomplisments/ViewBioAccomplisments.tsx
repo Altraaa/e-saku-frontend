@@ -68,6 +68,8 @@ const ViewBioAccomplishments = () => {
     error,
   } = useStudentById(studentId);
 
+  console.log(student);
+
   // Fetch accomplishment details
   const { data: accomplishmentTypes } = useAccomplishmentsType();
   const { data: accomplishmentRanks } = useAccomplishmentsRanks();
@@ -448,33 +450,25 @@ const ViewBioAccomplishments = () => {
                             {accomplishment.description}
                           </p>
                         </div>
-                        <div className="flex gap-1 ml-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 w-8 p-0 border-blue-200 hover:bg-blue-50"
-                            asChild
-                          >
-                            <a href="/studentbio?nis">
-                              <SquarePen className="h-3 w-3" />
-                            </a>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 w-8 p-0 border-red-200 hover:bg-red-50"
-                            onClick={() =>
-                              handleDeleteAccomplishment(accomplishment.id)
-                            }
-                            disabled={deleteAccomplishment.isPending}
-                          >
-                            {deleteAccomplishment.isPending ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-3 w-3" />
-                            )}
-                          </Button>
-                        </div>
+                        {userType !== "student" && (
+                          <div className="flex gap-1 ml-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-8 p-0 border-red-200 hover:bg-red-50"
+                              onClick={() =>
+                                handleDeleteAccomplishment(accomplishment.id)
+                              }
+                              disabled={deleteAccomplishment.isPending}
+                            >
+                              {deleteAccomplishment.isPending ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                        )}
                       </div>
 
                       <div className="grid grid-cols-2 gap-3 text-sm">
@@ -553,9 +547,11 @@ const ViewBioAccomplishments = () => {
                   <TableHead className="text-center font-semibold text-gray-900 py-4">
                     Poin
                   </TableHead>
-                  <TableHead className="text-center font-semibold text-gray-900 py-4">
-                    Aksi
-                  </TableHead>
+                  {userType !== "student" && (
+                    <TableHead className="text-center font-semibold text-gray-900 py-4">
+                      Aksi
+                    </TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -621,33 +617,25 @@ const ViewBioAccomplishments = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center py-4">
-                        <div className="flex justify-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 w-8 p-0 border-blue-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors"
-                            asChild
-                          >
-                            <a href="/studentbio?nis">
-                              <SquarePen className="h-4 w-4" />
-                            </a>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 w-8 p-0 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors"
-                            onClick={() =>
-                              handleDeleteAccomplishment(accomplishment.id)
-                            }
-                            disabled={deleteAccomplishment.isPending}
-                          >
-                            {deleteAccomplishment.isPending ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
+                        {userType !== "student" && (
+                          <div className="flex justify-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-8 p-0 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors"
+                              onClick={() =>
+                                handleDeleteAccomplishment(accomplishment.id)
+                              }
+                              disabled={deleteAccomplishment.isPending}
+                            >
+                              {deleteAccomplishment.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))

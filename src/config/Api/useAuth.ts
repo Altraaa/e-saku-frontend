@@ -34,8 +34,14 @@ export const useLogin = () => {
         localStorage.setItem("student_id", user.student_id);
         localStorage.setItem("user_type", "student");
       }
+      if (user?.teacher_id) {
+        navigate("/"); 
+      } else if (user?.student_id) {
+        navigate("/profilestudent");
+      } else {
+        navigate("/");  
+      }
 
-      navigate("/");
       return data;
     } catch (error: any) {
       const res = error.response;
