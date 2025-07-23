@@ -430,6 +430,7 @@ const ViewManageRules: React.FC = () => {
 
   // Delete function
   const performDelete = async (id: string, isRule: boolean) => {
+    const loadingId = toast.loading("Deleting...");
     try {
       if (isRule) {
         await ApiRules.delete(id);
@@ -438,10 +439,12 @@ const ViewManageRules: React.FC = () => {
       } else if (activeAchievementTab === "types") {
         await deleteType.mutateAsync(id, {
           onSuccess: () => {
+            toast.dismiss(loadingId);
             refetchTypes();
             toast.success("Achievement type deleted successfully!");
           },
           onError: (error) => {
+            toast.dismiss(loadingId);
             console.error("Delete type error:", error);
             toast.error("Failed to delete type. Please try again.");
           },
@@ -449,10 +452,12 @@ const ViewManageRules: React.FC = () => {
       } else if (activeAchievementTab === "ranks") {
         await deleteRank.mutateAsync(id, {
           onSuccess: () => {
+            toast.dismiss(loadingId);
             refetchRanks();
             toast.success("Achievement rank deleted successfully!");
           },
           onError: (error) => {
+            toast.dismiss(loadingId);
             console.error("Delete rank error:", error);
             toast.error("Failed to delete rank. Please try again.");
           },
@@ -460,16 +465,21 @@ const ViewManageRules: React.FC = () => {
       } else if (activeAchievementTab === "levels") {
         await deleteLevel.mutateAsync(id, {
           onSuccess: () => {
+            toast.dismiss(loadingId);
             refetchLevels();
             toast.success("Achievement level deleted successfully!");
           },
           onError: (error) => {
+            toast.dismiss(loadingId);
             console.error("Delete level error:", error);
             toast.error("Failed to delete level. Please try again.");
           },
         });
       }
+
+      toast.dismiss(loadingId);
     } catch (error) {
+      toast.dismiss(loadingId);
       console.error("Unexpected delete error:", error);
       toast.error("Failed to delete. Please try again.");
     }
