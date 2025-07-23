@@ -1,5 +1,4 @@
 import { IStudent } from "./Student";
-import { IRank } from "./AccomplishmentsRanks";
 import { IType } from "./AccomplismentsType";
 import { ILevel } from "./AccomplishmentsLevel";
 
@@ -15,7 +14,6 @@ export interface IAccomplishments {
     level_id: number;
     level?: ILevel;
     rank_id: number;
-    rank?: IRank;
     image_documentation: string | null;
     points: number;
     created_at?: string;

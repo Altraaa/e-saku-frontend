@@ -44,11 +44,15 @@ import toast from "react-hot-toast";
 import { useAccomplishmentsType } from "@/config/Api/useAccomplismentsType";
 import { useAccomplishmentsRanks } from "@/config/Api/useAccomplishmentsRanks";
 import { useAccomplishmentsLevel } from "@/config/Api/useAccomplishmentsLevel";
+import ImageModal from "@/components/shared/component/ImageModal";
 
 const ViewBioAccomplishments = () => {
   const [rowsPerPage, setRowsPerPage] = useState("10");
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [userType, setUserType] = useState<"teacher" | "student">("teacher");
   const [filters, setFilters] = useState({
     searchTerm: "",
@@ -67,8 +71,6 @@ const ViewBioAccomplishments = () => {
     error,
   } = useStudentById(studentId);
 
-  console.log(student);
-
   // Fetch accomplishment details
   const { data: accomplishmentTypes } = useAccomplishmentsType();
   const { data: accomplishmentRanks } = useAccomplishmentsRanks();
@@ -77,21 +79,21 @@ const ViewBioAccomplishments = () => {
   // Create lookup objects for accomplishment details
   const typeLookup = useMemo(() => {
     return accomplishmentTypes?.reduce((acc, type) => {
-      acc[type.id] = type.type;
+      acc[Number(type.id)] = type.type;
       return acc;
     }, {} as Record<number, string>);
   }, [accomplishmentTypes]);
 
   const rankLookup = useMemo(() => {
     return accomplishmentRanks?.reduce((acc, rank) => {
-      acc[rank.id] = rank.rank;
+      acc[Number(rank.id)] = rank.rank;
       return acc;
     }, {} as Record<number, string>);
   }, [accomplishmentRanks]);
 
   const levelLookup = useMemo(() => {
     return accomplishmentLevels?.reduce((acc, level) => {
-      acc[level.id] = level.level;
+      acc[Number(level.id)] = level.level;
       return acc;
     }, {} as Record<number, string>);
   }, [accomplishmentLevels]);
@@ -127,28 +129,41 @@ const ViewBioAccomplishments = () => {
     );
   };
 
+  const handleOpenImageModal = (url: string) => {
+    setSelectedImageUrl(url);
+    setIsImageModalOpen(true);
+  };
+
+  const handleCloseImageModal = () => {
+    setIsImageModalOpen(false);
+    setSelectedImageUrl(null);
+  };
+
   const handleDeleteAccomplishment = (id: number) => {
+    setDeletingId(id);
     setaccomplishmentsDelete(id);
     setIsModalOpen(true);
   };
 
   const handleConfirmDelete = async () => {
-    if (accomplishmentsDelete) {
-      try {
-        toast.loading("Menghapus data...", { id: "delete-loading" });
+    if (!accomplishmentsDelete) return;
 
-        if (accomplishments?.image_documentation) {
-          await deleteDocumentation.mutateAsync(accomplishmentsDelete);
-        }
+    setIsModalOpen(false);
+    setaccomplishmentsDelete(null);
 
-        await deleteAccomplishment.mutateAsync(accomplishmentsDelete);
-        toast.success("Data prestasi berhasil dihapus");
-        setIsModalOpen(false);
-        setaccomplishmentsDelete(null);
-      } catch (error) {
-        toast.error("Data prestasi gagal dihapus");
-        console.error("Failed to delete accomplishment:", error);
+    toast.loading("Menghapus data...", { id: "delete-loading" });
+
+    try {
+      if (accomplishments?.image_documentation) {
+        await deleteDocumentation.mutateAsync(accomplishmentsDelete);
       }
+
+      await deleteAccomplishment.mutateAsync(accomplishmentsDelete);
+
+      toast.success("Data prestasi berhasil dihapus", { id: "delete-loading" });
+    } catch (error) {
+      toast.error("Gagal menghapus data prestasi", { id: "delete-loading" });
+      console.error("Gagal menghapus prestasi:", error);
     }
   };
 
@@ -458,9 +473,9 @@ const ViewBioAccomplishments = () => {
                               onClick={() =>
                                 handleDeleteAccomplishment(accomplishment.id)
                               }
-                              disabled={deleteAccomplishment.isPending}
+                              disabled={deletingId === accomplishment.id}
                             >
-                              {deleteAccomplishment.isPending ? (
+                              {deletingId === accomplishment.id ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />
                               ) : (
                                 <Trash2 className="h-3 w-3" />
@@ -579,17 +594,19 @@ const ViewBioAccomplishments = () => {
                       </TableCell>
                       <TableCell className="text-center py-4">
                         {accomplishment.image_documentation ? (
-                          <a
-                            href={`${import.meta.env.VITE_API_URL?.replace(
-                              "/api",
-                              "/public"
-                            )}${accomplishment.image_documentation}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            onClick={() =>
+                              handleOpenImageModal(
+                                `${import.meta.env.VITE_API_URL?.replace(
+                                  "/api",
+                                  "/public"
+                                )}${accomplishment.image_documentation}`
+                              )
+                            }
                             className="inline-block bg-blue-500 text-white font-semibold px-3 py-1 rounded hover:bg-blue-600 transition duration-200"
                           >
                             Lihat Gambar
-                          </a>
+                          </button>
                         ) : (
                           <span className="text-gray-600">
                             Tidak Ada Dokumentasi
@@ -625,9 +642,9 @@ const ViewBioAccomplishments = () => {
                               onClick={() =>
                                 handleDeleteAccomplishment(accomplishment.id)
                               }
-                              disabled={deleteAccomplishment.isPending}
+                              disabled={deletingId === accomplishment.id}
                             >
-                              {deleteAccomplishment.isPending ? (
+                              {deletingId === accomplishment.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <Trash2 className="h-4 w-4" />
@@ -727,6 +744,11 @@ const ViewBioAccomplishments = () => {
             )}
           </div>
         </CardContent>
+        <ImageModal
+          isOpen={isImageModalOpen}
+          onClose={handleCloseImageModal}
+          imageUrl={selectedImageUrl}
+        />
       </Card>
 
       <ConfirmationModal

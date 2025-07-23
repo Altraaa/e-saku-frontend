@@ -137,6 +137,7 @@ const ESakuForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [, setShowSuccess] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [, setPhotoUrl] = useState<string | undefined>(undefined);
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
   const [isClassTaughtByTeacher, setIsClassTaughtByTeacher] = useState<
@@ -316,42 +317,41 @@ const ESakuForm: React.FC = () => {
     }
   };
 
-   const handleAchievementLevelChange = (value: string) => {
-     setAchievementLevel(value as AchievementLevelOptions);
+  const handleAchievementLevelChange = (value: string) => {
+    setAchievementLevel(value as AchievementLevelOptions);
 
-     // Update poin berdasarkan tingkatan
-     const selectedType = accomplishmentTypes.find(
-       (type) => type.type === achievementTypeOptions
-     );
-     const selectedLevel = accomplishmentLevels.find(
-       (level) => level.level === value
-     );
+    // Update poin berdasarkan tingkatan
+    const selectedType = accomplishmentTypes.find(
+      (type) => type.type === achievementTypeOptions
+    );
+    const selectedLevel = accomplishmentLevels.find(
+      (level) => level.level === value
+    );
 
-     if (selectedType && selectedLevel) {
-       const totalPoints = selectedType.point + selectedLevel.point;
-       setPoint(totalPoints.toString());
-     }
-   };
+    if (selectedType && selectedLevel) {
+      const totalPoints = selectedType.point + selectedLevel.point;
+      setPoint(totalPoints.toString());
+    }
+  };
 
-    const handleRankChange = (value: string) => {
-      setRank(value);
+  const handleRankChange = (value: string) => {
+    setRank(value);
 
-      // Update poin berdasarkan peringkat
-      const selectedType = accomplishmentTypes.find(
-        (type) => type.type === achievementTypeOptions
-      );
-      const selectedLevel = accomplishmentLevels.find(
-        (level) => level.level === achievementLevel
-      );
-      const selectedRank = accomplishmentRanks.find((r) => r.rank === value);
+    // Update poin berdasarkan peringkat
+    const selectedType = accomplishmentTypes.find(
+      (type) => type.type === achievementTypeOptions
+    );
+    const selectedLevel = accomplishmentLevels.find(
+      (level) => level.level === achievementLevel
+    );
+    const selectedRank = accomplishmentRanks.find((r) => r.rank === value);
 
-      if (selectedType && selectedLevel && selectedRank) {
-        const totalPoints =
-          selectedType.point + selectedLevel.point + selectedRank.point;
-        setPoint(totalPoints.toString());
-      }
-    };
-
+    if (selectedType && selectedLevel && selectedRank) {
+      const totalPoints =
+        selectedType.point + selectedLevel.point + selectedRank.point;
+      setPoint(totalPoints.toString());
+    }
+  };
 
   useEffect(() => {
     const dynamicFieldChecks: Partial<
@@ -537,24 +537,18 @@ const ESakuForm: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleChangeDocumentation = () => {
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.accept = "image/*";
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const localUrl = URL.createObjectURL(file);
+      setPhotoUrl(localUrl);
+      setSelectedFile(file);
+      console.log("File selected:", file);
+    } else {
+      console.log("No file selected");
+    }
 
-    fileInput.onchange = (e: any) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        const localUrl = URL.createObjectURL(file);
-        setPhotoUrl(localUrl);
-        setSelectedFile(file);
-        console.log("File selected:", file);
-      } else {
-        console.log("No file selected");
-      }
-    };
-
-    fileInput.click();
+    e.target.value = "";
   };
 
   const handleSubmit = (e?: FormEvent): void => {
@@ -584,6 +578,25 @@ const ESakuForm: React.FC = () => {
       return;
     }
 
+    if (selectedFile) {
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+      const maxSize = 10 * 1024 * 1024;
+
+      if (!allowedTypes.includes(selectedFile.type)) {
+        toast.error(
+          "Format file tidak valid. Hanya JPG, JPEG dan PNG yang diperbolehkan."
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (selectedFile.size > maxSize) {
+        toast.error("Ukuran file maksimal 10MB.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     if (inputType === "violation") {
       createViolation(
         {
@@ -593,7 +606,7 @@ const ESakuForm: React.FC = () => {
           teacher_id: teacherId,
           action: followUpType === "lainnya" ? customFollowUp : followUpType,
           points: selectedRule?.points ?? 0,
-          rulesofconduct_id: selectedRule?.id ?? 0,
+          rulesofconduct_id: selectedRule ? Number(selectedRule.id) : 0,
         },
         {
           onSuccess: (data) => {
@@ -602,7 +615,6 @@ const ESakuForm: React.FC = () => {
                 { id: data.id, file: selectedFile },
                 {
                   onSuccess: () => {
-                    toast.success("Dokumentasi berhasil diupload");
                     setSelectedFile(null);
                   },
                   onError: () => {
@@ -646,13 +658,13 @@ const ESakuForm: React.FC = () => {
         {
           student_id: studentObj.id.toString(),
           description,
-          type_id: selectedType?.id || 0,
+          type_id: selectedType ? Number(selectedType.id) : 0,
           accomplishment_date: date.toISOString().split("T")[0],
-          level_id: selectedLevel?.id || 0,
+          level_id: selectedLevel ? Number(selectedLevel.id) : 0,
           points: parseInt(point),
-          rank_id: rank === "lainnya" ? 0 : selectedRank?.id || 0,
-          rank: rank === "lainnya" ? customRank : rank,
+          rank_id: selectedRank ? Number(selectedRank.id) : 0,
         },
+
         {
           onSuccess: (data) => {
             if (selectedFile) {
@@ -660,12 +672,10 @@ const ESakuForm: React.FC = () => {
                 { id: data.id, file: selectedFile },
                 {
                   onSuccess: () => {
-                    toast.success("Dokumentasi berhasil diupload");
                     setSelectedFile(null);
                   },
                   onError: (err) => {
                     console.error("Gagal upload dokumentasi:", err);
-                    toast.error("Upload dokumentasi gagal");
                   },
                 }
               );
@@ -739,9 +749,8 @@ const ESakuForm: React.FC = () => {
         ...reportData,
         type_id: selectedType?.id || 0,
         level_id: selectedLevel?.id || 0,
-        rank_id: rank === "lainnya" ? 0 : selectedRank?.id || 0,
+        rank_id: selectedRank?.id || 0,
         points: parseInt(point),
-        rank: rank === "lainnya" ? customRank : rank,
       };
     }
 
@@ -821,7 +830,7 @@ const ESakuForm: React.FC = () => {
     setSelectedRuleId(value);
 
     const selectedRule = rulesData?.find(
-      (rule) => rule.id.toString() === value
+      (rule: IRules) => rule.id.toString() === value
     );
 
     if (selectedRule) {
@@ -1325,7 +1334,6 @@ const ESakuForm: React.FC = () => {
                                   Tidak ada data peringkat
                                 </SelectItem>
                               )}
-                              <SelectItem value="lainnya">Lainnya</SelectItem>
                             </SelectContent>
                           </Select>
                         </FormFieldGroup>
@@ -1402,26 +1410,6 @@ const ESakuForm: React.FC = () => {
                           </FormFieldGroup>
                         </div>
                       </div>
-                      {rank === "lainnya" && (
-                        <div className="space-y-2">
-                          <FormFieldGroup
-                            label="Peringkat Lainnya"
-                            icon={<Award className="h-4 w-4 text-green-600" />}
-                            required
-                            error={errors.customRank}
-                          >
-                            <Input
-                              type="text"
-                              value={customRank}
-                              onChange={(e) => setCustomRank(e.target.value)}
-                              placeholder="Masukkan peringkat lainnya"
-                              className={`${inputClass} ${
-                                errors.customRank ? inputErrorClass : ""
-                              }`}
-                            />
-                          </FormFieldGroup>
-                        </div>
-                      )}
                     </div>
                   )}
 
@@ -1488,44 +1476,38 @@ const ESakuForm: React.FC = () => {
                   >
                     {!selectedFile ? (
                       <div
+                        onClick={() => fileInputRef.current?.click()}
                         onDragEnter={handleDragEnter}
                         onDragLeave={handleDragLeave}
                         onDragOver={handleDragOver}
                         onDrop={handleDrop}
-                        className={`relative transition-all duration-200 ${
-                          isDragging ? "scale-100" : ""
+                        className={`flex flex-col items-center justify-center w-full h-24 sm:h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                          isDragging
+                            ? "border-green-500 bg-green-50"
+                            : "border-gray-300 bg-gray-50 hover:border-green-500 hover:bg-gray-100"
                         }`}
                       >
-                        <label
-                          htmlFor="file-upload"
-                          className={`flex flex-col items-center justify-center w-full h-24 sm:h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                        <Upload
+                          className={`w-6 h-6 sm:w-8 sm:h-8 mb-1 sm:mb-2 transition-all duration-200 ${
                             isDragging
-                              ? "border-green-500 bg-green-50"
-                              : "border-gray-300 bg-gray-50 hover:border-green-500 hover:bg-gray-100"
+                              ? "text-green-600 scale-100"
+                              : "text-gray-400"
+                          }`}
+                        />
+                        <span
+                          className={`text-xs sm:text-sm text-center px-2 transition-colors duration-200 ${
+                            isDragging
+                              ? "text-green-600 font-medium"
+                              : "text-gray-600"
                           }`}
                         >
-                          <Upload
-                            className={`w-6 h-6 sm:w-8 sm:h-8 mb-1 sm:mb-2 transition-all duration-200 ${
-                              isDragging
-                                ? "text-green-600 scale-100"
-                                : "text-gray-400"
-                            }`}
-                          />
-                          <span
-                            className={`text-xs sm:text-sm text-center px-2 transition-colors duration-200 ${
-                              isDragging
-                                ? "text-green-600 font-medium"
-                                : "text-gray-600"
-                            }`}
-                          >
-                            {isDragging
-                              ? "Drop your file here"
-                              : "Click to upload or drag & drop"}
-                          </span>
-                          <span className="text-xs text-gray-400 mt-0.5 sm:mt-1 px-2 text-center">
-                            .jpg, .jpeg, .png, .gif (max 10MB)
-                          </span>
-                        </label>
+                          {isDragging
+                            ? "Drop your file here"
+                            : "Click to upload or drag & drop"}
+                        </span>
+                        <span className="text-xs text-gray-400 mt-0.5 sm:mt-1 px-2 text-center">
+                          .jpg, .jpeg, .png, .gif (max 10MB)
+                        </span>
                         {isDragging && (
                           <div className="absolute inset-0 rounded-lg bg-green-500 bg-opacity-10 pointer-events-none animate-pulse" />
                         )}
@@ -1547,10 +1529,10 @@ const ESakuForm: React.FC = () => {
                       </div>
                     )}
                     <input
-                      id="file-upload"
                       type="file"
                       accept=".jpg,.jpeg,.png,.gif,image/*"
-                      onChange={handleChangeDocumentation}
+                      onChange={onFileChange}
+                      ref={fileInputRef}
                       className="hidden"
                     />
                   </FormFieldGroup>
