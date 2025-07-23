@@ -1,5 +1,5 @@
 export interface ILevel {
     id: string;
-    level:string;
+    level: string;
     point: number;
 }
