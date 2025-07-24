@@ -59,6 +59,7 @@ import ConfirmationModal from "@/components/ui/confirmation";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { IStudentCreate } from "@/config/Models/StudentCreate";
+import clsx from "clsx";
 
 interface ClassHeaderProps {
   className: string;
@@ -1066,6 +1067,10 @@ const ViewStudentByClass: React.FC = () => {
                     Total Poin
                   </TableHead>
 
+                  <TableHead className="text-center font-medium text-black">
+                    Status
+                  </TableHead>
+
                   {/* Conditionally render action column for teachers */}
                   {userType === "teacher" && (
                     <TableHead className="text-center font-medium text-black">
@@ -1125,6 +1130,25 @@ const ViewStudentByClass: React.FC = () => {
                             className="bg-blue-50 text-blue-600 border-blue-200"
                           >
                             {student.point_total || 0}
+                          </Badge>
+                        </TableCell>
+
+                        <TableCell className="text-center font-normal">
+                          <Badge
+                            variant="outline"
+                            className={clsx(
+                              "border text-xs px-3 py-1 font-medium",
+                              {
+                                "bg-green-50 text-green-600 border-green-200":
+                                  student.status === "active",
+                                "bg-blue-50 text-blue-600 border-blue-200":
+                                  student.status === "inactive",
+                                "bg-red-50 text-red-600 border-red-200":
+                                  student.status === "suspended",
+                              }
+                            )}
+                          >
+                            {student.status.toUpperCase()}
                           </Badge>
                         </TableCell>
 
