@@ -23,6 +23,7 @@ import {
   useStudentDeleteProfile,
   useStudentUpdate,
   useStudentUpdatePassword,
+  useStudentUpdateStatus,
   useStudentUpload,
 } from "@/config/Api/useStudent";
 import { useClassroomById } from "@/config/Api/useClasroom";
@@ -44,18 +45,24 @@ const ViewStudentBio = () => {
 
   const [password, setPassword] = useState<string>("");
   const [isEditingPassword, setIsEditingPassword] = useState<boolean>(false);
+
+  const [isEditingStatus, setIsEditingStatus] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [passwordError, setPasswordError] = useState<string>("");
-  const [successMessage, setSuccessMessage] = useState<string>("");
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const { data: student, isLoading, refetch } = useStudentById(studentId);
+  const [status, setStatus] = useState<string>(student?.status || "active");
+  const [initialStatus, setInitialStatus] = useState<string>(
+    student?.status || "active"
+  );
   const uploadMutation = useStudentUpload();
   const deleteProfileMutation = useStudentDeleteProfile();
   const updateMutation = useStudentUpdate();
   const updatePassword = useStudentUpdatePassword();
+  const updateStatus = useStudentUpdateStatus();
 
   const [formData, setFormData] = useState<IStudent>({
     id: 0,
@@ -83,6 +90,7 @@ const ViewStudentBio = () => {
     guardian_job: null,
     profile_image: null,
     point_total: 0,
+    status: "",
     created_at: "",
     updated_at: "",
     violations_sum_points: 0,
@@ -106,6 +114,12 @@ const ViewStudentBio = () => {
       setShowConfirmPassword(false);
     }
   }, [isEditingPassword]);
+
+  useEffect(() => {
+    if (!isEditingStatus) {
+      setStatus(initialStatus);
+    }
+  }, [isEditingStatus]);
 
   useEffect(() => {
     if (student) {
@@ -302,7 +316,6 @@ const ViewStudentBio = () => {
       },
       {
         onSuccess: () => {
-          setSuccessMessage("Password berhasil diperbarui!");
           toast.success("Password berhasil diperbarui!");
           setPassword("");
           setConfirmPassword("");
@@ -310,6 +323,28 @@ const ViewStudentBio = () => {
         },
         onError: () => {
           setPasswordError("Gagal memperbarui password. Coba lagi.");
+        },
+      }
+    );
+  };
+
+  const handleSaveStatus = () => {
+    updateStatus.mutate(
+      {
+        id: studentId,
+        data: {
+          status: status,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Status berhasil diperbarui!");
+          setInitialStatus(status);
+          setIsEditingStatus(false);
+          refetch();
+        },
+        onError: () => {
+          toast.error("Gagal memperbarui status. Coba lagi.");
         },
       }
     );
@@ -1011,6 +1046,80 @@ const ViewStudentBio = () => {
             </CardContent>
           </Card>
 
+          {/* Update Status Card */}
+          <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
+            <CardHeader className="bg-white py-3 px-4">
+              <CardTitle className="text-black flex items-center">
+                <User className="mr-2 h-5 w-5" />
+                Manajemen Status
+              </CardTitle>
+              <div className="relative flex justify-center mt-5">
+                <div className="absolute w-full h-0.5 bg-green-400 rounded-full shadow-sm mt-1"></div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="status"
+                    className="block text-sm font-medium text-black mb-1"
+                  >
+                    Status Siswa
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="status"
+                      value={status}
+                      disabled={!isEditingStatus}
+                      onChange={(e) => setStatus(e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none pr-10"
+                    >
+                      <option value="active">Aktif</option>
+                      <option value="inactive">Tidak Aktif</option>
+                      <option value="suspended">Dihentikan</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {!isEditingStatus ? (
+                <div className="flex flex-wrap gap-3 mt-4 justify-end">
+                  <Button
+                    onClick={() => setIsEditingStatus(true)}
+                    variant="default"
+                    className="hover:bg-[#009616] hover:text-white transition-all"
+                  >
+                    <Lock size={16} className="mr-2" />
+                    Edit Status
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-3 mt-4 justify-end">
+                  <Button
+                    onClick={() => {
+                      setIsEditingStatus(false);
+                      setStatus(initialStatus);
+                    }}
+                    variant="outline"
+                    className="hover:bg-gray-50 transition-all"
+                  >
+                    <X size={16} className="mr-2" />
+                    Batal
+                  </Button>
+                  <Button
+                    onClick={handleSaveStatus}
+                    variant="default"
+                    className="hover:bg-[#009616] hover:text-white transition-all"
+                    disabled={!status}
+                  >
+                    <Save size={16} className="mr-2" />
+                    Simpan
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Update Password Card */}
           <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
             <CardHeader className="bg-white py-3 px-4">
@@ -1096,7 +1205,7 @@ const ViewStudentBio = () => {
                   </ul>
                 </div>
               </div>
-              {!isEditing && !isEditingPassword ? (
+              {!isEditingPassword ? (
                 <div className="flex flex-wrap gap-3 mt-4 justify-end">
                   <Button
                     onClick={() => setIsEditingPassword(true)}
