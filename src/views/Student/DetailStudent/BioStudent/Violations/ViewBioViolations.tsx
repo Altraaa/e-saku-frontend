@@ -39,13 +39,16 @@ import { useStudentById } from "@/config/Api/useStudent";
 import { Link, useParams } from "react-router-dom";
 import ConfirmationModal from "@/components/ui/confirmation";
 import toast from "react-hot-toast";
+import ImageModal from "@/components/shared/component/ImageModal";
 
 const ViewBioViolations = () => {
   const [rowsPerPage, setRowsPerPage] = useState("10");
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
   const [userType, setUserType] = useState<"teacher" | "student">("teacher");
   const [violationToDelete, setViolationToDelete] = useState<number | null>(
     null
@@ -91,37 +94,45 @@ const ViewBioViolations = () => {
   };
 
   const handleDeleteViolation = (id: number) => {
+    setDeletingId(id);
     setViolationToDelete(id);
     setIsModalOpen(true);
   };
 
   const handleConfirmDelete = async () => {
-    if (violationToDelete) {
-      try {
-        toast.loading("Menghapus data...", { id: "delete-loading" });
+    if (!violationToDelete) return;
 
-        if (violations?.image_documentation) {
-          await deleteDocumentation.mutateAsync(violationToDelete);
-        }
-        await deleteViolation.mutateAsync(violationToDelete);
-        toast.success("Data pelanggaran berhasil dihapus");
-        setIsModalOpen(false);
-        setViolationToDelete(null);
-      } catch (error) {
-        toast.error("Data pelanggaran gagal dihapus");
-        console.error("Failed to delete violation:", error);
-      } finally {
-        toast.dismiss("delete-loading");
+    setIsModalOpen(false);
+    setViolationToDelete(null);
+
+    toast.loading("Menghapus data...", { id: "delete-loading" });
+
+    try {
+      if (violations?.image_documentation) {
+        await deleteDocumentation.mutateAsync(violationToDelete);
       }
+
+      await deleteViolation.mutateAsync(violationToDelete);
+
+      toast.success("Data pelanggaran berhasil dihapus", {
+        id: "delete-loading",
+      });
+    } catch (error) {
+      toast.error("Data pelanggaran gagal dihapus", {
+        id: "delete-loading",
+      });
+      console.error("Failed to delete violation:", error);
     }
   };
 
-  const handleOpenImageModal = () => {
+  const handleOpenImageModal = (url: string) => {
+    setSelectedImageUrl(url);
     setIsImageModalOpen(true);
   };
 
   const handleCloseImageModal = () => {
     setIsImageModalOpen(false);
+    setSelectedImageUrl(null);
   };
 
   const formatDisplayDate = (dateString: string) => {
@@ -467,8 +478,15 @@ const ViewBioViolations = () => {
                       <TableCell className="text-center py-4 px-4">
                         {violation.image_documentation ? (
                           <button
-                            onClick={handleOpenImageModal} // Memanggil fungsi untuk membuka modal
-                            className="inline-block bg-blue-500 text-white font-semibold px-3 py-1 rounded hover:bg-blue-600 transition duration-200 cursor-pointer"
+                            onClick={() =>
+                              handleOpenImageModal(
+                                `${import.meta.env.VITE_API_URL?.replace(
+                                  "/api",
+                                  "/public"
+                                )}${violation.image_documentation}`
+                              )
+                            }
+                            className="inline-block bg-blue-500 text-white font-semibold px-3 py-1 rounded hover:bg-blue-600 transition duration-200"
                           >
                             Lihat Gambar
                           </button>
@@ -476,27 +494,6 @@ const ViewBioViolations = () => {
                           <span className="text-gray-600">
                             Tidak Ada Dokumentasi
                           </span>
-                        )}
-
-                        {isImageModalOpen && (
-                          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                            <div className="relative bg-white p-6 rounded-md">
-                              <button
-                                onClick={handleCloseImageModal} // Fungsi untuk menutup modal
-                                className="absolute text-2xl h-fit top-0 right-0 p-2 text-gray-600"
-                              >
-                                <X className="h-4 w-4" />
-                              </button>
-                              <img
-                                src={`${import.meta.env.VITE_API_URL?.replace(
-                                  "/api",
-                                  "/public"
-                                )}${violation.image_documentation}`}
-                                alt="Dokumentasi"
-                                className="w-full aspect-auto max-h-screen rounded-md"
-                              />
-                            </div>
-                          </div>
                         )}
                       </TableCell>
                       <TableCell className="text-center py-4 px-4">
@@ -525,9 +522,9 @@ const ViewBioViolations = () => {
                               onClick={() =>
                                 handleDeleteViolation(violation.id)
                               }
-                              disabled={deleteViolation.isPending}
+                              disabled={deletingId === violation.id}
                             >
-                              {deleteViolation.isPending ? (
+                              {deletingId === violation.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <Trash2 className="h-4 w-4" />
@@ -594,9 +591,9 @@ const ViewBioViolations = () => {
                             size="sm"
                             className="h-7 w-7 p-0 border-red-200 hover:bg-red-50"
                             onClick={() => handleDeleteViolation(violation.id)}
-                            disabled={deleteViolation.isPending}
+                            disabled={deletingId === violation.id}
                           >
-                            {deleteViolation.isPending ? (
+                            {deletingId === violation.id ? (
                               <Loader2 className="h-3 w-3 animate-spin" />
                             ) : (
                               <Trash2 className="h-3 w-3" />
@@ -632,36 +629,23 @@ const ViewBioViolations = () => {
                           {violation.followUp}
                         </Badge>
                         {violation.image_documentation ? (
-                          <a
-                            onClick={handleOpenImageModal} // Memanggil fungsi untuk membuka modal
-                            className="inline-block bg-blue-500 text-white font-medium text-sm text-center px-3 py-1 rounded-full hover:bg-blue-600 transition duration-200 cursor-pointer"
+                          <button
+                            onClick={() =>
+                              handleOpenImageModal(
+                                `${import.meta.env.VITE_API_URL?.replace(
+                                  "/api",
+                                  "/public"
+                                )}${violation.image_documentation}`
+                              )
+                            }
+                            className="inline-block bg-blue-500 text-white font-semibold px-3 py-1 rounded hover:bg-blue-600 transition duration-200"
                           >
                             Lihat Gambar
-                          </a>
+                          </button>
                         ) : (
                           <span className="text-gray-600">
                             Tidak Ada Dokumentasi
                           </span>
-                        )}
-                        {isImageModalOpen && (
-                          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                            <div className="relative w-[90%] bg-white p-5 rounded-sm">
-                              <button
-                                onClick={handleCloseImageModal} // Fungsi untuk menutup modal
-                                className="absolute text-2xl h-fit top-0 right-0 p-2 text-gray-600"
-                              >
-                                <X className="h-4 w-4" />
-                              </button>
-                              <img
-                                src={`${import.meta.env.VITE_API_URL?.replace(
-                                  "/api",
-                                  "/public"
-                                )}${violation.image_documentation}`}
-                                alt="Dokumentasi"
-                                className="w-full aspect-auto max-h-screen rounded-sm"
-                              />
-                            </div>
-                          </div>
                         )}
                       </div>
                     </div>
@@ -769,6 +753,11 @@ const ViewBioViolations = () => {
             )}
           </div>
         </CardContent>
+        <ImageModal
+          isOpen={isImageModalOpen}
+          onClose={handleCloseImageModal}
+          imageUrl={selectedImageUrl}
+        />
       </Card>
 
       <ConfirmationModal
@@ -781,25 +770,6 @@ const ViewBioViolations = () => {
         cancelText="Batal"
         type="delete"
       />
-
-      {/* Image Modal */}
-      {isImageModalOpen && selectedImage && (
-        <div className="fixed top-0 inset-0 z-50 bg-black bg-opacity-90">
-          <button
-            onClick={() => setIsImageModalOpen(false)}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 z-50"
-          >
-            <X className="h-8 w-8" />
-          </button>
-          <div className="flex items-center justify-center h-full w-full p-4">
-            <img
-              src={selectedImage}
-              alt="Dokumentasi Pelanggaran"
-              className="max-w-full max-h-full object-contain"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

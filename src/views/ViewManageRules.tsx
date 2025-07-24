@@ -267,6 +267,8 @@ const ViewManageRules: React.FC = () => {
       return;
     }
 
+    const loadingId = toast.loading("Saving...");
+
     try {
       if (editingItem) {
         // Update
@@ -276,56 +278,65 @@ const ViewManageRules: React.FC = () => {
           setRules(updatedRules);
           toast.success(`${itemName} updated successfully!`);
         } else if (isType) {
-          await updateType.mutateAsync(
+          updateType.mutate(
             {
               id: (editingItem as IType).id,
               data: formData as Partial<IType>,
             },
             {
               onSuccess: () => {
+                toast.dismiss(loadingId);
                 refetchTypes();
                 toast.success(`${itemName} updated successfully!`);
               },
               onError: (error) => {
+                toast.dismiss(loadingId);
                 console.error("Update type error:", error);
                 toast.error("Failed to update type.");
               },
             }
           );
+          return;
         } else if (isRank) {
-          await updateRank.mutateAsync(
+          updateRank.mutate(
             {
               id: (editingItem as IRank).id,
               data: formData as Partial<IRank>,
             },
             {
               onSuccess: () => {
+                toast.dismiss(loadingId);
                 refetchRanks();
                 toast.success(`${itemName} updated successfully!`);
               },
               onError: (error) => {
+                toast.dismiss(loadingId);
                 console.error("Update rank error:", error);
                 toast.error("Failed to update rank.");
               },
             }
           );
+          return;
         } else if (isLevel) {
-          await updateLevel.mutateAsync(
+          updateLevel.mutate(
             {
               id: (editingItem as ILevel).id,
               data: formData as Partial<ILevel>,
             },
             {
               onSuccess: () => {
+                toast.dismiss(loadingId);
                 refetchLevels();
                 toast.success(`${itemName} updated successfully!`);
               },
               onError: (error) => {
+                toast.dismiss(loadingId);
                 console.error("Update level error:", error);
                 toast.error("Failed to update level.");
               },
             }
           );
+          return;
         }
       } else {
         // Add new
@@ -334,45 +345,56 @@ const ViewManageRules: React.FC = () => {
           setRules((prev) => [...prev, added]);
           toast.success(`${itemName} added successfully!`);
         } else if (isType) {
-          await createType.mutateAsync(formData as IType, {
+          createType.mutate(formData as IType, {
             onSuccess: () => {
+              toast.dismiss(loadingId);
               refetchTypes();
               toast.success(`${itemName} added successfully!`);
             },
             onError: (error) => {
+              toast.dismiss(loadingId);
               console.error("Create type error:", error);
               toast.error("Failed to add type.");
             },
           });
+          return;
         } else if (isRank) {
-          await createRank.mutateAsync(formData as IRank, {
+          createRank.mutate(formData as IRank, {
             onSuccess: () => {
+              toast.dismiss(loadingId);
               refetchRanks();
               toast.success(`${itemName} added successfully!`);
             },
             onError: (error) => {
+              toast.dismiss(loadingId);
               console.error("Create rank error:", error);
               toast.error("Failed to add rank.");
             },
           });
+          return;
         } else if (isLevel) {
-          await createLevel.mutateAsync(formData as ILevel, {
+          createLevel.mutate(formData as ILevel, {
             onSuccess: () => {
+              toast.dismiss(loadingId);
               refetchLevels();
               toast.success(`${itemName} added successfully!`);
             },
             onError: (error) => {
+              toast.dismiss(loadingId);
               console.error("Create level error:", error);
               toast.error("Failed to add level.");
             },
           });
+          return;
         }
       }
 
+      toast.dismiss(loadingId);
       setFormData({});
       setIsAddDialogOpen(false);
       setIsEditDialogOpen(false);
     } catch (error) {
+      toast.dismiss(loadingId);
       console.error("Unexpected save error:", error);
       toast.error("Failed to save. Please try again.");
     }
@@ -400,6 +422,7 @@ const ViewManageRules: React.FC = () => {
       confirmText: editingItem ? "Update" : "Add",
       onConfirm: () => {
         setConfirmationModal(null);
+        setIsEditDialogOpen(false);
         performSave();
       },
     });
@@ -407,6 +430,7 @@ const ViewManageRules: React.FC = () => {
 
   // Delete function
   const performDelete = async (id: string, isRule: boolean) => {
+    const loadingId = toast.loading("Deleting...");
     try {
       if (isRule) {
         await ApiRules.delete(id);
@@ -415,10 +439,12 @@ const ViewManageRules: React.FC = () => {
       } else if (activeAchievementTab === "types") {
         await deleteType.mutateAsync(id, {
           onSuccess: () => {
+            toast.dismiss(loadingId);
             refetchTypes();
             toast.success("Achievement type deleted successfully!");
           },
           onError: (error) => {
+            toast.dismiss(loadingId);
             console.error("Delete type error:", error);
             toast.error("Failed to delete type. Please try again.");
           },
@@ -426,10 +452,12 @@ const ViewManageRules: React.FC = () => {
       } else if (activeAchievementTab === "ranks") {
         await deleteRank.mutateAsync(id, {
           onSuccess: () => {
+            toast.dismiss(loadingId);
             refetchRanks();
             toast.success("Achievement rank deleted successfully!");
           },
           onError: (error) => {
+            toast.dismiss(loadingId);
             console.error("Delete rank error:", error);
             toast.error("Failed to delete rank. Please try again.");
           },
@@ -437,16 +465,21 @@ const ViewManageRules: React.FC = () => {
       } else if (activeAchievementTab === "levels") {
         await deleteLevel.mutateAsync(id, {
           onSuccess: () => {
+            toast.dismiss(loadingId);
             refetchLevels();
             toast.success("Achievement level deleted successfully!");
           },
           onError: (error) => {
+            toast.dismiss(loadingId);
             console.error("Delete level error:", error);
             toast.error("Failed to delete level. Please try again.");
           },
         });
       }
+
+      toast.dismiss(loadingId);
     } catch (error) {
+      toast.dismiss(loadingId);
       console.error("Unexpected delete error:", error);
       toast.error("Failed to delete. Please try again.");
     }
@@ -470,6 +503,7 @@ const ViewManageRules: React.FC = () => {
       confirmText: "Delete",
       onConfirm: () => {
         setConfirmationModal(null);
+        setIsEditDialogOpen(false);
         performDelete(id, isRule);
       },
     });

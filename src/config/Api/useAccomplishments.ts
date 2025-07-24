@@ -32,17 +32,20 @@ export const useAccomplishmentsByTeacherId = (teacher_id: string) => {
 export const useAccomplishmentsByStudentId = (student_id: string) => {
   return useQuery<IAccomplishments[]>({
     queryKey: ["accomplishmentsByStudent", student_id],
-    queryFn: () => {
-      if (!student_id) {
-        return Promise.resolve([]); // Menghindari request jika student_id tidak ada
-      }
-      return ApiAccomplishments.getByStudentId(student_id).catch((error) => {
+    enabled: !!student_id,
+    retry: false,
+
+    queryFn: async () => {
+      try {
+        if (!student_id) return [];
+
+        const response = await ApiAccomplishments.getByStudentId(student_id);
+        return Array.isArray(response) ? response : [];
+      } catch (error) {
         console.error("Error fetching accomplishments:", error);
-        return []; // Mengembalikan array kosong jika terjadi error
-      });
+        return [];
+      }
     },
-    enabled: !!student_id, // Hanya aktif jika student_id ada
-    retry: false, // Menghindari retry otomatis jika data tidak ditemukan
   });
 };
 
