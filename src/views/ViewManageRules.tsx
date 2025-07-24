@@ -40,7 +40,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import toast from "react-hot-toast";
 import {
   useAccomplishmentsType,
@@ -163,8 +162,7 @@ const ViewManageRules: React.FC = () => {
   const filterRules = (data: IRules[], searchText: string): IRules[] => {
     return data.filter(
       (rule) =>
-        rule.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        rule.description.toLowerCase().includes(searchText.toLowerCase())
+        rule.name.toLowerCase().includes(searchText.toLowerCase())
     );
   };
 
@@ -249,7 +247,7 @@ const ViewManageRules: React.FC = () => {
 
     if (isRule) {
       isValid =
-        !!formData.name && !!formData.description && (formData.points ?? 0) > 0;
+        !!formData.name && (formData.points ?? 0) > 0;
       itemName = formData.name || "Rule";
     } else if (isType) {
       isValid = !!formData.type && (formData.point ?? 0) > 0;
@@ -518,7 +516,6 @@ const ViewManageRules: React.FC = () => {
       // Rules
       setFormData({
         name: item.name,
-        description: item.description,
         points: item.points,
       });
     } else if ("type" in item) {
@@ -582,17 +579,7 @@ const ViewManageRules: React.FC = () => {
               placeholder="Enter rule name..."
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
-              Rule Description
-            </label>
-            <Textarea
-              value={formData.description || ""}
-              onChange={(e) => handleFormChange("description", e.target.value)}
-              placeholder="Enter detailed rule description..."
-              className="min-h-[100px]"
-            />
-          </div>
+
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Points</label>
             <Input
@@ -807,9 +794,6 @@ const ViewManageRules: React.FC = () => {
                         <TableHead className="text-left font-medium text-black">
                           Rule
                         </TableHead>
-                        <TableHead className="text-left font-medium text-black">
-                          Description
-                        </TableHead>
                         <TableHead className="text-center font-medium text-black">
                           Points
                         </TableHead>
@@ -833,14 +817,6 @@ const ViewManageRules: React.FC = () => {
                             <TableCell className="text-left font-normal">
                               <div className="font-medium text-gray-900 mb-1">
                                 {rule.name}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-left font-normal">
-                              <div
-                                className="text-sm text-gray-600 truncate"
-                                title={rule.description}
-                              >
-                                {rule.description}
                               </div>
                             </TableCell>
                             <TableCell className="text-center">
