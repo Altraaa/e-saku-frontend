@@ -1,4 +1,8 @@
-import { IStudent, IStudentUpdatePassword } from "../Models/Student";
+import {
+  IStudent,
+  IStudentUpdatePassword,
+  IStudentUpdateStatus,
+} from "../Models/Student";
 import { CreateStudentResponse, IStudentCreate } from "../Models/StudentCreate";
 import { ApiRequest } from "./Api.service";
 
@@ -39,6 +43,16 @@ export const ApiStudents = {
   ): Promise<{ message: string }> =>
     ApiRequest({
       url: `/students/${id}/update-password`,
+      method: "POST",
+      body: { ...data, _method: "PUT" },
+    }),
+
+  updateStatus: (
+    id: string,
+    data: Partial<IStudentUpdateStatus>
+  ): Promise<{ message: string }> =>
+    ApiRequest({
+      url: `/students/${id}/update-status`,
       method: "POST",
       body: { ...data, _method: "PUT" },
     }),
