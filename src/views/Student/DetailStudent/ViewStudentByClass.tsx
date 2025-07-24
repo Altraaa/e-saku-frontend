@@ -157,7 +157,6 @@ const ViewStudentByClass: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Get user type from localStorage
     const type = localStorage.getItem("user_type");
     if (type === "student") {
       setUserType("student");
@@ -197,7 +196,6 @@ const ViewStudentByClass: React.FC = () => {
 
     let result = [...students];
 
-    // Sort by NIS
     result.sort((a, b) => {
       const nisA = a.nis?.toLowerCase() ?? "";
       const nisB = b.nis?.toLowerCase() ?? "";
@@ -286,16 +284,18 @@ const ViewStudentByClass: React.FC = () => {
   };
 
   const handleConfirmDelete = async () => {
+    const loadingId = toast.loading("Deleting...");
+
     if (studentToDelete) {
       try {
-        await deleteStudent.mutateAsync(studentToDelete);
         setIsModalOpen(false);
-        setTimeout(() => {
-          toast.success("Data siswa berhasil dihapus");
-        }, 1000);
+        await deleteStudent.mutateAsync(studentToDelete);
         setStudentToDelete(null);
       } catch (error) {
         toast.error("Data siswa gagal dihapus");
+      } finally {
+        toast.success("Data siswa berhasil dihapus");
+        toast.dismiss(loadingId);
       }
     }
   };
@@ -474,13 +474,18 @@ const ViewStudentByClass: React.FC = () => {
   ): void {
     event.preventDefault();
 
+    const loadingId = toast.loading("Adding student...");
+    setIsAddStudentModalOpen(false);
+
     createStudent.mutate(newStudent, {
-      onSuccess: () => {
-        setIsAddStudentModalOpen(false);
+      onSuccess: (data) => {
+        toast.dismiss(loadingId);
         toast.success("Siswa berhasil ditambahkan");
+        navigate(`/studentbio/${data.student.id}`);
       },
       onError: (error: any) => {
-        console.error("Gagal menambahkan siswa:", error);
+        toast.dismiss(loadingId);
+        toast.error("Failed to add student.");
         setSubmitError(error?.response?.data?.message);
       },
     });
@@ -775,8 +780,8 @@ const ViewStudentByClass: React.FC = () => {
                   Import Student Data untuk {classroom?.name}
                 </DialogTitle>
                 <DialogDescription className="text-xs sm:text-sm leading-relaxed">
-                  Upload file Excel (.xls atau .xlsx) yang berisi data siswa untuk
-                  kelas ini
+                  Upload file Excel (.xls atau .xlsx) yang berisi data siswa
+                  untuk kelas ini
                 </DialogDescription>
               </DialogHeader>
 
@@ -792,7 +797,8 @@ const ViewStudentByClass: React.FC = () => {
                           Upload Berhasil!
                         </p>
                         <p className="text-xs sm:text-sm text-gray-600 break-words">
-                          Data siswa berhasil diunggah ke kelas {classroom?.name}.
+                          Data siswa berhasil diunggah ke kelas{" "}
+                          {classroom?.name}.
                         </p>
                       </div>
                     </div>
@@ -862,7 +868,8 @@ const ViewStudentByClass: React.FC = () => {
                                 {selectedFile.name}
                               </p>
                               <p className="text-xs text-gray-500">
-                                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                                {(selectedFile.size / 1024 / 1024).toFixed(2)}{" "}
+                                MB
                               </p>
                             </div>
                           </div>
@@ -958,7 +965,9 @@ const ViewStudentByClass: React.FC = () => {
                         </Button>
                         <Button
                           onClick={handleFileUpload}
-                          disabled={!selectedFile || uploadStatus === "uploading"}
+                          disabled={
+                            !selectedFile || uploadStatus === "uploading"
+                          }
                           className="bg-green-500 hover:bg-green-600 text-white flex-1 sm:flex-none"
                         >
                           {uploadStatus === "uploading" ? (
@@ -967,7 +976,9 @@ const ViewStudentByClass: React.FC = () => {
                               <span className="hidden sm:inline">
                                 Uploading... {uploadProgress}%
                               </span>
-                              <span className="sm:hidden">{uploadProgress}%</span>
+                              <span className="sm:hidden">
+                                {uploadProgress}%
+                              </span>
                             </>
                           ) : (
                             <>
