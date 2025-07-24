@@ -1,3 +1,5 @@
+import { IStudent } from "./Student";
+
 export interface IStudentCreate {
   name: string;
   nis: string;
@@ -21,4 +23,9 @@ export interface IStudentCreate {
   guardian_name: string | null;
   guardian_job: string | null;
   profile_image: string | null;
+}
+
+export interface CreateStudentResponse {
+  message: string;
+  student: IStudent;
 }
