@@ -44,6 +44,60 @@ import toast from "react-hot-toast";
 import ConfirmationModal from "@/components/ui/confirmation";
 import { Label } from "@/components/ui/label";
 
+// Interfaces
+interface IExtracurricular {
+  id: number;
+  name: string;
+  teacher_id: number;
+  teacher?: {
+    id: number;
+    name: string;
+  };
+  current_participants: number;
+  day: string;
+  time: string;
+  location: string;
+  status: 'active' | 'inactive';
+  created_at: string;
+}
+
+interface IStudentExtracurricular {
+  id: number;
+  student_id: number;
+  extracurricular_id: number;
+  student?: {
+    id: number;
+    name: string;
+    nis: string;
+    class: string;
+  };
+  extracurricular?: {
+    id: number;
+    name: string;
+    teacher?: {
+      name: string;
+    };
+  };
+  enrollment_date: string;
+  status: 'active' | 'inactive';
+}
+
+interface ITeacher {
+  id: number;
+  name: string;
+  subject?: string;
+}
+
+interface IFormData {
+  name: string;
+  teacher_id: string;
+  status: 'active' | 'inactive';
+  day: string;
+  time: string;
+  location: string;
+  description: string;
+}
+
 const ViewManageActivity = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [rowsPerPage, setRowsPerPage] = useState("10");
@@ -66,9 +120,10 @@ const ViewManageActivity = () => {
   const [activeTab, setActiveTab] = useState<"extracurricular" | "students">("extracurricular");
   const navigate = useNavigate();
 
-  // const [extracurriculars, setExtracurriculars] = useState<IExtracurricular[]>([]);
-  // const [studentExtracurriculars, setStudentExtracurriculars] = useState<IStudentExtracurricular[]>([]);
-  // const [teachers, setTeachers] = useState<ITeacher[]>([]);
+  // Data states - replace with your actual API hooks
+  const [extracurriculars, setExtracurriculars] = useState<IExtracurricular[]>([]);
+  const [studentExtracurriculars, setStudentExtracurriculars] = useState<IStudentExtracurricular[]>([]);
+  const [teachers, setTeachers] = useState<ITeacher[]>([]);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<IExtracurricular | IStudentExtracurricular | undefined>(undefined);
@@ -89,6 +144,12 @@ const ViewManageActivity = () => {
     "Selasa & Kamis",
     "Rabu & Jumat"
   ];
+
+  // TODO: Replace with actual API hooks
+  // Example:
+  // const { data: extracurriculars, isLoading: extracurricularsLoading } = useGetExtracurriculars();
+  // const { data: studentExtracurriculars, isLoading: studentExtracurricularsLoading } = useGetStudentExtracurriculars();
+  // const { data: teachers, isLoading: teachersLoading } = useGetTeachers();
 
   const handleFormChange = (field: keyof IFormData, value: string) => {
     setFormData(prev => ({
@@ -114,6 +175,7 @@ const ViewManageActivity = () => {
     setIsSubmitting(true);
     
     try {
+      // TODO: Replace with actual API call
       // await createExtracurricular(formData);
       
       toast.success("Ekstrakurikuler berhasil ditambahkan");
@@ -217,6 +279,7 @@ const ViewManageActivity = () => {
     (filter) => filter !== ""
   );
 
+  // Filter data based on active tab and other filters
   const filteredData = useMemo(() => {
     if (activeTab === "extracurricular") {
       return extracurriculars.filter((item) => {
@@ -285,6 +348,7 @@ const ViewManageActivity = () => {
   const handleConfirmDelete = async () => {
     if (itemToDelete) {
       try {
+        // TODO: Replace with actual API call
         // if (activeTab === "extracurricular") {
         //   await deleteExtracurricular(itemToDelete.id);
         // } else {

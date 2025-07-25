@@ -24,36 +24,36 @@ const ViewProfileStudent = () => {
   const [lastActive, setLastActive] = useState<string>("N/A");
   
   // Extracurricular state management
-  // const [isEditing, setIsEditing] = useState(false);
-  // const [tempExtracurriculars, setTempExtracurriculars] = useState<string[]>([]);
-  // const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempExtracurriculars, setTempExtracurriculars] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // const extracurricularOptions = [
-  //   {
-  //     category: "Sports",
-  //     items: [
-  //       { id: "sports-1", name: "Basketball" },
-  //       { id: "sports-2", name: "Football" },
-  //       { id: "sports-3", name: "Badminton" }
-  //     ]
-  //   },
-  //   {
-  //     category: "Arts",
-  //     items: [
-  //       { id: "arts-1", name: "Music Band" },
-  //       { id: "arts-2", name: "Drawing Club" },
-  //       { id: "arts-3", name: "Drama Club" }
-  //     ]
-  //   },
-  //   {
-  //     category: "Academic",
-  //     items: [
-  //       { id: "academic-1", name: "Science Club" },
-  //       { id: "academic-2", name: "Math Olympiad" },
-  //       { id: "academic-3", name: "Debate Team" }
-  //     ]
-  //   }
-  // ];
+  const extracurricularOptions = [
+    {
+      category: "Sports",
+      items: [
+        { id: "sports-1", name: "Basketball" },
+        { id: "sports-2", name: "Football" },
+        { id: "sports-3", name: "Badminton" }
+      ]
+    },
+    {
+      category: "Arts",
+      items: [
+        { id: "arts-1", name: "Music Band" },
+        { id: "arts-2", name: "Drawing Club" },
+        { id: "arts-3", name: "Drama Club" }
+      ]
+    },
+    {
+      category: "Academic",
+      items: [
+        { id: "academic-1", name: "Science Club" },
+        { id: "academic-2", name: "Math Olympiad" },
+        { id: "academic-3", name: "Debate Team" }
+      ]
+    }
+  ];
 
   // Get student ID from localStorage
   const studentId = localStorage.getItem("student_id") || "";
