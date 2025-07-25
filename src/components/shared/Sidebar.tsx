@@ -96,6 +96,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
       { label: "History", icon: History, path: "/history" },
       { label: "Report", icon: MessageSquareWarning, path: "/report" },
       { label: "Manage Rules", icon: FolderKanban, path: "/managerules" },
+      { label: "Manage Activity", icon: FolderKanban, path: "/manageactivity" },
     ],
     student: [
       {

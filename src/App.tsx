@@ -26,6 +26,7 @@ import { ProtectedRoute } from "./config/Routes/ProtectedRoutes";
 import TeacherProfile from "./pages/TeacherProfile";
 import Rules from "./pages/Rules";
 import ManageRules from "./pages/ManageRules";
+import ManageActivity from "./pages/ManageActivity";
 import Report from "./pages/Report";
 import { Toaster } from "react-hot-toast";
 import StudentProfile from "./pages/ProfileStudent";
@@ -102,6 +103,7 @@ export function AppContent() {
           <Route path="/profileteacher" element={<TeacherProfile />} />
           <Route path="/profilestudent" element={<StudentProfile />} />
           <Route path="/managerules" element={<ManageRules />} />
+          <Route path="/manageactivity" element={<ManageActivity />} />
           <Route path="/rules" element={<Rules />} />
           {/* <Route path="/privacypolicy" element={<PrivacyPolicy/>} /> */}
         </Route>
