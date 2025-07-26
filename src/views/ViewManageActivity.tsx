@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import {
   GraduationCap,
   X,
@@ -9,10 +15,7 @@ import {
   Trash2,
   Plus,
   Users,
-  UserCheck, 
-  Calendar, 
-  Clock, 
-  MapPin 
+  UserCheck,
 } from "lucide-react";
 import {
   Dialog,
@@ -43,23 +46,14 @@ import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import ConfirmationModal from "@/components/ui/confirmation";
 import { Label } from "@/components/ui/label";
-
-// Interfaces
-interface IExtracurricular {
-  id: number;
-  name: string;
-  teacher_id: number;
-  teacher?: {
-    id: number;
-    name: string;
-  };
-  current_participants: number;
-  day: string;
-  time: string;
-  location: string;
-  status: 'active' | 'inactive';
-  created_at: string;
-}
+import {
+  useExtracurriculars,
+  useExtracurricularDelete,
+  useExtracurricularCreate,
+  useExtracurricularUpdate,
+} from "@/config/Api/useExtracurriculars";
+import { IExtracurricular } from "@/config/Models/Extracurriculars";
+import { Textarea } from "@/components/ui/textarea";
 
 interface IStudentExtracurricular {
   id: number;
@@ -79,23 +73,7 @@ interface IStudentExtracurricular {
     };
   };
   enrollment_date: string;
-  status: 'active' | 'inactive';
-}
-
-interface ITeacher {
-  id: number;
-  name: string;
-  subject?: string;
-}
-
-interface IFormData {
-  name: string;
-  teacher_id: string;
-  status: 'active' | 'inactive';
-  day: string;
-  time: string;
-  location: string;
-  description: string;
+  status: "active" | "inactive";
 }
 
 const ViewManageActivity = () => {
@@ -104,85 +82,128 @@ const ViewManageActivity = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<IFormData>({
-    name: '',
-    teacher_id: '',
-    status: 'active',
-    day: '',
-    time: '',
-    location: '',
-    description: ''
+  const [formData, setFormData] = useState<IExtracurricular>({
+    name: "",
+    status: "active",
+    trainer: "",
+    description: "",
   });
   const [filters, setFilters] = useState({
     searchTerm: "",
     statusFilter: "",
   });
-  const [activeTab, setActiveTab] = useState<"extracurricular" | "students">("extracurricular");
+  const [activeTab, setActiveTab] = useState<"extracurricular" | "students">(
+    "extracurricular"
+  );
+  const [extracurriculars, setExtracurriculars] = useState<IExtracurricular[]>(
+    []
+  );
+  const [studentExtracurriculars, setStudentExtracurriculars] = useState<
+    IStudentExtracurricular[]
+  >([]);
   const navigate = useNavigate();
 
-  // Data states - replace with your actual API hooks
-  const [extracurriculars, setExtracurriculars] = useState<IExtracurricular[]>([]);
-  const [studentExtracurriculars, setStudentExtracurriculars] = useState<IStudentExtracurricular[]>([]);
-  const [teachers, setTeachers] = useState<ITeacher[]>([]);
-
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<IExtracurricular | IStudentExtracurricular | undefined>(undefined);
+  const [itemToDelete, setItemToDelete] = useState<
+    IExtracurricular | IStudentExtracurricular | undefined
+  >(undefined);
 
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
   const tabsRef = useRef<HTMLDivElement>(null);
   const extracurricularTabRef = useRef<HTMLButtonElement>(null);
   const studentsTabRef = useRef<HTMLButtonElement>(null);
-  
-  const dayOptions = [
-    "Senin",
-    "Selasa", 
-    "Rabu",
-    "Kamis",
-    "Jumat",
-    "Sabtu",
-    "Senin & Rabu",
-    "Selasa & Kamis",
-    "Rabu & Jumat"
-  ];
 
-  // TODO: Replace with actual API hooks
-  // Example:
-  // const { data: extracurriculars, isLoading: extracurricularsLoading } = useGetExtracurriculars();
-  // const { data: studentExtracurriculars, isLoading: studentExtracurricularsLoading } = useGetStudentExtracurriculars();
-  // const { data: teachers, isLoading: teachersLoading } = useGetTeachers();
+  const { data: extracurricularsData, isLoading: extracurricularsLoading } =
+    useExtracurriculars();
+  const deleteMutation = useExtracurricularDelete();
+  const createExtracurricular = useExtracurricularCreate();
+  const updateExtracurricular = useExtracurricularUpdate();
 
-  const handleFormChange = (field: keyof IFormData, value: string) => {
-    setFormData(prev => ({
+  useEffect(() => {
+    if (extracurricularsData) {
+      setExtracurriculars(extracurricularsData);
+    }
+  }, [extracurricularsData]);
+
+  const handleFormChange = (field: keyof IExtracurricular, value: string) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      teacher_id: '',
-      status: 'active',
-      day: '',
-      time: '',
-      location: '',
-      description: ''
+      name: "",
+      trainer: "",
+      status: "active",
+      description: "",
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEditClick = (item: IExtracurricular) => {
+    setFormData({
+      id: item.id,
+      name: item.name,
+      trainer: item.trainer,
+      description: item.description,
+      status: item.status,
+    });
+    setIsAddDialogOpen(true); // Open the dialog to edit the item
+  };
+
+  // Handle form submission for creating a new extracurricular
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
-      // TODO: Replace with actual API call
-      // await createExtracurricular(formData);
-      
-      toast.success("Ekstrakurikuler berhasil ditambahkan");
+      const { name, trainer, description } = formData;
+
+      await createExtracurricular.mutateAsync({
+        name,
+        trainer,
+        description,
+        status: "active",
+      });
+
+      const loadingToastId = toast.loading("Menambahkan data...");
+      toast.success("Ekstrakurikuler berhasil ditambahkan", {
+        id: loadingToastId,
+      });
       setIsAddDialogOpen(false);
       resetForm();
     } catch (error) {
       toast.error("Gagal menambahkan ekstrakurikuler");
+      console.error("Gagal menambahkan ekstrakurikuler:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const { id, name, trainer, description } = formData;
+
+      if(!id) throw new Error("ID ekstrakurikuler tidak ditemukan");
+
+      await updateExtracurricular.mutateAsync({
+        id,
+        data: { name, trainer, description },
+      });
+
+      const loadingToastId = toast.loading("Memperbarui data...");
+      toast.success("Ekstrakurikuler berhasil diperbarui", {
+        id: loadingToastId,
+      });
+      setIsAddDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      toast.error("Gagal memperbarui ekstrakurikuler");
+      console.error("Gagal memperbarui ekstrakurikuler:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -191,15 +212,16 @@ const ViewManageActivity = () => {
   const handleTabChange = (tab: "extracurricular" | "students") => {
     setActiveTab(tab);
     setCurrentPage(1);
-    
-    const tabRef = tab === "extracurricular" ? extracurricularTabRef : studentsTabRef;
+
+    const tabRef =
+      tab === "extracurricular" ? extracurricularTabRef : studentsTabRef;
     if (tabRef.current && tabsRef.current) {
       const tabRect = tabRef.current.getBoundingClientRect();
       const containerRect = tabsRef.current.getBoundingClientRect();
-      
+
       setIndicatorStyle({
         left: tabRect.left - containerRect.left,
-        width: tabRect.width
+        width: tabRect.width,
       });
     }
   };
@@ -208,18 +230,18 @@ const ViewManageActivity = () => {
     if (!isLoading) {
       const timer = setTimeout(() => {
         const initialTabElement = extracurricularTabRef.current;
-        
+
         if (initialTabElement && tabsRef.current) {
           const tabRect = initialTabElement.getBoundingClientRect();
           const navRect = tabsRef.current.getBoundingClientRect();
-          
+
           setIndicatorStyle({
             left: tabRect.left - navRect.left,
-            width: tabRect.width
+            width: tabRect.width,
           });
         }
-      }, 50); 
-      
+      }, 50);
+
       return () => clearTimeout(timer);
     }
   }, [isLoading]);
@@ -232,25 +254,25 @@ const ViewManageActivity = () => {
       } else {
         activeTabElement = studentsTabRef.current;
       }
-      
+
       if (activeTabElement && tabsRef.current) {
         const tabRect = activeTabElement.getBoundingClientRect();
         const navRect = tabsRef.current.getBoundingClientRect();
-        
+
         setIndicatorStyle({
           left: tabRect.left - navRect.left,
-          width: tabRect.width
+          width: tabRect.width,
         });
       }
     };
-    
+
     if (tabsRef.current) {
       updateIndicator();
     }
-    
-    window.addEventListener('resize', updateIndicator);
+
+    window.addEventListener("resize", updateIndicator);
     return () => {
-      window.removeEventListener('resize', updateIndicator);
+      window.removeEventListener("resize", updateIndicator);
     };
   }, [activeTab]);
 
@@ -285,7 +307,8 @@ const ViewManageActivity = () => {
       return extracurriculars.filter((item) => {
         if (
           filters.searchTerm &&
-          !item.name.toLowerCase().includes(filters.searchTerm.toLowerCase())
+          !item.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) &&
+          !item.trainer.toLowerCase().includes(filters.searchTerm.toLowerCase())
         ) {
           return false;
         }
@@ -300,9 +323,13 @@ const ViewManageActivity = () => {
       return studentExtracurriculars.filter((item) => {
         if (
           filters.searchTerm &&
-          !item.student?.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) &&
+          !item.student?.name
+            .toLowerCase()
+            .includes(filters.searchTerm.toLowerCase()) &&
           !item.student?.nis.includes(filters.searchTerm) &&
-          !item.extracurricular?.name.toLowerCase().includes(filters.searchTerm.toLowerCase())
+          !item.extracurricular?.name
+            .toLowerCase()
+            .includes(filters.searchTerm.toLowerCase())
         ) {
           return false;
         }
@@ -340,25 +367,30 @@ const ViewManageActivity = () => {
     setCurrentPage(1);
   }, []);
 
-  const handleDeleteClick = (item: IExtracurricular | IStudentExtracurricular) => {
+  const handleDeleteClick = (
+    item: IExtracurricular | IStudentExtracurricular
+  ) => {
     setItemToDelete(item);
     setIsDeleteModalOpen(true);
   };
 
   const handleConfirmDelete = async () => {
     if (itemToDelete) {
+      setIsDeleteModalOpen(false);
+
+      const loadingToastId = toast.loading("Menghapus data...");
       try {
-        // TODO: Replace with actual API call
-        // if (activeTab === "extracurricular") {
-        //   await deleteExtracurricular(itemToDelete.id);
-        // } else {
-        //   await removeStudentFromExtracurricular(itemToDelete.id);
-        // }
-        
-        toast.success(activeTab === "extracurricular" ? "Ekstrakurikuler berhasil dihapus" : "Siswa berhasil dihapus dari ekstrakurikuler");
-        setIsDeleteModalOpen(false);
+        if (activeTab === "extracurricular" && itemToDelete.id) {
+          await deleteMutation.mutateAsync(itemToDelete.id);
+          toast.success("Ekstrakurikuler berhasil dihapus", {
+            id: loadingToastId,
+          });
+        }
       } catch (error) {
-        toast.error("Gagal menghapus data");
+        toast.error("Gagal menghapus data", {
+          id: loadingToastId,
+        });
+        console.error("Gagal menghapus data:", error);
       }
     }
   };
@@ -369,13 +401,12 @@ const ViewManageActivity = () => {
     );
   };
 
-  if (isLoading) {
+  if (extracurricularsLoading) {
     return <HistorySkeleton />;
   }
 
   return (
     <div className="space-y-6 min-h-screen md:max-w-screen-xl mx-auto text-sm sm:text-base md:text-base">
-      {/* Header */}
       <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 sm:p-6 shadow-md mb-6">
         <div className="flex items-center mb-2">
           <div className="bg-green-600/40 p-2 rounded-lg mr-3">
@@ -417,11 +448,11 @@ const ViewManageActivity = () => {
               Siswa Terdaftar
             </button>
 
-            <div 
+            <div
               className="absolute bottom-0 h-0.5 bg-green-500 rounded-full transition-all duration-300 ease-in-out"
-              style={{ 
-                left: `${indicatorStyle.left}px`, 
-                width: `${indicatorStyle.width}px` 
+              style={{
+                left: `${indicatorStyle.left}px`,
+                width: `${indicatorStyle.width}px`,
               }}
             />
           </nav>
@@ -478,7 +509,11 @@ const ViewManageActivity = () => {
                 <Input
                   type="text"
                   className="pl-10 pr-4 py-2 w-full rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  placeholder={activeTab === "extracurricular" ? "Cari ekstrakurikuler..." : "Cari siswa..."}
+                  placeholder={
+                    activeTab === "extracurricular"
+                      ? "Cari ekstrakurikuler..."
+                      : "Cari siswa..."
+                  }
                   value={filters.searchTerm}
                   onChange={handleSearchChange}
                 />
@@ -503,19 +538,33 @@ const ViewManageActivity = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50 hover:bg-gray-50">
-                    <TableHead className="text-center font-medium text-black">No</TableHead>
-                    <TableHead className="text-left font-medium text-black">Nama Ekstrakurikuler</TableHead>
-                    <TableHead className="text-center font-medium text-black">Pembina</TableHead>
-                    <TableHead className="text-center font-medium text-black">Peserta</TableHead>
-                    <TableHead className="text-center font-medium text-black">Jadwal</TableHead>
-                    <TableHead className="text-center font-medium text-black">Status</TableHead>
-                    <TableHead className="text-center font-medium text-black">Aksi</TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      No
+                    </TableHead>
+                    <TableHead className="text-left font-medium text-black">
+                      Nama Ekstrakurikuler
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      Pembina
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      Peserta
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      Status
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      Aksi
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedData.length > 0 ? (
                     (paginatedData as IExtracurricular[]).map((item, index) => (
-                      <TableRow key={item.id} className="border-b hover:bg-gray-50">
+                      <TableRow
+                        key={item.id}
+                        className="border-b hover:bg-gray-50"
+                      >
                         <TableCell className="text-center px-6 font-normal">
                           {startIndex + index + 1}
                         </TableCell>
@@ -525,30 +574,28 @@ const ViewManageActivity = () => {
                           </div>
                         </TableCell>
                         <TableCell className="text-center font-normal">
-                          {item.teacher?.name || "N/A"}
+                          {item.trainer || "N/A"}
                         </TableCell>
                         <TableCell className="text-center font-normal">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            item.current_participants
-                              ? "bg-red-100 text-red-600"
-                              : "bg-green-100 text-green-600"
-                          }`}>
-                            {item.current_participants}
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs ${
+                              item.students_count
+                                ? "bg-green-100 text-green-600"
+                                : "bg-red-100 text-red-600"
+                            }`}
+                          >
+                            {item.students_count}
                           </span>
                         </TableCell>
                         <TableCell className="text-center font-normal">
-                          <div className="text-sm">
-                            <div>{item.day}</div>
-                            <div className="text-gray-500">{item.time}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center font-normal">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            item.status === 'active'
-                              ? "bg-green-100 text-green-600"
-                              : "bg-red-100 text-red-600"
-                          }`}>
-                            {item.status === 'active' ? 'Aktif' : 'Tidak Aktif'}
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs ${
+                              item.status === "active"
+                                ? "bg-green-100 text-green-600"
+                                : "bg-red-100 text-red-600"
+                            }`}
+                          >
+                            {item.status === "active" ? "Aktif" : "Tidak Aktif"}
                           </span>
                         </TableCell>
                         <TableCell className="text-center font-normal">
@@ -556,7 +603,7 @@ const ViewManageActivity = () => {
                             <Button
                               variant="outline"
                               size="icon"
-                              onClick={() => navigate(`/edit-extracurricular/${item.id}`)}
+                              onClick={() => handleEditClick(item)}
                               className="text-green-500 hover:text-green-600"
                             >
                               <SquarePen className="h-4 w-4" />
@@ -589,71 +636,99 @@ const ViewManageActivity = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50 hover:bg-gray-50">
-                    <TableHead className="text-center font-medium text-black">No</TableHead>
-                    <TableHead className="text-center font-medium text-black">NIS</TableHead>
-                    <TableHead className="text-left font-medium text-black">Nama Siswa</TableHead>
-                    <TableHead className="text-center font-medium text-black">Kelas</TableHead>
-                    <TableHead className="text-left font-medium text-black">Ekstrakurikuler</TableHead>
-                    <TableHead className="text-center font-medium text-black">Tanggal Daftar</TableHead>
-                    <TableHead className="text-center font-medium text-black">Status</TableHead>
-                    <TableHead className="text-center font-medium text-black">Aksi</TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      No
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      NIS
+                    </TableHead>
+                    <TableHead className="text-left font-medium text-black">
+                      Nama Siswa
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      Kelas
+                    </TableHead>
+                    <TableHead className="text-left font-medium text-black">
+                      Ekstrakurikuler
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      Tanggal Daftar
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      Status
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      Aksi
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedData.length > 0 ? (
-                    (paginatedData as IStudentExtracurricular[]).map((item, index) => (
-                      <TableRow key={item.id} className="border-b hover:bg-gray-50">
-                        <TableCell className="text-center px-6 font-normal">
-                          {startIndex + index + 1}
-                        </TableCell>
-                        <TableCell className="text-center font-normal">
-                          {item.student?.nis || "N/A"}
-                        </TableCell>
-                        <TableCell className="text-left font-normal">
-                          <Link
-                            to={`/studentbio/${item.student?.id}`}
-                            className="hover:text-green-500 transition-colors"
-                          >
-                            {item.student?.name || "N/A"}
-                          </Link>
-                        </TableCell>
-                        <TableCell className="text-center font-normal">
-                          {item.student?.class || "N/A"}
-                        </TableCell>
-                        <TableCell className="text-left font-normal">
-                          <div>
-                            <div className="font-medium">{item.extracurricular?.name || "N/A"}</div>
-                            <div className="text-sm text-gray-500">
-                              Pembina: {item.extracurricular?.teacher?.name || "N/A"}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center font-normal">
-                          {formatDisplayDate(item.enrollment_date)}
-                        </TableCell>
-                        <TableCell className="text-center font-normal">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            item.status === 'active'
-                              ? "bg-green-100 text-green-600"
-                              : "bg-red-100 text-red-600"
-                          }`}>
-                            {item.status === 'active' ? 'Aktif' : 'Tidak Aktif'}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-center font-normal">
-                          <div className="flex justify-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleDeleteClick(item)}
-                              className="text-red-500 hover:text-red-600"
+                    (paginatedData as IStudentExtracurricular[]).map(
+                      (item, index) => (
+                        <TableRow
+                          key={item.id}
+                          className="border-b hover:bg-gray-50"
+                        >
+                          <TableCell className="text-center px-6 font-normal">
+                            {startIndex + index + 1}
+                          </TableCell>
+                          <TableCell className="text-center font-normal">
+                            {item.student?.nis || "N/A"}
+                          </TableCell>
+                          <TableCell className="text-left font-normal">
+                            <Link
+                              to={`/studentbio/${item.student?.id}`}
+                              className="hover:text-green-500 transition-colors"
                             >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                              {item.student?.name || "N/A"}
+                            </Link>
+                          </TableCell>
+                          <TableCell className="text-center font-normal">
+                            {item.student?.class || "N/A"}
+                          </TableCell>
+                          <TableCell className="text-left font-normal">
+                            <div>
+                              <div className="font-medium">
+                                {item.extracurricular?.name || "N/A"}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Pembina:{" "}
+                                {item.extracurricular?.teacher?.name || "N/A"}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center font-normal">
+                            {formatDisplayDate(item.enrollment_date)}
+                          </TableCell>
+                          <TableCell className="text-center font-normal">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs ${
+                                item.status === "active"
+                                  ? "bg-green-100 text-green-600"
+                                  : "bg-red-100 text-red-600"
+                              }`}
+                            >
+                              {item.status === "active"
+                                ? "Aktif"
+                                : "Tidak Aktif"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center font-normal">
+                            <div className="flex justify-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleDeleteClick(item)}
+                                className="text-red-500 hover:text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    )
                   ) : (
                     <TableRow>
                       <TableCell colSpan={8} className="text-center py-12 px-4">
@@ -674,36 +749,47 @@ const ViewManageActivity = () => {
             {paginatedData.length > 0 ? (
               activeTab === "extracurricular" ? (
                 (paginatedData as IExtracurricular[]).map((item, index) => (
-                  <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                  <div
+                    key={item.id}
+                    className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                  >
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
                             {startIndex + index + 1}
                           </span>
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            item.status === 'active'
-                              ? "bg-green-100 text-green-600"
-                              : "bg-red-100 text-red-600"
-                          }`}>
-                            {item.status === 'active' ? 'Aktif' : 'Tidak Aktif'}
+                          <span
+                            className={`text-xs px-2 py-1 rounded ${
+                              item.status === "active"
+                                ? "bg-green-100 text-green-600"
+                                : "bg-red-100 text-red-600"
+                            }`}
+                          >
+                            {item.status === "active" ? "Aktif" : "Tidak Aktif"}
                           </span>
                         </div>
                         <div className="text-lg font-semibold text-gray-900 mb-1">
                           {item.name}
                         </div>
                         <div className="text-sm text-gray-500 space-y-1">
-                          <div><span className="font-medium">Pembina:</span> {item.teacher?.name || "N/A"}</div>
-                          <div><span className="font-medium">Peserta:</span> {item.current_participants}</div>
-                          <div><span className="font-medium">Jadwal:</span> {item.day}, {item.time}</div>
-                          <div><span className="font-medium">Lokasi:</span> {item.location}</div>
+                          <div>
+                            <span className="font-medium">Pembina:</span>{" "}
+                            {item.trainer || "N/A"}
+                          </div>
+                          <div>
+                            <span className="font-medium">Peserta:</span>{" "}
+                            {item.students_count}
+                          </div>
                         </div>
                       </div>
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => navigate(`/edit-extracurricular/${item.id}`)}
+                          onClick={() =>
+                            navigate(`/edit-extracurricular/${item.id}`)
+                          }
                           className="text-green-500 hover:text-green-600"
                         >
                           <SquarePen className="h-4 w-4" />
@@ -721,60 +807,84 @@ const ViewManageActivity = () => {
                   </div>
                 ))
               ) : (
-                (paginatedData as IStudentExtracurricular[]).map((item, index) => (
-                  <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                            {startIndex + index + 1}
-                          </span>
-                          <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
-                            {item.student?.nis || "N/A"}
-                          </span>
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            item.status === 'active'
-                              ? "bg-green-100 text-green-600"
-                              : "bg-red-100 text-red-600"
-                          }`}>
-                            {item.status === 'active' ? 'Aktif' : 'Tidak Aktif'}
-                          </span>
+                (paginatedData as IStudentExtracurricular[]).map(
+                  (item, index) => (
+                    <div
+                      key={item.id}
+                      className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                              {startIndex + index + 1}
+                            </span>
+                            <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
+                              {item.student?.nis || "N/A"}
+                            </span>
+                            <span
+                              className={`text-xs px-2 py-1 rounded ${
+                                item.status === "active"
+                                  ? "bg-green-100 text-green-600"
+                                  : "bg-red-100 text-red-600"
+                              }`}
+                            >
+                              {item.status === "active"
+                                ? "Aktif"
+                                : "Tidak Aktif"}
+                            </span>
+                          </div>
+                          <div className="text-lg font-semibold text-gray-900 mb-1">
+                            <Link
+                              to={`/studentbio/${item.student?.id}`}
+                              className="hover:text-green-500 transition-colors"
+                            >
+                              {item.student?.name || "N/A"}
+                            </Link>
+                          </div>
+                          <div className="text-sm text-gray-500 space-y-1">
+                            <div>
+                              <span className="font-medium">Kelas:</span>{" "}
+                              {item.student?.class || "N/A"}
+                            </div>
+                            <div>
+                              <span className="font-medium">
+                                Ekstrakurikuler:
+                              </span>{" "}
+                              {item.extracurricular?.name || "N/A"}
+                            </div>
+                            <div>
+                              <span className="font-medium">Pembina:</span>{" "}
+                              {item.extracurricular?.teacher?.name || "N/A"}
+                            </div>
+                            <div>
+                              <span className="font-medium">
+                                Tanggal Daftar:
+                              </span>{" "}
+                              {formatDisplayDate(item.enrollment_date)}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-lg font-semibold text-gray-900 mb-1">
-                          <Link
-                            to={`/studentbio/${item.student?.id}`}
-                            className="hover:text-green-500 transition-colors"
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleDeleteClick(item)}
+                            className="text-red-500 hover:text-red-600"
                           >
-                            {item.student?.name || "N/A"}
-                          </Link>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <div className="text-sm text-gray-500 space-y-1">
-                          <div><span className="font-medium">Kelas:</span> {item.student?.class || "N/A"}</div>
-                          <div><span className="font-medium">Ekstrakurikuler:</span> {item.extracurricular?.name || "N/A"}</div>
-                          <div><span className="font-medium">Pembina:</span> {item.extracurricular?.teacher?.name || "N/A"}</div>
-                          <div><span className="font-medium">Tanggal Daftar:</span> {formatDisplayDate(item.enrollment_date)}</div>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleDeleteClick(item)}
-                          className="text-red-500 hover:text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
                       </div>
                     </div>
-                  </div>
-                ))
+                  )
+                )
               )
             ) : (
               <div className="text-center py-12 text-gray-500">
-                {activeTab === "extracurricular" 
+                {activeTab === "extracurricular"
                   ? "Tidak ada ekstrakurikuler ditemukan"
-                  : "Tidak ada siswa terdaftar ditemukan"
-                }
+                  : "Tidak ada siswa terdaftar ditemukan"}
               </div>
             )}
           </div>
@@ -836,22 +946,32 @@ const ViewManageActivity = () => {
 
       {/* Add Extracurricular Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-full sm:max-w-2xl sm:w-full max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
               <GraduationCap className="h-5 w-5 text-green-600" />
-              Tambah Ekstrakurikuler Baru
+              {formData.id
+                ? "Edit Ekstrakurikuler"
+                : "Tambah Ekstrakurikuler Baru"}
             </DialogTitle>
             <DialogDescription>
-              Isi form di bawah ini untuk menambahkan ekstrakurikuler baru ke dalam sistem.
+              {formData.id
+                ? "Edit detail ekstrakurikuler di bawah ini."
+                : "Isi form di bawah ini untuk menambahkan ekstrakurikuler baru ke dalam sistem."}
             </DialogDescription>
           </DialogHeader>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <form
+            onSubmit={formData.id ? handleUpdate : handleCreate}
+            className="space-y-6"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {/* Nama Ekstrakurikuler */}
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="name" className="text-sm font-medium text-gray-700">
+              <div className="space-y-4 sm:col-span-2">
+                <Label
+                  htmlFor="name"
+                  className="text-sm font-medium text-gray-700"
+                >
                   Nama Ekstrakurikuler <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -859,109 +979,49 @@ const ViewManageActivity = () => {
                   type="text"
                   placeholder="Masukkan nama ekstrakurikuler"
                   value={formData.name}
-                  onChange={(e) => handleFormChange('name', e.target.value)}
+                  onChange={(e) => handleFormChange("name", e.target.value)}
                   className="w-full"
                   required
                 />
+                {/* Pembina */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="trainer"
+                    className="text-sm font-medium text-gray-700 flex items-center gap-1"
+                  >
+                    <UserCheck className="w-4 h-4" /> Pembina{" "}
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="trainer"
+                    type="text"
+                    placeholder="Masukkan nama pembina"
+                    value={formData.trainer}
+                    onChange={(e) =>
+                      handleFormChange("trainer", e.target.value)
+                    }
+                    className="w-full"
+                    required
+                  />
+                </div>
               </div>
 
-              {/* Pembina */}
-              <div className="space-y-2">
-                <Label htmlFor="teacher" className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                  <UserCheck className="h-4 w-4" />
-                  Pembina <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.teacher_id}
-                  onValueChange={(value) => handleFormChange('teacher_id', value)}
-                  required
+              {/* Description */}
+              <div className="space-y-2 sm:col-span-2">
+                <Label
+                  htmlFor="description"
+                  className="text-sm font-medium text-gray-700"
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Pilih pembina" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {teachers.map((teacher) => (
-                      <SelectItem key={teacher.id} value={teacher.id.toString()}>
-                        {teacher.name} {teacher.subject && `- ${teacher.subject}`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Status */}
-              <div className="space-y-2">
-                <Label htmlFor="status" className="text-sm font-medium text-gray-700">
-                  Status
+                  Deskripsi <span className="text-red-500">*</span>
                 </Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value: 'active' | 'inactive') => handleFormChange('status', value)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Pilih status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Aktif</SelectItem>
-                    <SelectItem value="inactive">Tidak Aktif</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Hari */}
-              <div className="space-y-2">
-                <Label htmlFor="day" className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  Hari Kegiatan <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.day}
-                  onValueChange={(value) => handleFormChange('day', value)}
-                  required
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Pilih hari kegiatan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dayOptions.map((day) => (
-                      <SelectItem key={day} value={day}>
-                        {day}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Waktu */}
-              <div className="space-y-2">
-                <Label htmlFor="time" className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  Waktu <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="time"
-                  type="text"
-                  placeholder="Contoh: 15:00 - 17:00"
-                  value={formData.time}
-                  onChange={(e) => handleFormChange('time', e.target.value)}
-                  className="w-full"
-                  required
-                />
-              </div>
-
-              {/* Lokasi */}
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="location" className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  Lokasi <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="location"
-                  type="text"
-                  placeholder="Masukkan lokasi kegiatan"
-                  value={formData.location}
-                  onChange={(e) => handleFormChange('location', e.target.value)}
-                  className="w-full"
+                <Textarea
+                  id="description"
+                  placeholder="Masukkan deskripsi ekstrakurikuler"
+                  value={formData.description}
+                  onChange={(e) =>
+                    handleFormChange("description", e.target.value)
+                  }
+                  className="w-full min-h-24"
                   required
                 />
               </div>
@@ -992,7 +1052,9 @@ const ViewManageActivity = () => {
                 ) : (
                   <>
                     <Plus className="h-4 w-4 mr-2" />
-                    Tambah Ekstrakurikuler
+                    {formData.id
+                      ? "Perbarui Ekstrakurikuler"
+                      : "Tambah Ekstrakurikuler"}
                   </>
                 )}
               </Button>
@@ -1006,9 +1068,13 @@ const ViewManageActivity = () => {
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
-        title={activeTab === "extracurricular" ? "Hapus Ekstrakurikuler?" : "Hapus Siswa dari Ekstrakurikuler?"}
+        title={
+          activeTab === "extracurricular"
+            ? "Hapus Ekstrakurikuler?"
+            : "Hapus Siswa dari Ekstrakurikuler?"
+        }
         description={
-          activeTab === "extracurricular" 
+          activeTab === "extracurricular"
             ? "Apakah anda yakin ingin menghapus ekstrakurikuler ini? Semua siswa yang terdaftar akan ikut terhapus. Data yang dihapus tidak dapat dikembalikan."
             : "Apakah anda yakin ingin menghapus siswa dari ekstrakurikuler ini? Data yang dihapus tidak dapat dikembalikan."
         }
