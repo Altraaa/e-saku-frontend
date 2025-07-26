@@ -1,9 +1,15 @@
-import { IChooseExtracurricular, IExtracurricular } from "../Models/Extracurriculars";
+import {
+  IChooseExtracurricular,
+  IExtracurricular,
+  IExtracurricularHistory,
+} from "../Models/Extracurriculars";
 import { ApiRequest } from "./Api.service";
 
 export const ApiExtracurriculars = {
   getAll: (): Promise<IExtracurricular[]> =>
     ApiRequest({ url: "/extracurriculars", method: "GET" }),
+  getAllHistory: (): Promise<IExtracurricularHistory[]> =>
+    ApiRequest({ url: "/extracurriculars-history", method: "GET" }),
   getById: (id: number): Promise<IExtracurricular> =>
     ApiRequest({ url: `/extracurriculars/${id}`, method: "GET" }),
   getByStudentId: (student_id: string): Promise<IExtracurricular[]> =>
