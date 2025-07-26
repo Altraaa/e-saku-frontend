@@ -145,6 +145,10 @@ const ESakuForm: React.FC = () => {
   >(null);
   const [showOnlyTeacherClass, setShowOnlyTeacherClass] =
     useState<boolean>(true);
+  const [violations, setViolations] = useState<
+    { id: string; points: number }[]
+  >([]);
+  const [totalPoints, setTotalPoints] = useState(0);
 
   const { data: rulesData } = useRules();
   const { data: classrooms } = useClassroom();
@@ -241,6 +245,11 @@ const ESakuForm: React.FC = () => {
         } else {
           setFollowUpType((editData.action as FollowUpType) || "tidak-perlu");
         }
+
+        if (editData.rules_of_conduct) {
+          const rule = editData.rules_of_conduct;
+          setViolations([{ id: rule.id.toString(), points: rule.points }]);
+        }
       }
 
       // Set kelas berdasarkan data siswa
@@ -262,7 +271,7 @@ const ESakuForm: React.FC = () => {
         setPoint(editData.rules_of_conduct.points.toString());
       }
     }
-  }, [editData, classrooms]);
+  }, [editData, classrooms, setSelectedRuleId]);
 
   useEffect(() => {
     // Jika tidak ada editData, pastikan mode edit dimatikan
@@ -278,6 +287,14 @@ const ESakuForm: React.FC = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    const newTotalPoints = violations.reduce(
+      (total, violation) => total + violation.points,
+      0
+    );
+    setTotalPoints(newTotalPoints);
+  }, [violations]);
 
   useEffect(() => {
     if (inputType === "achievement") {
@@ -424,6 +441,8 @@ const ESakuForm: React.FC = () => {
     setFormStep(0);
     setErrors({});
     setIsEditMode(false);
+    setViolations([]);
+    setTotalPoints(0);
 
     if (formRef.current) {
       formRef.current.scrollIntoView({ behavior: "smooth" });
@@ -437,8 +456,8 @@ const ESakuForm: React.FC = () => {
     if (!classType) newErrors.classType = "Kelas harus dipilih";
     if (!date) newErrors.date = "Tanggal diperlukan";
 
-    if (inputType === "violation" && !violationType) {
-      newErrors.violationType = "Jenis pelanggaran harus dipilih";
+    if (inputType === "violation" && violations.length === 0) {
+      newErrors.violationType = "Minimal satu pelanggaran harus dipilih";
     } else if (inputType === "achievement") {
       if (!achievementLevel) {
         newErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
@@ -494,8 +513,8 @@ const ESakuForm: React.FC = () => {
       if (!classType) newErrors.classType = "Kelas harus dipilih";
       if (!date) newErrors.date = "Tanggal diperlukan";
     } else if (step === 1) {
-      if (inputType === "violation" && !violationType) {
-        newErrors.violationType = "Jenis pelanggaran harus dipilih";
+      if (inputType === "violation" && violations.length === 0) {
+        newErrors.violationType = "Minimal satu pelanggaran harus dipilih";
       } else if (inputType === "achievement") {
         if (!achievementTypeOptions) {
           newErrors.achievementTypeOptions = "Jenis prestasi harus dipilih";
@@ -597,16 +616,17 @@ const ESakuForm: React.FC = () => {
       }
     }
 
+
     if (inputType === "violation") {
+      // Kirim data pelanggaran dengan multiple IDs
       createViolation(
         {
           student_id: studentObj.id.toString(),
+          rulesofconduct_id: violations.map((v) => v.id), // array of IDs
           description,
           violation_date: date.toISOString().split("T")[0],
           teacher_id: teacherId,
           action: followUpType === "lainnya" ? customFollowUp : followUpType,
-          points: selectedRule?.points ?? 0,
-          rulesofconduct_id: selectedRule ? Number(selectedRule.id) : 0,
         },
         {
           onSuccess: (data) => {
@@ -631,9 +651,7 @@ const ESakuForm: React.FC = () => {
             toast.success(
               isEditMode
                 ? "Data berhasil diperbarui"
-                : inputType === "violation"
-                ? "Data pelanggaran berhasil disimpan"
-                : "Data prestasi berhasil disimpan"
+                : "Data pelanggaran berhasil disimpan"
             );
             setTimeout(() => setShowSuccess(false), 3000);
           },
@@ -664,7 +682,6 @@ const ESakuForm: React.FC = () => {
           points: parseInt(point),
           rank_id: selectedRank ? Number(selectedRank.id) : 0,
         },
-
         {
           onSuccess: (data) => {
             if (selectedFile) {
@@ -723,51 +740,83 @@ const ESakuForm: React.FC = () => {
 
     setIsSubmitting(true);
 
-    // Prepare the data based on input type (violation or achievement)
-    let reportData: any = {
-      student_id: studentObj.id,
-      teacher_id: teacherId, // Automatically using the logged-in teacher's ID
-      violation_date: date.toISOString().split("T")[0],
-      violation_details: description,
-      action: followUpType === "lainnya" ? customFollowUp : followUpType,
-      rulesofconduct_id: selectedRule?.id ?? 0, // Selected from rules
-      points: selectedRule?.points ?? 0,
-    };
+    // Kirim satu laporan per pelanggaran
+    if (inputType === "violation") {
+      const reportPromises = violations.map((violation) => {
+        const reportData = {
+          student_id: studentObj.id,
+          teacher_id: teacherId,
+          violation_date: date.toISOString().split("T")[0],
+          violation_details: description,
+          action: followUpType === "lainnya" ? customFollowUp : followUpType,
+          rulesofconduct_id: [violation.id],
+          points: violation.points,
+        };
 
-    // Dapatkan ID dari data yang dipilih
-    const selectedType = accomplishmentTypes.find(
-      (type) => type.type === achievementTypeOptions
-    );
-    const selectedLevel = accomplishmentLevels.find(
-      (level) => level.level === achievementLevel
-    );
-    const selectedRank = accomplishmentRanks.find((r) => r.rank === rank);
+        return new Promise((resolve) => {
+          createReport(reportData, {
+            onSuccess: () => resolve(true),
+            onError: () => resolve(false),
+          });
+        });
+      });
 
-    if (inputType === "achievement") {
-      // For achievements, include the rank and points
-      reportData = {
-        ...reportData,
-        type_id: selectedType?.id || 0,
-        level_id: selectedLevel?.id || 0,
-        rank_id: selectedRank?.id || 0,
-        points: parseInt(point),
+      Promise.all(reportPromises)
+        .then((results) => {
+          const successCount = results.filter(Boolean).length;
+          if (successCount > 0) {
+            toast.success(`${successCount} laporan berhasil dikirim`);
+          }
+          if (successCount < violations.length) {
+            toast.error(
+              `${violations.length - successCount} laporan gagal dikirim`
+            );
+          }
+          resetForm();
+        })
+        .finally(() => setIsSubmitting(false));
+    } else {
+      // Untuk prestasi, seperti sebelumnya
+      const selectedType = accomplishmentTypes.find(
+        (type) => type.type === achievementTypeOptions
+      );
+      const selectedLevel = accomplishmentLevels.find(
+        (level) => level.level === achievementLevel
+      );
+      const selectedRank = accomplishmentRanks.find((r) => r.rank === rank);
+
+      const reportData: any = {
+        student_id: studentObj.id,
+        teacher_id: teacherId,
+        violation_date: date.toISOString().split("T")[0],
+        violation_details: description,
+        action: followUpType === "lainnya" ? customFollowUp : followUpType,
+        rulesofconduct_id: selectedRule?.id ?? 0, // Selected from rules
+        points: selectedRule?.points ?? 0,
       };
-    }
 
-    createReport(reportData, {
-      onSuccess: () => {
-        setShowSuccess(true);
-        resetForm();
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        toast.success("Laporan berhasil dikirim");
-        setTimeout(() => setShowSuccess(false), 3000);
-      },
-      onError: (error) => {
-        toast.error("Gagal mengirim laporan");
-        console.error("Gagal mengirim laporan:", error);
-      },
-      onSettled: () => setIsSubmitting(false),
-    });
+      if (inputType === "achievement") {
+        reportData.type_id = selectedType?.id || 0;
+        reportData.level_id = selectedLevel?.id || 0;
+        reportData.rank_id = selectedRank?.id || 0;
+        reportData.points = parseInt(point);
+      }
+
+      createReport(reportData, {
+        onSuccess: () => {
+          setShowSuccess(true);
+          resetForm();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          toast.success("Laporan berhasil dikirim");
+          setTimeout(() => setShowSuccess(false), 3000);
+        },
+        onError: (error) => {
+          toast.error("Gagal mengirim laporan");
+          console.error("Gagal mengirim laporan:", error);
+        },
+        onSettled: () => setIsSubmitting(false),
+      });
+    }
   };
 
   const handleNextStep = (): void => {
@@ -826,55 +875,56 @@ const ESakuForm: React.FC = () => {
     return <FormSekeleton />;
   }
 
-  const handleViolationTypeChange = (value: string) => {
-    setSelectedRuleId(value);
+  const handleViolationSelection = (ruleId: string, points: number) => {
+    const existingViolation = violations.find((v) => v.id === ruleId);
 
-    const selectedRule = rulesData?.find(
-      (rule: IRules) => rule.id.toString() === value
-    );
-
-    if (selectedRule) {
-      setSelectedRule(selectedRule);
-      setPoint(selectedRule.points.toString() ?? "");
-      setViolationType(selectedRule.name as ViolationTypeOptions);
+    if (existingViolation) {
+      setViolations(violations.filter((v) => v.id !== ruleId));
     } else {
-      setPoint("");
-      setViolationType("");
-      setSelectedRule(null);
+      setViolations([...violations, { id: ruleId, points }]);
     }
   };
 
   const handleOpenConfirm = (type: "report" | "save") => {
-    // Validasi khusus untuk laporan
-    if (type === "report") {
-      const reportErrors: ESakuFormErrorState = {};
-      if (!studentName.trim())
-        reportErrors.studentName = "Nama siswa diperlukan";
-      if (!classType) reportErrors.classType = "Kelas harus dipilih";
-      if (!date) reportErrors.date = "Tanggal diperlukan";
-      if (!description.trim())
-        reportErrors.description = "Deskripsi diperlukan";
+    // Validasi untuk semua kasus
+    const validationErrors: ESakuFormErrorState = {};
 
-      // Hanya validasi pelanggaran jika tipe input adalah violation
-      if (inputType === "violation" && !violationType) {
-        reportErrors.violationType = "Pelanggaran harus dipilih";
+    // Validasi field dasar yang selalu diperlukan
+    if (!studentName.trim())
+      validationErrors.studentName = "Nama siswa diperlukan";
+    if (!classType) validationErrors.classType = "Kelas harus dipilih";
+    if (!date) validationErrors.date = "Tanggal diperlukan";
+    if (!description.trim())
+      validationErrors.description = "Deskripsi diperlukan";
+
+    // Validasi khusus berdasarkan jenis input
+    if (inputType === "violation") {
+      if (violations.length === 0) {
+        validationErrors.violationType =
+          "Minimal satu pelanggaran harus dipilih";
       }
-
-      setErrors(reportErrors);
-
-      if (Object.keys(reportErrors).length === 0) {
-        setConfirmType(type);
-        setIsModalOpen(true);
+    } else {
+      if (!achievementTypeOptions) {
+        validationErrors.achievementTypeOptions =
+          "Jenis prestasi harus dipilih";
       }
+      if (!achievementLevel) {
+        validationErrors.achievementLevel = "Tingkatan prestasi harus dipilih";
+      }
+      if (!rank) {
+        validationErrors.rank = "Peringkat diperlukan";
+      }
+    }
+
+    // Jika ada error, set error dan jangan buka modal
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
-    // Validasi untuk simpan biasa
-    const isValid = validateForm();
-    if (isValid) {
-      setConfirmType(type);
-      setIsModalOpen(true);
-    }
+    // Jika validasi berhasil, buka modal
+    setConfirmType(type);
+    setIsModalOpen(true);
   };
 
   const filteredClassrooms = classrooms?.filter((classroom) => {
@@ -886,15 +936,14 @@ const ESakuForm: React.FC = () => {
 
   const handleConfirm = () => {
     setIsModalOpen(false);
+    setConfirmType(null); // Reset confirmType setelah digunakan
 
-    // Beri jeda sebelum eksekusi untuk memastikan state sudah update
-    setTimeout(() => {
-      if (confirmType === "report") {
-        handleSendAsReport();
-      } else if (confirmType === "save") {
-        handleSubmit();
-      }
-    }, 100);
+    // Panggil fungsi yang sesuai secara langsung
+    if (confirmType === "report") {
+      handleSendAsReport();
+    } else if (confirmType === "save") {
+      handleSubmit();
+    }
   };
 
   return (
@@ -1166,78 +1215,110 @@ const ESakuForm: React.FC = () => {
               <>
                 <div className="space-y-4">
                   {inputType === "violation" && (
-                    <div className="flex flex-col sm:flex-row gap-6">
-                      <div className="space-y-2 flex-grow">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
                         <FormFieldGroup
-                          label="Jenis Pelanggaran"
+                          label="Pilih Pelanggaran"
                           icon={<FileText className="h-4 w-4 text-green-600" />}
                           error={errors.violationType}
                           required
                         >
                           <Select
-                            value={selectedRuleId}
+                            value=""
                             onValueChange={(value) => {
-                              handleViolationTypeChange(value);
+                              const selectedRule = rulesData?.find(
+                                (rule) => rule.id.toString() === value
+                              );
+                              if (selectedRule) {
+                                handleViolationSelection(
+                                  value,
+                                  selectedRule.points
+                                );
+                              }
                             }}
                           >
                             <SelectTrigger
                               className={`${inputClass} ${
-                                errors.violationType ? inputErrorClass : ""
+                                violations.length === 0 && errors.violationType
+                                  ? inputErrorClass
+                                  : ""
                               }`}
                             >
-                              <SelectValue placeholder="Pilih Jenis Pelanggaran" />
+                              <SelectValue
+                                placeholder={
+                                  violations.length > 0
+                                    ? "Pilih lagi jenis pelanggaran"
+                                    : "Pilih Jenis Pelanggaran"
+                                }
+                              />
                             </SelectTrigger>
                             <SelectContent>
                               {rulesData?.map((rule) => (
                                 <SelectItem
                                   key={rule.id}
                                   value={rule.id.toString()}
+                                  disabled={violations.some(
+                                    (v) => v.id === rule.id.toString()
+                                  )}
                                 >
                                   {rule.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
+                          {violations.length === 0 && errors.violationType && (
+                            <p className="text-red-500 text-xs mt-1">
+                              {errors.violationType}
+                            </p>
+                          )}
                         </FormFieldGroup>
                       </div>
 
-                      <div className="space-y-2 w-48">
-                        <FormFieldGroup
-                          label={
-                            <>
-                              Poin
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger>
-                                    <Info className="h-4 w-4 text-gray-400 ml-1" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="text-xs">
-                                      Poin dihitung otomatis berdasarkan jenis
-                                      pelanggaran
-                                    </p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </>
-                          }
-                          error={errors.points}
-                        >
-                          <div className="relative w-full">
-                            <div className="flex-1 h-10 px-3 py-2 text-sm border border-gray-300 bg-gray-50 text-gray-500 rounded-lg">
-                              {selectedRule
-                                ? `${selectedRule.points}`
-                                : "Pilih jenis pelanggaran"}
-                            </div>
-
-                            {selectedRule?.points && (
-                              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-2 py-0.5 text-xs font-medium bg-red-100 text-red-600">
-                                -{selectedRule.points}
-                              </div>
-                            )}
+                      {/* Tampilkan pelanggaran yang dipilih */}
+                      {violations.length > 0 && (
+                        <div className="border border-gray-200 rounded-lg p-4">
+                          <h3 className="font-medium text-gray-700 mb-2">
+                            Pelanggaran Terpilih:
+                          </h3>
+                          <ul className="space-y-2">
+                            {violations.map((violation) => {
+                              const rule = rulesData?.find(
+                                (r) => r.id.toString() === violation.id
+                              );
+                              return (
+                                <li
+                                  key={violation.id}
+                                  className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-md"
+                                >
+                                  <span>{rule?.name}</span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-red-500 font-medium">
+                                      -{violation.points}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setViolations(
+                                          violations.filter(
+                                            (v) => v.id !== violation.id
+                                          )
+                                        )
+                                      }
+                                      className="text-red-500 hover:text-red-700"
+                                    >
+                                      &times;
+                                    </button>
+                                  </div>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                          <div className="mt-3 pt-2 border-t border-gray-200 flex justify-between font-medium">
+                            <span>Total Poin:</span>
+                            <span className="text-red-500">-{totalPoints}</span>
                           </div>
-                        </FormFieldGroup>
-                      </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1692,7 +1773,11 @@ const ESakuForm: React.FC = () => {
                   type="button"
                   className={btnDarkClass}
                   onClick={() => handleOpenConfirm("report")}
-                  disabled={isSubmitting || isClassTaughtByTeacher === true}
+                  disabled={
+                    isSubmitting ||
+                    isClassTaughtByTeacher === true ||
+                    violations.length === 0
+                  }
                 >
                   <Send className="h-4 w-4" />
                   Kirim sebagai Laporan
@@ -1708,7 +1793,7 @@ const ESakuForm: React.FC = () => {
                   isSubmitting ||
                   (inputType === "violation" &&
                     !isEditMode &&
-                    isClassTaughtByTeacher !== true)
+                    violations.length === 0)
                 }
               >
                 {isEditMode ? "Perbarui Data" : "Simpan"}

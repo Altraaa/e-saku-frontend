@@ -11,8 +11,8 @@ export interface ITeacherReport {
   teacher_id: number;
   teacher?: ITeacher;
   reporter: ITeacher;
-  rulesofconduct_id: number;
-  rules_of_conduct: IRules;
+  rulesofconduct_id: string[]; // Ubah menjadi array
+  rules_of_conduct: IRules[];
   violation_date: string;
   violation_details: string;
   action: string;
