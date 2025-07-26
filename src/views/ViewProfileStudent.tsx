@@ -5,6 +5,7 @@ import { useStudentById } from "@/config/Api/useStudent";
 import { IStudent } from "@/config/Models/Student";
 import { Button } from "@/components/ui/button";
 import { useExtracurricularsByStudentId } from "@/config/Api/useExtracurriculars";
+import { IExtracurricular } from "@/config/Models/Extracurriculars";
 
 const ViewProfileStudent = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +22,6 @@ const ViewProfileStudent = () => {
   const { data: studentExtracurriculars, isLoading: extracurricularsLoading } =
     useExtracurricularsByStudentId(studentId);
 
-    console.log(studentExtracurriculars);
 
   // Fetch student data
   useEffect(() => {
@@ -226,7 +226,7 @@ const ViewProfileStudent = () => {
                 studentExtracurriculars.extracurriculars &&
                 studentExtracurriculars.extracurriculars.length > 0 ? (
                 <div className="space-y-3">
-                  {studentExtracurriculars.extracurriculars.map((ec) => (
+                  {studentExtracurriculars.extracurriculars.map((ec: IExtracurricular) => (
                     <div
                       key={ec.id}
                       className="p-3 bg-gray-50 rounded-lg border border-gray-200"

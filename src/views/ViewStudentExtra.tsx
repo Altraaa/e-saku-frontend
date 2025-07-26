@@ -34,6 +34,7 @@ import { IChooseExtracurricular } from "@/config/Models/Extracurriculars";
 import toast from "react-hot-toast";
 import { Badge } from "@/components/ui/badge";
 import ConfirmationModal from "@/components/ui/confirmation";
+import { AxiosError } from "axios";
 
 const MAX_SELECTION = 3;
 
@@ -126,29 +127,34 @@ const ViewStudentExtra = () => {
   };
 
   // Function to handle registration after confirmation
-  const handleConfirmRegistration = async () => {
-    setIsConfirmModalOpen(false);
-    setIsProcessing(true);
+const handleConfirmRegistration = async () => {
+  setIsConfirmModalOpen(false);
+  setIsProcessing(true);
 
-    try {
-      const payload: IChooseExtracurricular = {
-        extracurricular_ids: selectedExtracurriculars,
-      };
+  try {
+    const payload: IChooseExtracurricular = {
+      extracurricular_ids: selectedExtracurriculars,
+    };
 
-      await assignMutation.mutateAsync(payload);
-      toast.success("Berhasil mendaftar ekstrakurikuler");
-      setSelectedExtracurriculars([]);
-    } catch (error: any) {
+    await assignMutation.mutateAsync(payload);
+    toast.success("Berhasil mendaftar ekstrakurikuler");
+    setSelectedExtracurriculars([]);
+  } catch (error) {
+    if (error instanceof AxiosError) {
       if (error.response?.data?.message) {
         toast.error(`Gagal mendaftar: ${error.response.data.message}`);
       } else {
         toast.error("Gagal mendaftar ekstrakurikuler");
       }
-      console.error("Registration error:", error);
-    } finally {
-      setIsProcessing(false);
+    } else {
+      // Handle other types of errors (e.g., network error)
+      toast.error("Gagal mendaftar ekstrakurikuler");
     }
-  };
+    console.error("Registration error:", error);
+  } finally {
+    setIsProcessing(false);
+  }
+};
 
   if (isLoading) {
     return (
