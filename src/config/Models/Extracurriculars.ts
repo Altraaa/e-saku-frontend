@@ -1,4 +1,4 @@
-import { IStudent } from "./Student"
+import { IStudent } from "./Student";
 
 export interface IExtracurricular {
   id?: number;
@@ -12,6 +12,16 @@ export interface IExtracurricular {
   created_at?: string;
   updated_at?: string;
 };
+
+export interface IExtracurricularHistory {
+  id?: number;
+  student_id: string;
+  extracurricular_id: number;
+  registered_at: string;
+  status: string;
+  student?: IStudent;
+  extracurricular?: IExtracurricular;
+}
 
 export interface IChooseExtracurricular {
   id?: number;
