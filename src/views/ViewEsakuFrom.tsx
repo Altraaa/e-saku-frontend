@@ -616,7 +616,6 @@ const ESakuForm: React.FC = () => {
       }
     }
 
-
     if (inputType === "violation") {
       // Kirim data pelanggaran dengan multiple IDs
       createViolation(
@@ -978,7 +977,6 @@ const ESakuForm: React.FC = () => {
             </CardTitle>
           </div>
         </CardHeader>
-
         <CardContent className="p-6">
           <div className="space-y-6">
             {isMobileView && (
@@ -1754,7 +1752,6 @@ const ESakuForm: React.FC = () => {
             )}
           </div>
         </CardContent>
-
         {!isMobileView && (
           <CardFooter className="flex justify-between gap-3 pb-6 px-6">
             <Button
@@ -1775,7 +1772,7 @@ const ESakuForm: React.FC = () => {
                   onClick={() => handleOpenConfirm("report")}
                   disabled={
                     isSubmitting ||
-                    isClassTaughtByTeacher === true ||
+                    isClassTaughtByTeacher === true || // Hanya aktif jika kelas bukan diampu
                     violations.length === 0
                   }
                 >
@@ -1793,7 +1790,10 @@ const ESakuForm: React.FC = () => {
                   isSubmitting ||
                   (inputType === "violation" &&
                     !isEditMode &&
-                    violations.length === 0)
+                    violations.length === 0) ||
+                  (inputType === "violation" &&
+                    !isEditMode &&
+                    isClassTaughtByTeacher === false) // Tambahkan kondisi ini
                 }
               >
                 {isEditMode ? "Perbarui Data" : "Simpan"}
