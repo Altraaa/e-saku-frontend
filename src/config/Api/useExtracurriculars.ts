@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   IChooseExtracurricular,
   IExtracurricular,
+  IExtracurricularHistory,
 } from "../Models/Extracurriculars";
 import { ApiExtracurriculars } from "../Services/Extracurriculars.service";
 
@@ -11,6 +12,14 @@ export const useExtracurriculars = () => {
   return useQuery<IExtracurricular[]>({
     queryKey: ["extracurriculars"],
     queryFn: () => ApiExtracurriculars.getAll(),
+  });
+};
+
+//fetch extracurricular history
+export const useExtracurricularHistory = () => {
+  return useQuery<IExtracurricularHistory[]>({
+    queryKey: ["extracurriculars-history"],
+    queryFn: () => ApiExtracurriculars.getAllHistory(),
   });
 };
 
@@ -93,7 +102,7 @@ export const useAssignExtracurricular = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: IChooseExtracurricular) => 
+    mutationFn: (data: IChooseExtracurricular) =>
       ApiExtracurriculars.assignForMe(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["myExtracurriculars"] });
