@@ -117,23 +117,40 @@ export const useAssignExtracurricular = () => {
 };
 
 export const useExtracurricularExportSingle = () => {
-  return async (extra_id: number) => {
+  return async (extracurricularId: number) => {
     try {
-      const response = await ApiExtracurriculars.exportSingle(extra_id);
+      const extracurricular = await ApiExtracurriculars.getById(
+        extracurricularId
+      );
 
+      if (!extracurricular?.name) {
+        throw new Error("Nama ekstrakurikuler tidak ditemukan.");
+      }
+
+      const rawName = extracurricular.name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/gi, "")
+        .trim();
+
+      const capitalized =
+        rawName.charAt(0).toUpperCase() + rawName.slice(1).replace(/\s+/g, "_");
+
+      const fileName = `Ekstrakurikuler ${capitalized} - ${new Date()
+        .toISOString()
+        .slice(0, 10)}.xlsx`;
+
+      const response = await ApiExtracurriculars.exportSingleExtracurricular(
+        extracurricularId
+      );
       const url = window.URL.createObjectURL(new Blob([response]));
       const link = document.createElement("a");
       link.href = url;
-
-      const fileName = `Extracurriculars export_${new Date()
-        .toISOString()
-        .slice(0, 10)}.xlsx`;
       link.setAttribute("download", fileName);
       document.body.appendChild(link);
       link.click();
       link.remove();
     } catch (error) {
-      console.error("Export history failed:", error);
+      console.error("Gagal mengekspor data ekstrakurikuler:", error);
       throw error;
     }
   };
