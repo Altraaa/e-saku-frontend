@@ -16,6 +16,7 @@ import {
   Plus,
   Users,
   UserCheck,
+  UploadIcon,
 } from "lucide-react";
 import {
   Dialog,
@@ -51,6 +52,7 @@ import {
   useExtracurricularDelete,
   useExtracurricularCreate,
   useExtracurricularUpdate,
+  useExtracurricularExportSingle,
 } from "@/config/Api/useExtracurriculars";
 import { IExtracurricular } from "@/config/Models/Extracurriculars";
 import { Textarea } from "@/components/ui/textarea";
@@ -82,6 +84,7 @@ const ViewManageActivity = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isModalExportOpen, setIsModalExportOpen] = useState(false);
   const [formData, setFormData] = useState<IExtracurricular>({
     name: "",
     status: "active",
@@ -101,6 +104,7 @@ const ViewManageActivity = () => {
   const [studentExtracurriculars, setStudentExtracurriculars] = useState<
     IStudentExtracurricular[]
   >([]);
+  const [selectedExtracurricularId, setSelectedExtracurricularId] = useState<string | undefined>(undefined);
   const navigate = useNavigate();
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -118,12 +122,38 @@ const ViewManageActivity = () => {
   const deleteMutation = useExtracurricularDelete();
   const createExtracurricular = useExtracurricularCreate();
   const updateExtracurricular = useExtracurricularUpdate();
+  const exportSingleExtracurricular = useExtracurricularExportSingle();
 
   useEffect(() => {
     if (extracurricularsData) {
       setExtracurriculars(extracurricularsData);
     }
   }, [extracurricularsData]);
+
+  useEffect(() => {
+    if (studentExtracurriculars.length > 0) {
+      setSelectedExtracurricularId(studentExtracurriculars[0].extracurricular_id.toString());
+    }
+  }, [studentExtracurriculars]);
+
+  const handleExtraChange = (value: string) => {
+    setSelectedExtracurricularId(value); 
+  };
+
+  const handleFileExport = () => {
+    setIsModalExportOpen(true);
+  };
+
+  const handleConfirmExportData = async () => {
+    try {
+      await exportSingleExtracurricular(selectedExtracurricularId ? parseInt(selectedExtracurricularId) : 0);
+      setIsModalExportOpen(false);
+      toast.success("File berhasil didownload");
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Gagal export file");
+    }
+  };
 
   const handleFormChange = (field: keyof IExtracurricular, value: string) => {
     setFormData((prev) => ({
@@ -476,6 +506,35 @@ const ViewManageActivity = () => {
               </h2>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+              {activeTab === "students" && (
+                <div className="flex gap-2">
+                    <Button
+                      onClick={handleFileExport}
+                        variant="outline"
+                        className="text-green-600 hover:text-white hover:bg-green-600 border-2 border-green-600 transition-all duration-300 w-full"
+                      >
+                        <UploadIcon size={16} className="mr-2" />
+                      </Button>
+                  <div className="w-48">
+                    <Select
+                      onValueChange={handleExtraChange}
+                      value={selectedExtracurricularId} // Nilai akan di-set pada ID pertama atau yang dipilih
+                    >
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Pilih Ekstrakurikuler" />
+                      </SelectTrigger>
+                      <SelectContent className="w-48">
+                        {extracurriculars.map((extra) => (
+                          <SelectItem key={extra.id} value={extra.id?.toString() ?? ''}>
+                            {extra.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+              
               <div className="flex items-center space-x-2">
                 <Select
                   value={filters.statusFilter || "all"}
@@ -502,7 +561,7 @@ const ViewManageActivity = () => {
                   </Button>
                 )}
               </div>
-              <div className="relative w-full sm:w-72">
+              <div className="relative w-full sm:w-64">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   <Search className="h-4 w-4 text-gray-400" />
                 </div>
@@ -1081,6 +1140,16 @@ const ViewManageActivity = () => {
         confirmText="Hapus"
         cancelText="Batal"
         type="delete"
+      />
+      <ConfirmationModal
+        isOpen={isModalExportOpen}
+        onClose={() => setIsModalExportOpen(false)}
+        onConfirm={handleConfirmExportData}
+        title="Konfirmasi Ekspor Data"
+        description="Apakah Anda yakin ingin mengekspor data siswa ini ke dalam file excel?"
+        confirmText="Ekspor"
+        cancelText="Batal"
+        type="add"
       />
     </div>
   );
