@@ -86,4 +86,10 @@ export const ApiStudents = {
       method: "GET",
       responseType: "blob",
     }),
+  exportSingleStudent: (student_id: string): Promise<Blob> =>
+    ApiRequest({
+      url: `/students/export/${student_id}`,
+      method: "GET",
+      responseType: "blob",
+    })
 };

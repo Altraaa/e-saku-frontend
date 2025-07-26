@@ -14,6 +14,7 @@ import {
   Lock,
   EyeOff,
   Eye,
+  UploadIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import {
   useStudentUpdatePassword,
   useStudentUpdateStatus,
   useStudentUpload,
+  useStudentSingleExports,
 } from "@/config/Api/useStudent";
 import { useClassroomById } from "@/config/Api/useClasroom";
 import { IStudent } from "@/config/Models/Student";
@@ -36,10 +38,12 @@ const ViewStudentBio = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const studentId = id ?? "";
+  const [userType, setUserType] = useState<"teacher" | "student">("teacher");
   const [loading, setLoading] = useState(true);
   const [classroomData, setClassroomData] = useState<IClassroom | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
+  const [isModalExportOpen, setIsModalExportOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
 
@@ -63,6 +67,7 @@ const ViewStudentBio = () => {
   const updateMutation = useStudentUpdate();
   const updatePassword = useStudentUpdatePassword();
   const updateStatus = useStudentUpdateStatus();
+  const exportStudents = useStudentSingleExports();
 
   const [formData, setFormData] = useState<IStudent>({
     id: 0,
@@ -98,6 +103,15 @@ const ViewStudentBio = () => {
     classroom: undefined,
     major: [],
   });
+
+  useEffect(() => {
+      const type = localStorage.getItem("user_type");
+      if (type === "student") {
+        setUserType("student");
+      } else {
+        setUserType("teacher");
+      }
+    }, []);
 
   useEffect(() => {
     if (!isLoading) {
@@ -328,6 +342,21 @@ const ViewStudentBio = () => {
     );
   };
 
+  const handleFileExport = () => {
+    setIsModalExportOpen(true);
+  };
+
+  const handleConfirmExportData = async () => {
+      try {
+        await exportStudents(studentId);
+        setIsModalExportOpen(false);
+        toast.success("File berhasil didownload");
+      } catch (error) {
+        console.error("Export failed:", error);
+        toast.error("Gagal export file");
+      }
+    };
+
   const handleSaveStatus = () => {
     updateStatus.mutate(
       {
@@ -502,6 +531,17 @@ const ViewStudentBio = () => {
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
               <div className="space-y-3">
+                {userType === "teacher" && (
+                  <Button
+                  onClick={handleFileExport}
+                    variant="outline"
+                    className="text-green-600 hover:text-white hover:bg-green-600 border-2 border-green-600 transition-all duration-300 w-full"
+                  >
+                    <UploadIcon size={16} className="mr-2" />
+                    Cetak Data Siswa
+                  </Button>
+                )}
+
                 <Button
                   asChild
                   className="w-full bg-green-600 hover:bg-green-700 text-white transition-all"
@@ -1269,6 +1309,16 @@ const ViewStudentBio = () => {
         confirmText="Hapus"
         cancelText="Batal"
         type="delete"
+      />
+      <ConfirmationModal
+        isOpen={isModalExportOpen}
+        onClose={() => setIsModalExportOpen(false)}
+        onConfirm={handleConfirmExportData}
+        title="Konfirmasi Ekspor Data"
+        description="Apakah Anda yakin ingin mengekspor data siswa ini ke dalam file excel?"
+        confirmText="Ekspor"
+        cancelText="Batal"
+        type="add"
       />
     </div>
   );
