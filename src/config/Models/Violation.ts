@@ -12,7 +12,7 @@ export interface IViolation {
   image_documentation: string | null;
   points: number;
   accomplishment_date?: string;
-  rulesofconduct_id: string[]; // Ubah menjadi array
+  rulesofconduct_id: string[];
   rules_of_conduct: IRules[];
   created_at: string;
   updated_at: string;

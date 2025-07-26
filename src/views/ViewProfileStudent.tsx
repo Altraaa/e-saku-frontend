@@ -2,9 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Clock, Edit, Save, X, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useStudentById } from "@/config/Api/useStudent";
-import { useClassroomById } from "@/config/Api/useClasroom";
 import { IStudent } from "@/config/Models/Student";
-import { IClassroom } from "@/config/Models/Classroom";
 import {
   Select,
   SelectContent,
@@ -19,7 +17,6 @@ import toast from "react-hot-toast";
 const ViewProfileStudent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [studentData, setStudentData] = useState<IStudent | null>(null);
-  const [classroomData, setClassroomData] = useState<IClassroom | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
   const [lastActive, setLastActive] = useState<string>("N/A");
   
@@ -61,10 +58,6 @@ const ViewProfileStudent = () => {
   // Fetch student data
   const { data: student, isLoading: studentLoading } = useStudentById(studentId);
 
-  // Fetch classroom data
-  const classId = student?.class_id || 0;
-  const { data: classroom, isLoading: classLoading } = useClassroomById(classId);
-
   useEffect(() => {
     if (student) {
       setStudentData(student);
@@ -98,14 +91,10 @@ const ViewProfileStudent = () => {
       }
     }
 
-    if (classroom) {
-      setClassroomData(classroom);
-    }
-
-    if (!studentLoading && !classLoading) {
+    if (!studentLoading) {
       setIsLoading(false);
     }
-  }, [student, classroom, studentLoading, classLoading]);
+  }, [student, studentLoading]);
 
   const handleAddExtracurricular = (value: string) => {
     if (!tempExtracurriculars.includes(value)) {
@@ -325,7 +314,7 @@ const ViewProfileStudent = () => {
                       Kelas
                     </label>
                     <div className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
-                      {classroomData?.name || "Tidak diatur"}
+                      {student?.classroom?.name || "Tidak diatur"}
                     </div>
                   </div>
 

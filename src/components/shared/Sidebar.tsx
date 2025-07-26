@@ -58,29 +58,29 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
- const handleCloseSidebar = useCallback(
-   (e: React.MouseEvent) => {
-     if ((isMobile || isMobileScreen) && isOpen) {
-       e.stopPropagation();
-       toggleSidebar();
-     }
-   },
-   [isMobile, isMobileScreen, isOpen, toggleSidebar]
- );
+  const handleCloseSidebar = useCallback(
+    (e: React.MouseEvent) => {
+      if ((isMobile || isMobileScreen) && isOpen) {
+        e.stopPropagation();
+        toggleSidebar();
+      }
+    },
+    [isMobile, isMobileScreen, isOpen, toggleSidebar]
+  );
 
- // Perbaikan 2: Bungkus handleMenuItemClick
- const handleMenuItemClick = useCallback(() => {
-   if (isMobile || isMobileScreen) {
-     closeSidebar();
-   }
- }, [isMobile, isMobileScreen, closeSidebar]);
+  // Perbaikan 2: Bungkus handleMenuItemClick
+  const handleMenuItemClick = useCallback(() => {
+    if (isMobile || isMobileScreen) {
+      closeSidebar();
+    }
+  }, [isMobile, isMobileScreen, closeSidebar]);
 
   // Common items for all roles
-   const commonPlatformItems =
-     role === "student" ? [] : [{ label: "Dashboard", icon: Home, path: "/" }];
+  const commonPlatformItems =
+    role === "student" ? [] : [{ label: "Dashboard", icon: Home, path: "/" }];
 
-   // Items rules untuk semua peran
-   const rulesItem = { label: "Rules", icon: DiamondMinusIcon, path: "/rules" };
+  // Items rules untuk semua peran
+  const rulesItem = { label: "Rules", icon: DiamondMinusIcon, path: "/rules" };
 
   // Role-based menu items
   const rolePlatformItems: Record<string, any[]> = {
@@ -111,12 +111,18 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
         icon: Users,
         path: `/studentbio/violations/${localStorage.getItem("student_id")}`,
       },
+      {
+        label: "Extracurricular",
+        icon: Users,
+        path: `/student/extra`,
+      },
     ],
   };
 
   // Combine common items with role-specific items
   const platformItems = [
-    ...commonPlatformItems, rulesItem,
+    ...commonPlatformItems,
+    rulesItem,
     ...(rolePlatformItems[role] || []),
   ];
 

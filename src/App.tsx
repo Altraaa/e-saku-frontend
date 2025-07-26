@@ -30,6 +30,7 @@ import ManageActivity from "./pages/ManageActivity";
 import Report from "./pages/Report";
 import { Toaster } from "react-hot-toast";
 import StudentProfile from "./pages/ProfileStudent";
+import StudentExtra from "./pages/StudentExtra";
 // import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const LayoutWrapper = () => {
@@ -51,6 +52,8 @@ const LayoutWrapper = () => {
     privacypolicy: "Privacy Policy",
     report: "Report",
     managerules: "Manage Rules",
+    manageactivity: "Manage Activity",
+    studentextra: "Student Extra",
   };
 
   const title = pageTitles[path] || "Unknown Page";
@@ -105,6 +108,7 @@ export function AppContent() {
           <Route path="/managerules" element={<ManageRules />} />
           <Route path="/manageactivity" element={<ManageActivity />} />
           <Route path="/rules" element={<Rules />} />
+          <Route path="/student/extra" element={<StudentExtra />} />
           {/* <Route path="/privacypolicy" element={<PrivacyPolicy/>} /> */}
         </Route>
       </Route>

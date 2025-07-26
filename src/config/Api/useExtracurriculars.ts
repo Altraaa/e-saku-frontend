@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { IExtracurricular } from "../Models/Extracurriculars";
+import {
+  IChooseExtracurricular,
+  IExtracurricular,
+} from "../Models/Extracurriculars";
 import { ApiExtracurriculars } from "../Services/Extracurriculars.service";
 
 //fetch all extracurricular
@@ -83,29 +86,46 @@ export const useExtracurricularDelete = () => {
     onError: (error) => {
       console.error("Error deleting extracurricular:", error);
     },
-  })
-}
+  });
+};
+
+export const useAssignExtracurricular = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: IChooseExtracurricular) => 
+      ApiExtracurriculars.assignForMe(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myExtracurriculars"] });
+      queryClient.invalidateQueries({
+        queryKey: ["availableExtracurriculars"],
+      });
+    },
+    onError: (error) => {
+      console.error("Error assigning extracurricular:", error);
+    },
+  });
+};
 
 export const useExtracurricularExportSingle = () => {
   return async (extra_id: number) => {
-      try {
-        const response = await ApiExtracurriculars.exportSingle(extra_id);
-        
-        const url = window.URL.createObjectURL(new Blob([response]));
-        const link = document.createElement("a");
-        link.href = url;
-  
-        const fileName = `Extracurriculars export_${new Date()
-          .toISOString()
-          .slice(0, 10)}.xlsx`;
-        link.setAttribute("download", fileName);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      } catch (error) {
-        console.error("Export history failed:", error);
-        throw error;
-      }
-    };
-};
+    try {
+      const response = await ApiExtracurriculars.exportSingle(extra_id);
 
+      const url = window.URL.createObjectURL(new Blob([response]));
+      const link = document.createElement("a");
+      link.href = url;
+
+      const fileName = `Extracurriculars export_${new Date()
+        .toISOString()
+        .slice(0, 10)}.xlsx`;
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Export history failed:", error);
+      throw error;
+    }
+  };
+};

@@ -12,3 +12,8 @@ export interface IExtracurricular {
     created_at?: string
     updated_at?: string
 };
+
+export interface IChooseExtracurricular {
+  id?: number;
+  extracurricular_ids: number[];
+}

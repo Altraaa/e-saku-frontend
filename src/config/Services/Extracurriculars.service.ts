@@ -1,4 +1,4 @@
-import { IExtracurricular } from "../Models/Extracurriculars";
+import { IChooseExtracurricular, IExtracurricular } from "../Models/Extracurriculars";
 import { ApiRequest } from "./Api.service";
 
 export const ApiExtracurriculars = {
@@ -11,6 +11,19 @@ export const ApiExtracurriculars = {
       url: `/extracurriculars/student/${student_id}`,
       method: "GET",
     }),
+  assignForMe: (
+    data: IChooseExtracurricular
+  ): Promise<IChooseExtracurricular[]> => {
+    const payload = {
+      extracurricular_ids: data.extracurricular_ids,
+    };
+
+    return ApiRequest({
+      url: "/me/extracurriculars",
+      method: "POST",
+      body: payload,
+    });
+  },
   create: (data: Partial<IExtracurricular>): Promise<IExtracurricular> =>
     ApiRequest({ url: "/extracurriculars", method: "POST", body: data }),
   update: (
@@ -33,5 +46,5 @@ export const ApiExtracurriculars = {
       url: `/extracurriculars/export/${id}`,
       method: "GET",
       responseType: "blob",
-    })
+    }),
 };

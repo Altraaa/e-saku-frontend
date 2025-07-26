@@ -461,7 +461,7 @@ const ViewManageActivity = () => {
 
       {/* Filters and Search */}
       <div className="bg-white rounded-xl overflow-hidden shadow-sm">
-        <div className="px-4 sm:px-6 pt-4 pb-4">
+        <div className="px-4 sm:px-6 pt-4 pb-4 border-b-2 border-green-500">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-2">
               {activeTab === "extracurricular" ? (
