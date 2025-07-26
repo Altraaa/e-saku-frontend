@@ -1,63 +1,29 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Clock, Edit, Save, X, Loader2 } from "lucide-react";
+import { User, Clock, Edit, Loader2, BookOpen } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useStudentById } from "@/config/Api/useStudent";
 import { IStudent } from "@/config/Models/Student";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import toast from "react-hot-toast";
+import { useExtracurricularsByStudentId } from "@/config/Api/useExtracurriculars";
 
 const ViewProfileStudent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [studentData, setStudentData] = useState<IStudent | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
   const [lastActive, setLastActive] = useState<string>("N/A");
-  
-  // Extracurricular state management
-  const [isEditing, setIsEditing] = useState(false);
-  const [tempExtracurriculars, setTempExtracurriculars] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const extracurricularOptions = [
-    {
-      category: "Sports",
-      items: [
-        { id: "sports-1", name: "Basketball" },
-        { id: "sports-2", name: "Football" },
-        { id: "sports-3", name: "Badminton" }
-      ]
-    },
-    {
-      category: "Arts",
-      items: [
-        { id: "arts-1", name: "Music Band" },
-        { id: "arts-2", name: "Drawing Club" },
-        { id: "arts-3", name: "Drama Club" }
-      ]
-    },
-    {
-      category: "Academic",
-      items: [
-        { id: "academic-1", name: "Science Club" },
-        { id: "academic-2", name: "Math Olympiad" },
-        { id: "academic-3", name: "Debate Team" }
-      ]
-    }
-  ];
 
   // Get student ID from localStorage
   const studentId = localStorage.getItem("student_id") || "";
 
-  // Fetch student data
-  const { data: student, isLoading: studentLoading } = useStudentById(studentId);
+  // API hooks
+  const { data: student, isLoading: studentLoading } =
+    useStudentById(studentId);
+  const { data: studentExtracurriculars, isLoading: extracurricularsLoading } =
+    useExtracurricularsByStudentId(studentId);
 
+    console.log(studentExtracurriculars);
+
+  // Fetch student data
   useEffect(() => {
     if (student) {
       setStudentData(student);
@@ -69,8 +35,6 @@ const ViewProfileStudent = () => {
         );
       }
 
-      // setTempExtracurriculars(student.extracurriculars || []);
-      
       const lastActivityRaw = localStorage.getItem("last_activity");
       if (lastActivityRaw) {
         try {
@@ -95,55 +59,6 @@ const ViewProfileStudent = () => {
       setIsLoading(false);
     }
   }, [student, studentLoading]);
-
-  const handleAddExtracurricular = (value: string) => {
-    if (!tempExtracurriculars.includes(value)) {
-      setTempExtracurriculars([...tempExtracurriculars, value]);
-    }
-  };
-
-  const handleRemoveExtracurricular = (value: string) => {
-    setTempExtracurriculars(
-      tempExtracurriculars.filter((item) => item !== value)
-    );
-  };
-
-  const handleEditClick = () => {
-    setIsEditing(true);
-    // Copy current extracurriculars to temp state when starting to edit
-    setTempExtracurriculars(studentData?.extracurriculars || []);
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    // Reset to original extracurriculars
-    setTempExtracurriculars(studentData?.extracurriculars || []);
-  };
-
-  const handleSaveExtracurriculars = () => {
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Saving extracurriculars:", tempExtracurriculars);
-      setIsSubmitting(false);
-      setIsEditing(false);
-      
-      // Update student data with new extracurriculars
-      if (studentData) {
-        setStudentData({
-          ...studentData,
-          extracurriculars: tempExtracurriculars
-        });
-      }
-      
-      toast({
-        title: "Perubahan Disimpan",
-        description: "Pilihan ekstrakurikuler berhasil diperbarui",
-        variant: "default",
-      });
-    }, 1000);
-  };
 
   const imageSrc = photoUrl
     ? photoUrl
@@ -171,15 +86,6 @@ const ViewProfileStudent = () => {
     );
   }
 
-  // Helper to get extracurricular name by ID
-  const getExtracurricularName = (id: string) => {
-    for (const group of extracurricularOptions) {
-      const found = group.items.find(item => item.id === id);
-      if (found) return found.name;
-    }
-    return "Unknown";
-  };
-
   return (
     <div className="container mx-auto py-4 sm:py-6 px-3 sm:px-4 text-black">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 gap-3">
@@ -192,70 +98,39 @@ const ViewProfileStudent = () => {
         {/* Left Sidebar */}
         <div className="space-y-4 sm:space-y-6">
           {/* Profile Photo Card */}
-            <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
-              <CardHeader className="bg-white py-3 px-4">
-                <CardTitle className="text-center text-black">
-                  Foto Profil
-                </CardTitle>
-                <div className="relative flex justify-center mt-5">
-                  <div className="absolute w-64 h-0.5 bg-green-400 rounded-full shadow-sm mt-1"></div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6 flex flex-col items-center">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full bg-gray-200 flex items-center justify-center mb-4 sm:mb-6 border-4 border-green-100 overflow-hidden">
-                  {photoUrl ? (
-                    <img
-                      src={imageSrc}
-                      alt="Student profile"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <User  
-                      className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-gray-400"
-                      strokeWidth={1}
-                    />
-                  )}
-                </div>
-              </CardContent>
-
-              <div className="p-4 w-full">
-                <div className="flex justify-center gap-2">
-                  {isEditing ? (
-                    <>
-                      <Button
-                        onClick={handleSaveExtracurriculars}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white"
-                        disabled={isSubmitting || tempExtracurriculars.length === 0}
-                      >
-                        {isSubmitting ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                          <Save className="h-4 w-4 mr-2" />
-                        )}
-                        Simpan
-                      </Button>
-                      <Button
-                        onClick={handleCancelEdit}
-                        variant="outline"
-                        className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
-                        disabled={isSubmitting}
-                      >
-                        <X className="h-4 w-4 mr-2" />
-                        Batal
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      onClick={handleEditClick}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Profil
-                    </Button>
-                  )}
-                </div>
+          <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
+            <CardHeader className="bg-white py-3 px-4">
+              <CardTitle className="text-center text-black">
+                Foto Profil
+              </CardTitle>
+              <div className="relative flex justify-center mt-5">
+                <div className="absolute w-64 h-0.5 bg-green-400 rounded-full shadow-sm mt-1"></div>
               </div>
-            </Card>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6 flex flex-col items-center">
+              <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full bg-gray-200 flex items-center justify-center mb-4 sm:mb-6 border-4 border-green-100 overflow-hidden">
+                {imageSrc ? (
+                  <img
+                    src={imageSrc}
+                    alt="Student profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User
+                    className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-gray-400"
+                    strokeWidth={1}
+                  />
+                )}
+              </div>
+            </CardContent>
+
+            <div className="p-4 w-full">
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Profil
+              </Button>
+            </div>
+          </Card>
 
           {/* Last Activity */}
           <div className="rounded-lg bg-white border border-gray-200 shadow-sm p-3 flex items-center text-sm text-gray-600">
@@ -270,7 +145,7 @@ const ViewProfileStudent = () => {
           <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
             <CardHeader className="bg-white py-3 px-4">
               <CardTitle className="text-black flex items-center">
-                <User  className="mr-2 h-5 w-5" />
+                <User className="mr-2 h-5 w-5" />
                 Informasi Pribadi
               </CardTitle>
               <div className="relative flex justify-center mt-5">
@@ -331,9 +206,11 @@ const ViewProfileStudent = () => {
             </CardContent>
           </Card>
 
+          {/* Extracurricular List Card */}
           <Card className="shadow-sm border border-gray-200 bg-white rounded-lg overflow-hidden">
             <CardHeader className="bg-white py-3 px-4">
-              <CardTitle className="text-black">
+              <CardTitle className="text-black flex items-center">
+                <BookOpen className="mr-2 h-5 w-5" />
                 Ekstrakurikuler
               </CardTitle>
               <div className="relative flex justify-center mt-5">
@@ -341,90 +218,27 @@ const ViewProfileStudent = () => {
               </div>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
-              {!isEditing ? (
-                // View Mode
+              {extracurricularsLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-green-500" />
+                </div>
+              ) : studentExtracurriculars &&
+                studentExtracurriculars.extracurriculars &&
+                studentExtracurriculars.extracurriculars.length > 0 ? (
                 <div className="space-y-3">
-                  {studentData.extracurriculars && studentData.extracurriculars.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {studentData.extracurriculars.map(id => (
-                        <Badge 
-                          key={id}
-                          variant="secondary"
-                          className="px-3 py-1 text-sm"
-                        >
-                          {getExtracurricularName(id)}
-                        </Badge>
-                      ))}
+                  {studentExtracurriculars.extracurriculars.map((ec) => (
+                    <div
+                      key={ec.id}
+                      className="p-3 bg-gray-50 rounded-lg border border-gray-200"
+                    >
+                      <div className="text-base font-medium">{ec.name}</div>
                     </div>
-                  ) : (
-                    <p className="text-gray-500">Belum ada ekstrakurikuler yang dipilih</p>
-                  )}
+                  ))}
                 </div>
               ) : (
-                // Edit Mode
-                <div className="space-y-4">
-                  {/* Add New */}
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">
-                      Tambah Ekstrakurikuler
-                    </h3>
-                    <div className="flex gap-2">
-                      <Select 
-                        onValueChange={handleAddExtracurricular}
-                        disabled={isSubmitting}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Pilih ekstrakurikuler..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {extracurricularOptions.map((group) => (
-                            <div key={group.category}>
-                              <div className="px-2 py-1 text-xs font-medium text-gray-500">
-                                {group.category}
-                              </div>
-                              {group.items.map((item) => (
-                                <SelectItem
-                                  key={item.id}
-                                  value={item.id}
-                                  disabled={tempExtracurriculars.includes(item.id)}
-                                >
-                                  {item.name}
-                                </SelectItem>
-                              ))}
-                            </div>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Selected Items */}
-                  {tempExtracurriculars.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-700 mb-2">
-                        Ekstrakurikuler Dipilih ({tempExtracurriculars.length})
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {tempExtracurriculars.map((id) => (
-                          <Badge
-                            key={id}
-                            variant="outline"
-                            className="px-3 py-1 text-sm flex items-center gap-1"
-                          >
-                            {getExtracurricularName(id)}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveExtracurricular(id)}
-                              className="text-gray-500 hover:text-red-500"
-                              disabled={isSubmitting}
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                  <BookOpen className="h-12 w-12 mb-3 text-gray-300" />
+                  <p>Tidak ada ekstrakurikuler yang diikuti</p>
                 </div>
               )}
             </CardContent>
