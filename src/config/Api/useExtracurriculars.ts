@@ -86,3 +86,26 @@ export const useExtracurricularDelete = () => {
   })
 }
 
+export const useExtracurricularExportSingle = () => {
+  return async (extra_id: number) => {
+      try {
+        const response = await ApiExtracurriculars.exportSingle(extra_id);
+        
+        const url = window.URL.createObjectURL(new Blob([response]));
+        const link = document.createElement("a");
+        link.href = url;
+  
+        const fileName = `Extracurriculars export_${new Date()
+          .toISOString()
+          .slice(0, 10)}.xlsx`;
+        link.setAttribute("download", fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (error) {
+        console.error("Export history failed:", error);
+        throw error;
+      }
+    };
+};
+
