@@ -47,7 +47,7 @@ export const ApiExtracurriculars = {
       method: "POST",
       body: { _method: "DELETE" },
     }),
-  exportSingle: (id: number): Promise<Blob> =>
+  exportSingleExtracurricular: (id: number): Promise<Blob> =>
     ApiRequest({
       url: `/extracurriculars/export/${id}`,
       method: "GET",
