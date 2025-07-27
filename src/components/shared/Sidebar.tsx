@@ -189,7 +189,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
         />
         <div className="min-w-0 flex-1">
           <div className="text-md font-bold text-gray-800 truncate">
-            E-Saku Siswa
+            E-Saku Peserta Didik
           </div>
           <div className="text-xs text-gray-500 truncate">
             SMK Negeri 1 Denpasar
