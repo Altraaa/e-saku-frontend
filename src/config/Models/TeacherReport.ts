@@ -11,8 +11,8 @@ export interface ITeacherReport {
   teacher_id: number;
   teacher?: ITeacher;
   reporter: ITeacher;
-  rulesofconduct_id: string[]; // Ubah menjadi array
-  rules_of_conduct: IRules[];
+  rulesofconduct_id: string[]; 
+  rules_of_conduct: IRules;
   violation_date: string;
   violation_details: string;
   action: string;
@@ -20,7 +20,7 @@ export interface ITeacherReport {
   created_at: string;
   updated_at: string;
 
-  accomplishment_type?: string; // This will handle the type of achievement
-  points?: number; // Points for the achievement
+  accomplishment_type?: string; 
+  points?: number; 
   rank?: string;
 }

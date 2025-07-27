@@ -26,7 +26,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
   const activeItem = location.pathname;
   const { isOpen, toggleSidebar, closeSidebar } = useSidebar();
 
-  const { logout, isLoading: isLoggingOut } = useLogout();
+  const { logout } = useLogout();
   const [isLogoutModalOpen, setLogoutModalOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== "undefined" ? window.innerWidth : 1024

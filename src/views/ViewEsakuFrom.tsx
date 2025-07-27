@@ -125,7 +125,6 @@ const ESakuForm: React.FC = () => {
   const [selectedRule, setSelectedRule] = useState<IRules | null>(null);
   const [rank, setRank] = useState<string>("");
   const [customRank, setCustomRank] = useState<string>("");
-  const [selectedRuleId, setSelectedRuleId] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmType, setConfirmType] = useState<"report" | "save" | null>(
     null
@@ -266,12 +265,11 @@ const ESakuForm: React.FC = () => {
 
       // Set rule jika tersedia
       if (editData.rules_of_conduct) {
-        setSelectedRuleId(editData.rules_of_conduct.id.toString());
         setSelectedRule(editData.rules_of_conduct);
         setPoint(editData.rules_of_conduct.points.toString());
       }
     }
-  }, [editData, classrooms, setSelectedRuleId]);
+  }, [editData, classrooms]);
 
   useEffect(() => {
     // Jika tidak ada editData, pastikan mode edit dimatikan
@@ -428,7 +426,6 @@ const ESakuForm: React.FC = () => {
     setAchievementTypeOptions("");
     setAchievementLevel("");
     setSelectedRule(null);
-    setSelectedRuleId("");
     setPoint("0");
     setFollowUpType("tidak-perlu");
     setCustomFollowUp("");
