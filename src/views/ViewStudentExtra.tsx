@@ -79,7 +79,7 @@ const {
   }, [extracurricularsData]);
 
   // Calculate remaining slots
-  const registeredCount = registeredExtras?.extracurriculars.length || 0;
+  const registeredCount = registeredExtras?.length || 0;
   const remainingSlots = MAX_SELECTION - registeredCount;
 
   // Filter only active extracurriculars
@@ -100,7 +100,7 @@ const {
         // Filter out already registered extracurriculars
         .filter(
           (item) =>
-            !registeredExtras?.extracurriculars.some(
+            !registeredExtras?.some(
               (registered : IExtracurricular) => registered.id === item.id
             )
         )
@@ -258,8 +258,8 @@ const handleSelectExtracurricular = (id: number) => {
       </div>
 
       {/* Registered Extracurriculars Table */}
-      {registeredExtras?.extracurriculars &&
-        registeredExtras?.extracurriculars.length > 0 && (
+      {registeredExtras &&
+        registeredExtras.length > 0 && (
           <div className="bg-white rounded-xl overflow-hidden shadow-sm mb-8">
             <div className="px-4 sm:px-6 pt-4 pb-2">
               <div className="flex items-center gap-2 mb-4">
@@ -298,7 +298,7 @@ const handleSelectExtracurricular = (id: number) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {registeredExtras?.extracurriculars.map((item: IExtracurricular, index : any) => (
+                  {registeredExtras?.map((item: IExtracurricular, index : any) => (
                     <TableRow
                       key={item.id}
                       className="border-b hover:bg-gray-50"
