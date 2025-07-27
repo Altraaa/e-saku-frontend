@@ -53,4 +53,10 @@ export const ApiExtracurriculars = {
       method: "GET",
       responseType: "blob",
     }),
+  exportAllExtracurricular: (): Promise<Blob> =>
+    ApiRequest({
+      url: `/extracurriculars/export/`,
+      method: "GET",
+      responseType: "blob",
+    }),
 };
