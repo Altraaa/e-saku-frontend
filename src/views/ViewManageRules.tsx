@@ -236,13 +236,19 @@ const ViewManageRules: React.FC = () => {
   };
 
 
-  const checkForDuplicates = (
-    value: string | number,
-    data: any[],
-    field: string
-  ) => {
-    return data.some((item) => item[field].toLowerCase() === (value as string).toLowerCase());
-  };
+const checkForDuplicates = (
+  value: string | number,
+  data: any[],
+  field: string,
+  excludeId?: string // Tambahkan parameter excludeId
+) => {
+  return data.some((item) =>
+    // Tambahkan kondisi untuk mengecualikan item yang sedang diedit
+    excludeId && item.id === excludeId
+      ? false
+      : String(item[field]).toLowerCase() === String(value).toLowerCase()
+  );
+};
 
 
   // Save function
@@ -257,37 +263,57 @@ const performSave = async () => {
 
   // Check for duplicate rule, type, rank, or level before saving
   if (isRule) {
-    // Check if rule name already exists
-    if (checkForDuplicates(formData.name || "", rules, "name")) {
-      toast.error("Rule name already exists.");
-      return;
-    }
-    isValid = !!formData.name && (formData.points ?? 0) > 0;
-    itemName = formData.name || "Rule";
-  } else if (isType) {
-    // Check if achievement type already exists
-    if (checkForDuplicates(formData.type || "", typesData, "type")) {
-      toast.error("Achievement type already exists.");
-      return;
-    }
-    isValid = !!formData.type && (formData.point ?? 0) > 0;
-    itemName = formData.type || "Achievement Type";
-  } else if (isRank) {
-    // Check if achievement rank already exists
-    if (checkForDuplicates(formData.rank || "", ranksData, "rank")) {
-      toast.error("Achievement rank already exists.");
-      return;
-    }
-    isValid = !!formData.rank && (formData.point ?? 0) > 0;
-    itemName = formData.rank || "Achievement Rank";
-  } else if (isLevel) {
-    // Check if achievement level already exists
-    if (checkForDuplicates(formData.level || "", levelsData, "level")) {
-      toast.error("Achievement level already exists.");
-      return;
-    }
-    isValid = !!formData.level && (formData.point ?? 0) > 0;
-    itemName = formData.level || "Achievement Level";
+      // Tambahkan excludeId saat editing
+      if (checkForDuplicates(
+        formData.name || "", 
+        rules, 
+        "name", 
+        editingItem?.id // Kirim ID item yang sedang diedit
+      )) {
+        toast.error("Rule name already exists.");
+        return;
+      }
+      isValid = !!formData.name && (formData.points ?? 0) > 0;
+      itemName = formData.name || "Rule";
+    } else if (isType) {
+      // Tambahkan excludeId saat editing
+      if (checkForDuplicates(
+        formData.type || "", 
+        typesData || [], 
+        "type",
+        editingItem?.id // Kirim ID item yang sedang diedit
+      )) {
+        toast.error("Achievement type already exists.");
+        return;
+      }
+      isValid = !!formData.type && (formData.point ?? 0) > 0;
+      itemName = formData.type || "Achievement Type";
+    } else if (isRank) {
+      // Tambahkan excludeId saat editing
+      if (checkForDuplicates(
+        formData.rank || "", 
+        ranksData || [], 
+        "rank",
+        editingItem?.id // Kirim ID item yang sedang diedit
+      )) {
+        toast.error("Achievement rank already exists.");
+        return;
+      }
+      isValid = !!formData.rank && (formData.point ?? 0) > 0;
+      itemName = formData.rank || "Achievement Rank";
+    } else if (isLevel) {
+      // Tambahkan excludeId saat editing
+      if (checkForDuplicates(
+        formData.level || "", 
+        levelsData || [], 
+        "level",
+        editingItem?.id
+      )) {
+        toast.error("Achievement level already exists.");
+        return;
+      }
+      isValid = !!formData.level && (formData.point ?? 0) > 0;
+      itemName = formData.level || "Achievement Level";
   }
 
   if (!isValid) {

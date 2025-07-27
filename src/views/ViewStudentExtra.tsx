@@ -81,7 +81,6 @@ const {
   // Calculate remaining slots
   const registeredCount = registeredExtras?.extracurriculars.length || 0;
   const remainingSlots = MAX_SELECTION - registeredCount;
-  const canSelectMore = selectedExtracurriculars.length < remainingSlots;
 
   // Filter only active extracurriculars
   const filteredData = useMemo(() => {

@@ -30,7 +30,7 @@ import {
   X,
 } from "lucide-react";
 import { DatePicker } from "@/components/shared/component/DatePicker";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   useViolationDelete,
   useViolationsByTeacherId,
@@ -82,6 +82,7 @@ const ViewHistory = () => {
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isModalExportOpen, setIsModalExportOpen] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Table states
   const [rowsPerPage, setRowsPerPage] = useState("10");
@@ -117,21 +118,21 @@ const ViewHistory = () => {
     return accomplishmentTypes?.reduce((acc, type) => {
       acc[type.id] = type.type;
       return acc;
-    }, {} as Record<number, string>);
+    }, {} as Record<string, string>);
   }, [accomplishmentTypes]);
 
   const rankLookup = useMemo(() => {
     return accomplishmentRanks?.reduce((acc, rank) => {
       acc[rank.id] = rank.rank;
       return acc;
-    }, {} as Record<number, string>);
+    }, {} as Record<string, string>);
   }, [accomplishmentRanks]);
 
   const levelLookup = useMemo(() => {
     return accomplishmentLevels?.reduce((acc, level) => {
       acc[level.id] = level.level;
       return acc;
-    }, {} as Record<number, string>);
+    }, {} as Record<string, string>);
   }, [accomplishmentLevels]);
 
   // Fetch data hooks
@@ -204,15 +205,29 @@ const ViewHistory = () => {
     }
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    const timeoutId = setTimeout(() => {
-      setSearchText(value);
-      setCurrentPage(1);
-    }, 300);
+const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const value = e.target.value;
 
-    return () => clearTimeout(timeoutId);
+  // Clear timeout sebelumnya jika ada
+  if (searchTimeoutRef.current) {
+    clearTimeout(searchTimeoutRef.current);
+  }
+
+  // Set timeout baru
+  searchTimeoutRef.current = setTimeout(() => {
+    setSearchText(value);
+    setCurrentPage(1);
+  }, 300);
+};
+
+// Bersihkan timeout saat komponen unmount
+useEffect(() => {
+  return () => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
   };
+}, []);
 
   const handleConfirmExportData = async () => {
     try {
@@ -433,8 +448,7 @@ const ViewHistory = () => {
               <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
-                  value={searchText}
-                  onChange={handleSearchChange}
+                  onChange={handleInputChange} 
                   placeholder={
                     selectedHistory === "violationhistory"
                       ? "Cari data pelanggaran..."

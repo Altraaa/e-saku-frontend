@@ -303,6 +303,10 @@ const ViewManageActivity = () => {
           });
         }
       }, 50);
+      setIsLoading(true);
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
 
       return () => clearTimeout(timer);
     }

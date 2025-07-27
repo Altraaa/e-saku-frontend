@@ -33,6 +33,7 @@ import { IStudent } from "@/config/Models/Student";
 import { IClassroom } from "@/config/Models/Classroom";
 import toast from "react-hot-toast";
 import ConfirmationModal from "@/components/ui/confirmation";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const ViewStudentBio = () => {
   const { id } = useParams();
@@ -133,7 +134,7 @@ const ViewStudentBio = () => {
     if (!isEditingStatus) {
       setStatus(initialStatus);
     }
-  }, [isEditingStatus]);
+  }, [isEditingStatus, initialStatus]);
 
   useEffect(() => {
     if (student) {
@@ -250,49 +251,98 @@ const ViewStudentBio = () => {
   };
   // End Profile Image
 
-  const handleSaveChanges = () => {
-    if (!formData || !studentId) return;
+const handleSaveChanges = () => {
+  if (!formData || !studentId || !student) return;
 
-    const updateData = {
-      name: formData.name,
-      nis: formData.nis,
-      nisn: formData.nisn,
-      place_of_birth: formData.place_of_birth,
-      birth_date: formData.birth_date,
-      gender: formData.gender,
-      religion: formData.religion,
-      address: formData.address ?? "",
-      sub_district: formData.sub_district ?? "",
-      district: formData.district ?? "",
-      height: formData.height,
-      weight: formData.weight,
-      phone_number: formData.phone_number ?? "",
-      father_name: formData.father_name ?? "",
-      father_job: formData.father_job ?? "",
-      mother_name: formData.mother_name ?? "",
-      mother_job: formData.mother_job ?? "",
-      guardian_name: formData.guardian_name ?? "",
-      guardian_job: formData.guardian_job ?? "",
-    };
+  // Validasi field required
+  if (!formData.nis || !formData.nisn || !formData.name) {
+    toast.error("Harap isi NIS, NISN dan Nama Lengkap!");
+    return;
+  }
 
-    updateMutation.mutate(
-      {
-        id: studentId,
-        data: updateData,
+  // Buat objek update hanya dengan field yang berubah
+  const updateData: Record<string, any> = {};
+
+  // Bandingkan setiap field dengan data asli
+  if (formData.name !== student.name) updateData.name = formData.name;
+  if (formData.nis !== student.nis) updateData.nis = formData.nis;
+  if (formData.nisn !== student.nisn) updateData.nisn = formData.nisn;
+
+  // Field lainnya hanya ditambahkan jika berbeda dari aslinya
+  if (formData.place_of_birth !== student.place_of_birth)
+    updateData.place_of_birth = formData.place_of_birth || null;
+
+  if (formData.birth_date !== student.birth_date)
+    updateData.birth_date = formData.birth_date || null;
+
+  if (formData.gender !== student.gender)
+    updateData.gender = formData.gender || null;
+
+  if (formData.religion !== student.religion)
+    updateData.religion = formData.religion || null;
+
+  if (formData.address !== student.address)
+    updateData.address = formData.address || null;
+
+  if (formData.sub_district !== student.sub_district)
+    updateData.sub_district = formData.sub_district || null;
+
+  if (formData.district !== student.district)
+    updateData.district = formData.district || null;
+
+  if (formData.height !== student.height)
+    updateData.height = formData.height || null;
+
+  if (formData.weight !== student.weight)
+    updateData.weight = formData.weight || null;
+
+  if (formData.phone_number !== student.phone_number)
+    updateData.phone_number = formData.phone_number || null;
+
+  if (formData.father_name !== student.father_name)
+    updateData.father_name = formData.father_name || null;
+
+  if (formData.father_job !== student.father_job)
+    updateData.father_job = formData.father_job || null;
+
+  if (formData.mother_name !== student.mother_name)
+    updateData.mother_name = formData.mother_name || null;
+
+  if (formData.mother_job !== student.mother_job)
+    updateData.mother_job = formData.mother_job || null;
+
+  if (formData.guardian_name !== student.guardian_name)
+    updateData.guardian_name = formData.guardian_name || null;
+
+  if (formData.guardian_job !== student.guardian_job)
+    updateData.guardian_job = formData.guardian_job || null;
+
+  // Jika tidak ada perubahan, tampilkan pesan
+  if (Object.keys(updateData).length === 0) {
+    toast.success("Tidak ada perubahan yang perlu disimpan");
+    setIsEditing(false);
+    return;
+  }
+
+  // Kirim hanya data yang berubah
+  updateMutation.mutate(
+    {
+      id: studentId,
+      data: updateData,
+    },
+    {
+      onSuccess: () => {
+        toast.success("Data profil berhasil diperbarui!");
+        setIsEditing(false);
+        refetch();
       },
-      {
-        onSuccess: () => {
-          toast.success("Data profil berhasil diperbarui!");
-          setIsEditing(false);
-          refetch();
-        },
-        onError: (error) => {
-          console.error("Error updating data:", error);
-          toast.error("Gagal memperbarui profil. Coba lagi.");
-        },
-      }
-    );
-  };
+      onError: (error) => {
+        console.error("Error updating data:", error);
+        toast.error("Gagal memperbarui profil. Coba lagi.");
+      },
+    }
+  );
+};
 
   const handleUpdatePassword = () => {
     if (password && password.length < 6) {
@@ -533,7 +583,7 @@ const ViewStudentBio = () => {
               <div className="space-y-3">
                 {userType === "teacher" && (
                   <Button
-                  onClick={handleFileExport}
+                    onClick={handleFileExport}
                     variant="outline"
                     className="text-green-600 hover:text-white hover:bg-green-600 border-2 border-green-600 transition-all duration-300 w-full"
                   >
@@ -691,7 +741,6 @@ const ViewStudentBio = () => {
                           handleInputChange("place_of_birth", e.target.value)
                         }
                         className="w-full"
-                        isRequired
                         id={formData.place_of_birth}
                         label={"Tempat Lahir"}
                       />
@@ -704,7 +753,6 @@ const ViewStudentBio = () => {
                           handleInputChange("birth_date", e.target.value)
                         }
                         className="w-full"
-                        isRequired
                         id={formData.birth_date}
                         label={"Tanggal Lahir"}
                       />
@@ -733,7 +781,6 @@ const ViewStudentBio = () => {
                           handleInputChange("gender", e.target.value)
                         }
                         className="w-full"
-                        isRequired
                         id={formData.gender}
                         label={"Jenis Kelamin"}
                       />
@@ -762,7 +809,6 @@ const ViewStudentBio = () => {
                           handleInputChange("religion", e.target.value)
                         }
                         className="w-full"
-                        isRequired
                         id={formData.religion}
                         label={"Agama"}
                       />
@@ -870,7 +916,6 @@ const ViewStudentBio = () => {
                             handleInputChange("height", e.target.value)
                           }
                           className="w-full"
-                          isRequired
                           id={formData.height}
                           label={"Tinggi Badan (cm)"}
                         />
@@ -881,7 +926,6 @@ const ViewStudentBio = () => {
                             handleInputChange("weight", e.target.value)
                           }
                           className="w-full"
-                          isRequired
                           id={formData.weight}
                           label={"Berat Badan (kg)"}
                         />
@@ -1107,17 +1151,20 @@ const ViewStudentBio = () => {
                     Status Siswa
                   </label>
                   <div className="relative">
-                    <select
-                      id="status"
+                    <Select
                       value={status}
                       disabled={!isEditingStatus}
-                      onChange={(e) => setStatus(e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none pr-10"
+                      onValueChange={(e) => setStatus(e)}
                     >
-                      <option value="active">Aktif</option>
-                      <option value="inactive">Tidak Aktif</option>
-                      <option value="suspended">Dihentikan</option>
-                    </select>
+                      <SelectTrigger className="w-full p-2 pl-4 bg-gray-100 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none pr-10">
+                        <SelectValue placeholder="Pilih Jenis Input" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Aktif</SelectItem>
+                        <SelectItem value="inactive">Tidak Aktif</SelectItem>
+                        <SelectItem value="suspended">Dihentikan</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
