@@ -223,10 +223,10 @@ const ViewProfileStudent = () => {
                   <Loader2 className="h-6 w-6 animate-spin text-green-500" />
                 </div>
               ) : studentExtracurriculars &&
-                studentExtracurriculars.extracurriculars &&
-                studentExtracurriculars.extracurriculars.length > 0 ? (
+                studentExtracurriculars &&
+                studentExtracurriculars.length > 0 ? (
                 <div className="space-y-3">
-                  {studentExtracurriculars.extracurriculars.map((ec: IExtracurricular) => (
+                  {studentExtracurriculars.map((ec: IExtracurricular) => (
                     <div
                       key={ec.id}
                       className="p-3 bg-gray-50 rounded-lg border border-gray-200"
