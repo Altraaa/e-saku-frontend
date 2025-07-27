@@ -7,7 +7,6 @@ import {
 } from "../Models/Extracurriculars";
 import { ApiExtracurriculars } from "../Services/Extracurriculars.service";
 import { ApiRequest } from "../Services/Api.service";
-import toast from "react-hot-toast";
 
 interface IDeleteExtracurricularParams {
   extracurricular_id: number;
