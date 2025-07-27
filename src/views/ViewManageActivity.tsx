@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import {
   GraduationCap,
-  X,
   Search,
   ChevronLeft,
   ChevronRight,
@@ -53,6 +52,7 @@ import {
   useExtracurricularCreate,
   useExtracurricularUpdate,
   useExtracurricularExportSingle,
+  useExportAllExtracurricularsExport,
   useExtracurricularHistory,
 } from "@/config/Api/useExtracurriculars";
 import {
@@ -89,6 +89,7 @@ const ViewManageActivity = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalExportOpen, setIsModalExportOpen] = useState(false);
+  const [isModalSingleExportOpen, setIsModalSingleExportOpen] = useState(false);
   const [formData, setFormData] = useState<IExtracurricular>({
     name: "",
     status: "active",
@@ -130,13 +131,13 @@ const ViewManageActivity = () => {
   const createExtracurricular = useExtracurricularCreate();
   const updateExtracurricular = useExtracurricularUpdate();
   const exportSingleExtracurricular = useExtracurricularExportSingle();
+  const exportAllExtracurricular = useExportAllExtracurricularsExport();
 
   useEffect(() => {
     if (extracurricularsData) {
       setExtracurriculars(extracurricularsData);
     }
   }, [extracurricularsData]);
-
 
   useEffect(() => {
     if (
@@ -151,7 +152,7 @@ const ViewManageActivity = () => {
 
   const handleExtraChange = (value: string) => {
     setSelectedExtracurricularId(value);
-    setCurrentPage(1); // Reset to first page when changing extracurricular filter
+    setCurrentPage(1);
   };
 
   const handleFileExport = () => {
@@ -160,10 +161,25 @@ const ViewManageActivity = () => {
 
   const handleConfirmExportData = async () => {
     try {
+      await exportAllExtracurricular();
+      setIsModalExportOpen(false);
+      toast.success("File berhasil didownload");
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Gagal export file");
+    }
+  };
+
+  const handleFileSingleExport = () => {
+    setIsModalSingleExportOpen(true);
+  };
+
+  const handleConfirmExportSingleData = async () => {
+    try {
       await exportSingleExtracurricular(
         selectedExtracurricularId ? parseInt(selectedExtracurricularId) : 0
       );
-      setIsModalExportOpen(false);
+      setIsModalSingleExportOpen(false);
       toast.success("File berhasil didownload");
     } catch (error) {
       console.error("Export failed:", error);
@@ -327,13 +343,6 @@ const ViewManageActivity = () => {
     setCurrentPage(1);
   };
 
-  const clearFilters = () => {
-    setFilters({
-      searchTerm: "",
-      statusFilter: "",
-    });
-  };
-
   const formatDisplayDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("id-ID", {
@@ -343,14 +352,6 @@ const ViewManageActivity = () => {
     });
   };
 
-  const hasActiveFilters = useMemo(() => {
-    if (activeTab === "extracurricular") {
-      return Object.values(filters).some((filter) => filter !== "");
-    }
-    return filters.searchTerm !== "";
-  }, [filters, activeTab]);
-
-  // Filter data based on active tab and other filters
   const filteredData = useMemo(() => {
     if (activeTab === "extracurricular") {
       return extracurriculars.filter((item) => {
@@ -541,25 +542,42 @@ const ViewManageActivity = () => {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
               {activeTab === "students" && (
-                <div className="flex gap-2">
-                  <Button
-                    onClick={handleFileExport}
-                    variant="outline"
-                    className="text-green-600 hover:text-white hover:bg-green-600 border-2 border-green-600 transition-all duration-300 w-full"
-                  >
-                    <UploadIcon size={16} className="mr-2" />
-                  </Button>
-                  <div className="w-48">
+                <div className="flex gap-2 items-center flex-wrap">
+                  {selectedExtracurricularId === "all" ? (
+                    <Button
+                      onClick={handleFileExport}
+                      className="text-white hover:text-white hover:bg-green-700 border-2 hover:border-green-600 transition-all duration-300"
+                    >
+                      <UploadIcon size={16} className="mr-2" />
+                      Export Semua
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleFileSingleExport}
+                      variant="outline"
+                      className="text-green-600 hover:text-white hover:bg-green-600 border-2 border-green-600 transition-all duration-300"
+                    >
+                      <UploadIcon size={16} className="mr-2" />
+                      Export{" "}
+                      {extracurriculars.find(
+                        (extra) =>
+                          extra.id?.toString() === selectedExtracurricularId
+                      )?.name ?? "Semua"}
+                    </Button>
+                  )}
+
+                  <div className="relative w-48">
                     <Select
                       onValueChange={handleExtraChange}
-                      value={selectedExtracurricularId ?? ""}
+                      value={selectedExtracurricularId || undefined}
                     >
-                      <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Pilih Ekstrakurikuler" >
-                          Pilih Ekstrakurikuler
-                        </SelectValue>
+                      <SelectTrigger className="w-48 pr-auto">
+                        <SelectValue placeholder="Pilih Ekstrakurikuler" />
                       </SelectTrigger>
                       <SelectContent className="w-48">
+                        <SelectItem value="all">
+                          Semua Ekstrakurikuler
+                        </SelectItem>
                         {extracurriculars.map((extra) => (
                           <SelectItem
                             key={extra.id}
@@ -581,27 +599,15 @@ const ViewManageActivity = () => {
                     value={filters.statusFilter || "all"}
                     onValueChange={handleStatusFilterChange}
                   >
-                    <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Pilih Status">
-                        Pilih Status
-                      </SelectValue>
+                    <SelectTrigger className="w-36">
+                      <SelectValue placeholder="Pilih Status" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="all">Semua Status</SelectItem>
                       <SelectItem value="active">Aktif</SelectItem>
                       <SelectItem value="inactive">Tidak Aktif</SelectItem>
                     </SelectContent>
                   </Select>
-                )}
-                {activeTab === "extracurricular" && hasActiveFilters && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="text-gray-600 hover:text-gray-800 h-8"
-                  >
-                    <X className="h-3 w-3 mr-1" />
-                    Clear Filters
-                  </Button>
                 )}
               </div>
               <div className="relative w-full sm:w-64">
@@ -1159,6 +1165,16 @@ const ViewManageActivity = () => {
         isOpen={isModalExportOpen}
         onClose={() => setIsModalExportOpen(false)}
         onConfirm={handleConfirmExportData}
+        title="Konfirmasi Ekspor Data"
+        description="Apakah Anda yakin ingin mengekspor data siswa ini ke dalam file excel?"
+        confirmText="Ekspor"
+        cancelText="Batal"
+        type="add"
+      />
+      <ConfirmationModal
+        isOpen={isModalSingleExportOpen}
+        onClose={() => setIsModalSingleExportOpen(false)}
+        onConfirm={handleConfirmExportSingleData}
         title="Konfirmasi Ekspor Data"
         description="Apakah Anda yakin ingin mengekspor data siswa ini ke dalam file excel?"
         confirmText="Ekspor"
