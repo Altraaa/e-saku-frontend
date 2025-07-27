@@ -155,3 +155,27 @@ export const useExtracurricularExportSingle = () => {
     }
   };
 };
+
+export const useExportAllExtracurricularsExport = () => {
+  return async () => {
+    try {
+      const response = await ApiExtracurriculars.exportAllExtracurricular();
+
+      const url = window.URL.createObjectURL(new Blob([response]));
+      const link = document.createElement("a");
+      link.href = url;
+
+      const fileName = `Ekstrakurikuler SMKN 1 Denpasar  - ${new Date()
+        .toISOString()
+        .slice(0, 10)}.xlsx`;
+
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Gagal mengekspor data ekstrakurikuler:", error);
+      throw error;
+    }
+  };
+};
