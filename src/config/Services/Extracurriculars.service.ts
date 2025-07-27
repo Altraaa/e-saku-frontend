@@ -30,6 +30,14 @@ export const ApiExtracurriculars = {
       body: payload,
     });
   },
+  deleteForMe: (
+  ): Promise<IChooseExtracurricular[]> => {
+    return ApiRequest({
+      url: "/me/extracurriculars",
+      method: "POST",
+      body: {_method: "DELETE", },
+    })
+  },
   create: (data: Partial<IExtracurricular>): Promise<IExtracurricular> =>
     ApiRequest({ url: "/extracurriculars", method: "POST", body: data }),
   update: (

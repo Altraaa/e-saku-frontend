@@ -6,6 +6,12 @@ import {
   IExtracurricularHistory,
 } from "../Models/Extracurriculars";
 import { ApiExtracurriculars } from "../Services/Extracurriculars.service";
+import { ApiRequest } from "../Services/Api.service";
+import toast from "react-hot-toast";
+
+interface IDeleteExtracurricularParams {
+  extracurricular_id: number;
+}
 
 //fetch all extracurricular
 export const useExtracurriculars = () => {
@@ -96,6 +102,43 @@ export const useExtracurricularDelete = () => {
       console.error("Error deleting extracurricular:", error);
     },
   });
+};
+
+export const useDeleteExtracurricular = () => {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (params: IDeleteExtracurricularParams) => {
+      return ApiRequest({
+        url: "/me/extracurriculars",
+        method: "POST",
+        body: {
+          _method: "DELETE",
+          extracurricular_id: params.extracurricular_id,
+        },
+      });
+    },
+    onSuccess: () => {
+      // Invalidate relevant queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["studentExtracurriculars"] });
+      queryClient.invalidateQueries({ queryKey: ["extracurriculars"] });
+    },
+    onError: (error: Error) => {
+      console.error("Delete extracurricular error:", error);
+    },
+  });
+
+  const deleteExtracurricular = async (extracurricularId: number) => {
+    return mutation.mutateAsync({ extracurricular_id: extracurricularId });
+  };
+
+  return {
+    deleteExtracurricular,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    isSuccess: mutation.isSuccess,
+    error: mutation.error,
+  };
 };
 
 export const useAssignExtracurricular = () => {

@@ -19,8 +19,25 @@ export interface IExtracurricularHistory {
   extracurricular_id: number;
   registered_at: string;
   status: string;
-  student?: IStudent;
-  extracurricular?: IExtracurricular;
+  created_at?: string;
+  updated_at?: string;
+  students: {
+    id: string;
+    nis: string;
+    name: string;
+    nisn: string;
+    class_id: number;
+    classroom: {
+      id: number;
+      name: string;
+      total_student: number;
+    };
+  };
+  extracurricular: {
+    id: number;
+    name: string;
+    trainer: string;
+  };
 }
 
 export interface IChooseExtracurricular {

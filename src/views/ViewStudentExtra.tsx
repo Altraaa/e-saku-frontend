@@ -29,16 +29,20 @@ import {
 import {
   useExtracurriculars,
   useAssignExtracurricular,
+  useExtracurricularsByStudentId,
+  useDeleteExtracurricular,
 } from "@/config/Api/useExtracurriculars";
-import { IChooseExtracurricular } from "@/config/Models/Extracurriculars";
+import { IChooseExtracurricular, IExtracurricular } from "@/config/Models/Extracurriculars";
 import toast from "react-hot-toast";
 import { Badge } from "@/components/ui/badge";
 import ConfirmationModal from "@/components/ui/confirmation";
-import { AxiosError } from "axios";
+import { AxiosError } from "axios"; // Asumsikan ada hook untuk auth
 
 const MAX_SELECTION = 3;
 
 const ViewStudentExtra = () => {
+
+  const studentId = localStorage.getItem("student_id") || "";
   // State management
   const [filters, setFilters] = useState({
     searchTerm: "",
@@ -51,11 +55,21 @@ const ViewStudentExtra = () => {
 
   // Modal states
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [extracurricularToDelete, setExtracurricularToDelete] = useState<
+    number | null
+  >(null);
 
   // API hooks
   const { data: extracurricularsData, isLoading } = useExtracurriculars();
+const {
+  data: registeredExtras,
+  refetch: refetchRegistered,
+} = useExtracurricularsByStudentId(studentId);
   const assignMutation = useAssignExtracurricular();
+  const { deleteExtracurricular, isLoading: isDeleting } =
+    useDeleteExtracurricular();
 
   // Process data
   useEffect(() => {
@@ -64,21 +78,35 @@ const ViewStudentExtra = () => {
     }
   }, [extracurricularsData]);
 
+  // Calculate remaining slots
+  const registeredCount = registeredExtras?.extracurriculars.length || 0;
+  const remainingSlots = MAX_SELECTION - registeredCount;
+  const canSelectMore = selectedExtracurriculars.length < remainingSlots;
+
   // Filter only active extracurriculars
   const filteredData = useMemo(() => {
     if (!extracurricularsData) return [];
 
-    return extracurricularsData
-      .filter((item) => item.status === "active" && item.id !== undefined)
-      .filter((item) => {
-        if (!filters.searchTerm) return true;
-        const searchLower = filters.searchTerm.toLowerCase();
-        return (
-          item.name.toLowerCase().includes(searchLower) ||
-          (item.trainer && item.trainer.toLowerCase().includes(searchLower))
-        );
-      });
-  }, [extracurricularsData, filters]);
+    return (
+      extracurricularsData
+        .filter((item) => item.status === "active" && item.id !== undefined)
+        .filter((item) => {
+          if (!filters.searchTerm) return true;
+          const searchLower = filters.searchTerm.toLowerCase();
+          return (
+            item.name.toLowerCase().includes(searchLower) ||
+            (item.trainer && item.trainer.toLowerCase().includes(searchLower))
+          );
+        })
+        // Filter out already registered extracurriculars
+        .filter(
+          (item) =>
+            !registeredExtras?.extracurriculars.some(
+              (registered : IExtracurricular) => registered.id === item.id
+            )
+        )
+    );
+  }, [extracurricularsData, filters, registeredExtras]);
 
   // Pagination
   const totalPages = Math.ceil(filteredData.length / parseInt(rowsPerPage));
@@ -97,19 +125,22 @@ const ViewStudentExtra = () => {
     setCurrentPage(1);
   };
 
-  const handleSelectExtracurricular = (id: number) => {
-    setSelectedExtracurriculars((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((item) => item !== id);
-      } else {
-        if (prev.length >= MAX_SELECTION) {
-          toast.error(`Maksimal memilih ${MAX_SELECTION} ekstrakurikuler`);
-          return prev;
-        }
-        return [...prev, id];
+const handleSelectExtracurricular = (id: number) => {
+  setSelectedExtracurriculars((prev) => {
+    if (prev.includes(id)) {
+      return prev.filter((item) => item !== id);
+    } else {
+      if (prev.length >= remainingSlots) {
+        toast.error(
+          `Anda hanya dapat memilih ${remainingSlots} ekstrakurikuler lagi`,
+          { id: "extracurricular-limit" }
+        );
+        return prev;
       }
-    });
-  };
+      return [...prev, id];
+    }
+  });
+};
 
   // New function to cancel all selections
   const handleCancelSelection = () => {
@@ -127,34 +158,57 @@ const ViewStudentExtra = () => {
   };
 
   // Function to handle registration after confirmation
-const handleConfirmRegistration = async () => {
-  setIsConfirmModalOpen(false);
-  setIsProcessing(true);
+  const handleConfirmRegistration = async () => {
+    setIsConfirmModalOpen(false);
+    setIsProcessing(true);
 
-  try {
-    const payload: IChooseExtracurricular = {
-      extracurricular_ids: selectedExtracurriculars,
-    };
+    try {
+      const payload: IChooseExtracurricular = {
+        extracurricular_ids: selectedExtracurriculars,
+      };
 
-    await assignMutation.mutateAsync(payload);
-    toast.success("Berhasil mendaftar ekstrakurikuler");
-    setSelectedExtracurriculars([]);
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      if (error.response?.data?.message) {
-        toast.error(`Gagal mendaftar: ${error.response.data.message}`);
+      await assignMutation.mutateAsync(payload);
+      toast.success("Berhasil mendaftar ekstrakurikuler");
+      setSelectedExtracurriculars([]);
+      refetchRegistered(); // Refresh registered list
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        if (error.response?.data?.message) {
+          toast.error(`Gagal mendaftar: ${error.response.data.message}`);
+        } else {
+          toast.error("Gagal mendaftar ekstrakurikuler");
+        }
       } else {
         toast.error("Gagal mendaftar ekstrakurikuler");
       }
-    } else {
-      // Handle other types of errors (e.g., network error)
-      toast.error("Gagal mendaftar ekstrakurikuler");
+      console.error("Registration error:", error);
+    } finally {
+      setIsProcessing(false);
     }
-    console.error("Registration error:", error);
-  } finally {
-    setIsProcessing(false);
-  }
-};
+  };
+
+  // Handle delete confirmation
+  const confirmDelete = (id: number) => {
+    setExtracurricularToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Handle actual deletion
+  const handleDelete = async () => {
+    if (!extracurricularToDelete) return;
+
+    try {
+      await deleteExtracurricular(extracurricularToDelete);
+      toast.success("Ekstrakurikuler berhasil dihapus");
+      refetchRegistered(); // Refresh registered list
+    } catch (error) {
+      toast.error("Gagal menghapus ekstrakurikuler");
+      console.error("Delete error:", error);
+    } finally {
+      setIsDeleteModalOpen(false);
+      setExtracurricularToDelete(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -166,6 +220,7 @@ const handleConfirmRegistration = async () => {
 
   return (
     <div className="space-y-6 min-h-screen md:max-w-screen-xl mx-auto text-sm sm:text-base md:text-base">
+      {/* Confirmation Modals */}
       <ConfirmationModal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
@@ -175,6 +230,17 @@ const handleConfirmRegistration = async () => {
         confirmText="Ya, Daftar"
         cancelText="Batal"
         type="add"
+      />
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Konfirmasi Penghapusan"
+        description="Apakah Anda yakin ingin menghapus ekstrakurikuler ini?"
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        type="delete"
       />
 
       {/* Header */}
@@ -192,7 +258,90 @@ const handleConfirmRegistration = async () => {
         </p>
       </div>
 
-      {/* Filters and Selected Info */}
+      {/* Registered Extracurriculars Table */}
+      {registeredExtras?.extracurriculars &&
+        registeredExtras?.extracurriculars.length > 0 && (
+          <div className="bg-white rounded-xl overflow-hidden shadow-sm mb-8">
+            <div className="px-4 sm:px-6 pt-4 pb-2">
+              <div className="flex items-center gap-2 mb-4">
+                <Users className="h-5 w-5 text-green-500" />
+                <h2 className="text-xl font-bold text-gray-900">
+                  Ekstrakurikuler Terdaftar
+                </h2>
+                <Badge className="bg-green-100 text-green-800 ml-2">
+                  Terdaftar: {registeredCount}/{MAX_SELECTION}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-gray-50">
+                  <TableRow className="hover:bg-gray-50">
+                    <TableHead className="text-center font-medium text-black w-12">
+                      No
+                    </TableHead>
+                    <TableHead className="text-left font-medium text-black">
+                      Nama Ekstrakurikuler
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      Pembina
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      Peserta
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      Status
+                    </TableHead>
+                    <TableHead className="text-center font-medium text-black">
+                      Aksi
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {registeredExtras?.extracurriculars.map((item: IExtracurricular, index : any) => (
+                    <TableRow
+                      key={item.id}
+                      className="border-b hover:bg-gray-50"
+                    >
+                      <TableCell className="text-center px-4 py-3 text-gray-500">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell className="text-left px-4 py-3 font-medium">
+                        {item.name}
+                      </TableCell>
+                      <TableCell className="text-center px-4 py-3">
+                        {item.trainer || "-"}
+                      </TableCell>
+                      <TableCell className="text-center px-4 py-3">
+                        <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
+                          {item.students_count || 0}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center px-4 py-3">
+                        <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-600">
+                          Terdaftar
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center px-4 py-3">
+                        <Button
+                          variant="ghost"
+                          className="text-red-500 hover:bg-red-50"
+                          onClick={() => confirmDelete(item.id!)}
+                          disabled={isDeleting}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+
+      {/* Available Extracurriculars */}
       <div className="bg-white rounded-xl overflow-hidden shadow-sm">
         <div className="px-4 sm:px-6 pt-4 pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -201,12 +350,17 @@ const handleConfirmRegistration = async () => {
               <h2 className="text-xl font-bold text-gray-900">
                 Daftar Ekstrakurikuler Aktif
               </h2>
+              {registeredCount > 0 && (
+                <Badge className="bg-green-100 text-green-800">
+                  Sisa Kuota: {remainingSlots}
+                </Badge>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
               {selectedExtracurriculars.length > 0 && (
                 <Badge className="bg-green-100 text-green-800">
-                  Terpilih: {selectedExtracurriculars.length}/{MAX_SELECTION}
+                  Terpilih: {selectedExtracurriculars.length}/{remainingSlots}
                 </Badge>
               )}
 
@@ -253,43 +407,58 @@ const handleConfirmRegistration = async () => {
             </TableHeader>
             <TableBody>
               {paginatedData.length > 0 ? (
-                paginatedData.map((item, index) => (
-                  <TableRow key={item.id} className="border-b hover:bg-gray-50">
-                    <TableCell className="text-center px-4 py-3 text-gray-500">
-                      {startIndex + index + 1}
-                    </TableCell>
-                    <TableCell className="text-left px-4 py-3 font-medium">
-                      {item.name}
-                    </TableCell>
-                    <TableCell className="text-center px-4 py-3">
-                      {item.trainer || "-"}
-                    </TableCell>
-                    <TableCell className="text-center px-4 py-3">
-                      <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
-                        {item.students_count || 0}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-center px-4 py-3">
-                      <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-600">
-                        Aktif
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-center px-4 py-3">
-                      <Checkbox
-                        checked={selectedExtracurriculars.includes(item.id!)}
-                        onCheckedChange={() =>
-                          handleSelectExtracurricular(item.id!)
-                        }
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))
+                paginatedData.map((item, index) => {
+                  const isSelected = selectedExtracurriculars.includes(
+                    item.id!
+                  );
+                  const isDisabled = remainingSlots <= 0 && !isSelected;
+
+                  return (
+                    <TableRow
+                      key={item.id}
+                      className="border-b hover:bg-gray-50"
+                    >
+                      <TableCell className="text-center px-4 py-3 text-gray-500">
+                        {startIndex + index + 1}
+                      </TableCell>
+                      <TableCell className="text-left px-4 py-3 font-medium">
+                        {item.name}
+                      </TableCell>
+                      <TableCell className="text-center px-4 py-3">
+                        {item.trainer || "-"}
+                      </TableCell>
+                      <TableCell className="text-center px-4 py-3">
+                        <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
+                          {item.students_count || 0}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center px-4 py-3">
+                        <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-600">
+                          Aktif
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center px-4 py-3">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() =>
+                            handleSelectExtracurricular(item.id!)
+                          }
+                          disabled={isDisabled}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-12 px-4">
                     <div className="flex flex-col items-center gap-2 text-gray-500">
                       <AlertCircle className="h-8 w-8 text-gray-300" />
-                      <p>Tidak ada ekstrakurikuler aktif ditemukan</p>
+                      <p>
+                        {remainingSlots <= 0
+                          ? "Anda sudah mendaftar di maksimal ekstrakurikuler"
+                          : "Tidak ada ekstrakurikuler aktif ditemukan"}
+                      </p>
                     </div>
                   </TableCell>
                 </TableRow>

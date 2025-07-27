@@ -53,8 +53,12 @@ import {
   useExtracurricularCreate,
   useExtracurricularUpdate,
   useExtracurricularExportSingle,
+  useExtracurricularHistory,
 } from "@/config/Api/useExtracurriculars";
-import { IExtracurricular } from "@/config/Models/Extracurriculars";
+import {
+  IExtracurricular,
+  IExtracurricularHistory,
+} from "@/config/Models/Extracurriculars";
 import { Textarea } from "@/components/ui/textarea";
 
 interface IStudentExtracurricular {
@@ -102,9 +106,10 @@ const ViewManageActivity = () => {
     []
   );
   const [studentExtracurriculars, setStudentExtracurriculars] = useState<
-    IStudentExtracurricular[]
+    IExtracurricularHistory[]
   >([]);
-  const [selectedExtracurricularId, setSelectedExtracurricularId] = useState<string | undefined>(undefined);
+  const [selectedExtracurricularId, setSelectedExtracurricularId] =
+    useState<string>("all");
   const navigate = useNavigate();
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -119,6 +124,8 @@ const ViewManageActivity = () => {
 
   const { data: extracurricularsData, isLoading: extracurricularsLoading } =
     useExtracurriculars();
+  const { data: extracurricularHistoryData, isLoading: historyLoading } =
+    useExtracurricularHistory();
   const deleteMutation = useExtracurricularDelete();
   const createExtracurricular = useExtracurricularCreate();
   const updateExtracurricular = useExtracurricularUpdate();
@@ -130,14 +137,21 @@ const ViewManageActivity = () => {
     }
   }, [extracurricularsData]);
 
+
   useEffect(() => {
-    if (studentExtracurriculars.length > 0) {
-      setSelectedExtracurricularId(studentExtracurriculars[0].extracurricular_id.toString());
+    if (
+      extracurricularHistoryData &&
+      Array.isArray(extracurricularHistoryData)
+    ) {
+      setStudentExtracurriculars(extracurricularHistoryData);
+    } else {
+      setStudentExtracurriculars([]);
     }
-  }, [studentExtracurriculars]);
+  }, [extracurricularHistoryData]);
 
   const handleExtraChange = (value: string) => {
-    setSelectedExtracurricularId(value); 
+    setSelectedExtracurricularId(value);
+    setCurrentPage(1); // Reset to first page when changing extracurricular filter
   };
 
   const handleFileExport = () => {
@@ -146,7 +160,9 @@ const ViewManageActivity = () => {
 
   const handleConfirmExportData = async () => {
     try {
-      await exportSingleExtracurricular(selectedExtracurricularId ? parseInt(selectedExtracurricularId) : 0);
+      await exportSingleExtracurricular(
+        selectedExtracurricularId ? parseInt(selectedExtracurricularId) : 0
+      );
       setIsModalExportOpen(false);
       toast.success("File berhasil didownload");
     } catch (error) {
@@ -218,7 +234,7 @@ const ViewManageActivity = () => {
     try {
       const { id, name, trainer, description } = formData;
 
-      if(!id) throw new Error("ID ekstrakurikuler tidak ditemukan");
+      if (!id) throw new Error("ID ekstrakurikuler tidak ditemukan");
 
       await updateExtracurricular.mutateAsync({
         id,
@@ -327,9 +343,12 @@ const ViewManageActivity = () => {
     });
   };
 
-  const hasActiveFilters = Object.values(filters).some(
-    (filter) => filter !== ""
-  );
+  const hasActiveFilters = useMemo(() => {
+    if (activeTab === "extracurricular") {
+      return Object.values(filters).some((filter) => filter !== "");
+    }
+    return filters.searchTerm !== "";
+  }, [filters, activeTab]);
 
   // Filter data based on active tab and other filters
   const filteredData = useMemo(() => {
@@ -351,27 +370,38 @@ const ViewManageActivity = () => {
       });
     } else {
       return studentExtracurriculars.filter((item) => {
+        // Search term filtering
         if (
           filters.searchTerm &&
-          !item.student?.name
-            .toLowerCase()
+          !item.students?.name
+            ?.toLowerCase()
             .includes(filters.searchTerm.toLowerCase()) &&
-          !item.student?.nis.includes(filters.searchTerm) &&
+          !item.students?.nis?.includes(filters.searchTerm) &&
           !item.extracurricular?.name
-            .toLowerCase()
+            ?.toLowerCase()
             .includes(filters.searchTerm.toLowerCase())
         ) {
           return false;
         }
 
-        if (filters.statusFilter && item.status !== filters.statusFilter) {
+        // Extracurricular filter
+        if (
+          selectedExtracurricularId !== "all" &&
+          item.extracurricular_id !== parseInt(selectedExtracurricularId || "0")
+        ) {
           return false;
         }
 
         return true;
       });
     }
-  }, [filters, extracurriculars, studentExtracurriculars, activeTab]);
+  }, [
+    filters,
+    extracurriculars,
+    studentExtracurriculars,
+    activeTab,
+    selectedExtracurricularId,
+  ]);
 
   const totalPages = Math.ceil(filteredData.length / parseInt(rowsPerPage));
   const startIndex = (currentPage - 1) * parseInt(rowsPerPage);
@@ -432,6 +462,10 @@ const ViewManageActivity = () => {
   };
 
   if (extracurricularsLoading) {
+    return <HistorySkeleton />;
+  }
+
+  if (historyLoading) {
     return <HistorySkeleton />;
   }
 
@@ -508,24 +542,29 @@ const ViewManageActivity = () => {
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
               {activeTab === "students" && (
                 <div className="flex gap-2">
-                    <Button
-                      onClick={handleFileExport}
-                        variant="outline"
-                        className="text-green-600 hover:text-white hover:bg-green-600 border-2 border-green-600 transition-all duration-300 w-full"
-                      >
-                        <UploadIcon size={16} className="mr-2" />
-                      </Button>
+                  <Button
+                    onClick={handleFileExport}
+                    variant="outline"
+                    className="text-green-600 hover:text-white hover:bg-green-600 border-2 border-green-600 transition-all duration-300 w-full"
+                  >
+                    <UploadIcon size={16} className="mr-2" />
+                  </Button>
                   <div className="w-48">
                     <Select
                       onValueChange={handleExtraChange}
-                      value={selectedExtracurricularId} // Nilai akan di-set pada ID pertama atau yang dipilih
+                      value={selectedExtracurricularId ?? ""}
                     >
                       <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Pilih Ekstrakurikuler" />
+                        <SelectValue placeholder="Pilih Ekstrakurikuler" >
+                          Pilih Ekstrakurikuler
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent className="w-48">
                         {extracurriculars.map((extra) => (
-                          <SelectItem key={extra.id} value={extra.id?.toString() ?? ''}>
+                          <SelectItem
+                            key={extra.id}
+                            value={extra.id?.toString() ?? ""}
+                          >
                             {extra.name}
                           </SelectItem>
                         ))}
@@ -534,22 +573,26 @@ const ViewManageActivity = () => {
                   </div>
                 </div>
               )}
-              
+
               <div className="flex items-center space-x-2">
-                <Select
-                  value={filters.statusFilter || "all"}
-                  onValueChange={handleStatusFilterChange}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Semua Status</SelectItem>
-                    <SelectItem value="active">Aktif</SelectItem>
-                    <SelectItem value="inactive">Tidak Aktif</SelectItem>
-                  </SelectContent>
-                </Select>
-                {hasActiveFilters && (
+                {/* Status filter - only show for extracurricular tab */}
+                {activeTab === "extracurricular" && (
+                  <Select
+                    value={filters.statusFilter || "all"}
+                    onValueChange={handleStatusFilterChange}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Pilih Status">
+                        Pilih Status
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Aktif</SelectItem>
+                      <SelectItem value="inactive">Tidak Aktif</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+                {activeTab === "extracurricular" && hasActiveFilters && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -643,7 +686,7 @@ const ViewManageActivity = () => {
                                 : "bg-red-100 text-red-600"
                             }`}
                           >
-                            {item.students_count}
+                            {item.students_count || 0}
                           </span>
                         </TableCell>
                         <TableCell className="text-center font-normal">
@@ -716,14 +759,11 @@ const ViewManageActivity = () => {
                     <TableHead className="text-center font-medium text-black">
                       Status
                     </TableHead>
-                    <TableHead className="text-center font-medium text-black">
-                      Aksi
-                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedData.length > 0 ? (
-                    (paginatedData as IStudentExtracurricular[]).map(
+                    (paginatedData as IExtracurricularHistory[]).map(
                       (item, index) => (
                         <TableRow
                           key={item.id}
@@ -733,32 +773,28 @@ const ViewManageActivity = () => {
                             {startIndex + index + 1}
                           </TableCell>
                           <TableCell className="text-center font-normal">
-                            {item.student?.nis || "N/A"}
+                            {item.students?.nis || "N/A"}
                           </TableCell>
                           <TableCell className="text-left font-normal">
                             <Link
-                              to={`/studentbio/${item.student?.id}`}
+                              to={`/studentbio/${item.students?.id}`}
                               className="hover:text-green-500 transition-colors"
                             >
-                              {item.student?.name || "N/A"}
+                              {item.students?.name || "N/A"}
                             </Link>
                           </TableCell>
                           <TableCell className="text-center font-normal">
-                            {item.student?.class || "N/A"}
+                            {item.students?.classroom?.name || "N/A"}
                           </TableCell>
                           <TableCell className="text-left font-normal">
                             <div>
                               <div className="font-medium">
                                 {item.extracurricular?.name || "N/A"}
                               </div>
-                              <div className="text-sm text-gray-500">
-                                Pembina:{" "}
-                                {item.extracurricular?.teacher?.name || "N/A"}
-                              </div>
                             </div>
                           </TableCell>
                           <TableCell className="text-center font-normal">
-                            {formatDisplayDate(item.enrollment_date)}
+                            {formatDisplayDate(item.registered_at)}
                           </TableCell>
                           <TableCell className="text-center font-normal">
                             <span
@@ -772,18 +808,6 @@ const ViewManageActivity = () => {
                                 ? "Aktif"
                                 : "Tidak Aktif"}
                             </span>
-                          </TableCell>
-                          <TableCell className="text-center font-normal">
-                            <div className="flex justify-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => handleDeleteClick(item)}
-                                className="text-red-500 hover:text-red-600"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
                           </TableCell>
                         </TableRow>
                       )
@@ -866,7 +890,7 @@ const ViewManageActivity = () => {
                   </div>
                 ))
               ) : (
-                (paginatedData as IStudentExtracurricular[]).map(
+                (paginatedData as IExtracurricularHistory[]).map(
                   (item, index) => (
                     <div
                       key={item.id}
@@ -879,7 +903,7 @@ const ViewManageActivity = () => {
                               {startIndex + index + 1}
                             </span>
                             <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
-                              {item.student?.nis || "N/A"}
+                              {item.students?.nis || "N/A"}
                             </span>
                             <span
                               className={`text-xs px-2 py-1 rounded ${
@@ -895,16 +919,16 @@ const ViewManageActivity = () => {
                           </div>
                           <div className="text-lg font-semibold text-gray-900 mb-1">
                             <Link
-                              to={`/studentbio/${item.student?.id}`}
+                              to={`/studentbio/${item.students?.id}`}
                               className="hover:text-green-500 transition-colors"
                             >
-                              {item.student?.name || "N/A"}
+                              {item.students?.name || "N/A"}
                             </Link>
                           </div>
                           <div className="text-sm text-gray-500 space-y-1">
                             <div>
                               <span className="font-medium">Kelas:</span>{" "}
-                              {item.student?.class || "N/A"}
+                              {item.students?.classroom?.name || "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">
@@ -914,25 +938,15 @@ const ViewManageActivity = () => {
                             </div>
                             <div>
                               <span className="font-medium">Pembina:</span>{" "}
-                              {item.extracurricular?.teacher?.name || "N/A"}
+                              {item.extracurricular?.trainer || "N/A"}
                             </div>
                             <div>
                               <span className="font-medium">
                                 Tanggal Daftar:
                               </span>{" "}
-                              {formatDisplayDate(item.enrollment_date)}
+                              {formatDisplayDate(item.registered_at)}
                             </div>
                           </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handleDeleteClick(item)}
-                            className="text-red-500 hover:text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
                         </div>
                       </div>
                     </div>
