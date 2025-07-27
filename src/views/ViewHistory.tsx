@@ -185,49 +185,53 @@ const ViewHistory = () => {
 
   const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
-
+    setIsDeleteModalOpen(false);
+    const loadingToastIdDelete = toast.loading("Menghapus data...");
     try {
       if (itemToDelete.type === "violation") {
         await deleteViolation.mutateAsync(itemToDelete.id);
-        toast.success("Data pelanggaran berhasil dihapus");
+        toast.success("Data pelanggaran berhasil dihapus", {
+          id: loadingToastIdDelete,
+        });
         await refetchViolations();
       } else {
         await deleteAccomplishment.mutateAsync(itemToDelete.id);
-        toast.success("Data prestasi berhasil dihapus");
+        toast.success("Data prestasi berhasil dihapus", {
+          id: loadingToastIdDelete,
+        });
         await refetchAccomplishments();
       }
     } catch (error) {
       toast.error("Gagal menghapus data");
       console.error("Delete error:", error);
     } finally {
-      setIsDeleteModalOpen(false);
       setItemToDelete(null);
     }
   };
 
-const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const value = e.target.value;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
 
-  // Clear timeout sebelumnya jika ada
-  if (searchTimeoutRef.current) {
-    clearTimeout(searchTimeoutRef.current);
-  }
-
-  // Set timeout baru
-  searchTimeoutRef.current = setTimeout(() => {
-    setSearchText(value);
-    setCurrentPage(1);
-  }, 300);
-};
-
-// Bersihkan timeout saat komponen unmount
-useEffect(() => {
-  return () => {
+    // Clear timeout sebelumnya jika ada
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
+
+    // Set timeout baru
+    searchTimeoutRef.current = setTimeout(() => {
+      setSearchText(value);
+      setCurrentPage(1);
+    }, 300);
   };
-}, []);
+
+  // Bersihkan timeout saat komponen unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleConfirmExportData = async () => {
     try {
@@ -448,7 +452,7 @@ useEffect(() => {
               <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
-                  onChange={handleInputChange} 
+                  onChange={handleInputChange}
                   placeholder={
                     selectedHistory === "violationhistory"
                       ? "Cari data pelanggaran..."
