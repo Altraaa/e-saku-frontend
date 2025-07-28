@@ -237,10 +237,10 @@ const ViewHistory = () => {
     try {
       await exportHistory();
       setIsModalExportOpen(false);
-      toast.success("File berhasil didownload");
+      toast.success("File berhasil diunduh");
     } catch (error) {
-      console.error("Export failed:", error);
-      toast.error("Gagal export file");
+      console.error("Ekspor Gagal:", error);
+      toast.error("Gagal mengekspor file");
     }
   };
 
@@ -366,8 +366,8 @@ const ViewHistory = () => {
     return (
       <div className="p-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          <h2 className="font-bold text-lg">Error loading data</h2>
-          <p>{error?.message || "An unknown error occurred"}</p>
+          <h2 className="font-bold text-lg">Gagal memuat data</h2>
+          <p>{error?.message || "Terjadi kesalahan yang tidak diketahui"}</p>
         </div>
       </div>
     );
@@ -418,7 +418,7 @@ const ViewHistory = () => {
               className="text-green-600 hover:text-white hover:bg-green-600 border border-green-500 transition-all duration-300 w-full sm:w-auto"
             >
               <UploadIcon className="mr-2 h-4 w-4" />
-              Export Excel
+              Ekspor ke Excel
             </Button>
           </div>
         </div>
@@ -443,7 +443,7 @@ const ViewHistory = () => {
                     className="text-gray-600 hover:text-gray-800 h-8 w-full sm:w-auto"
                   >
                     <X className="h-3 w-3 mr-1" />
-                    Clear Filters
+                    Hapus Filter
                   </Button>
                 )}
                 <DatePicker value={selectedDate} onChange={handleDateChange} />

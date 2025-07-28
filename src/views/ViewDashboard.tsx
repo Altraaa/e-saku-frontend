@@ -206,7 +206,7 @@ const ViewDashboard = () => {
 
   // Ambil data semua kelas
   const { data: accomplishmentsResponse } = useAccomplishments();
- 
+
 
   const getGradeFromClassroom = (classroom: IClassroom | undefined): string => {
     if (!classroom || !classroom.grade) return "-";
@@ -348,7 +348,7 @@ const ViewDashboard = () => {
   const prepareChartData = useCallback(
     (violations: IViolation[], accomplishments: IAccomplishments[]) => {
       if (timeRange === "weekly") {
-        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+        const days = ["Senin", "Selasa", "Rabu", "Kamis", "Jum'at"];
 
         const filteredViolations = filterByTimeRange(
           violations,
@@ -583,11 +583,11 @@ const ViewDashboard = () => {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col gap-2 mb-4 sm:mb-6">
         <h1 className="text-lg sm:text-xl lg:text-2xl font-bold leading-tight">
-          Hi🙌, <span className="text-green-500">{userName}</span>
+          Halo🙌, <span className="text-green-500">{userName}</span>
           {userRole === "student" ? " (Siswa)" : " (Guru)"}
         </h1>
         <p className="text-md sm:text-xl lg:text-2xl font-bold leading-tight">
-          Selamat datang di website E-Saku Siswa😊
+          Selamat datang di website E-Saku Peserta Didik😊
         </p>
       </div>
       {/* Grid for Cards - Responsive */}
@@ -1123,7 +1123,7 @@ const ViewDashboard = () => {
                 {filteredViolationData.length} siswa
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs sm:text-sm text-gray-600">Rows:</span>
+                <span className="text-xs sm:text-sm text-gray-600">Baris:</span>
                 <Select
                   value={rowsPerPage}
                   onValueChange={handleRowsPerPageChange}

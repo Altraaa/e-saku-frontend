@@ -245,7 +245,7 @@ const ViewBioViolations = () => {
         <div className="text-center">
           <AlertTriangle className="h-8 w-8 sm:h-12 sm:w-12 text-red-500 mx-auto mb-4" />
           <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
-            Error Loading Data
+            Kesalahan saat memuat data pelanggaran
           </h3>
           <p className="text-sm sm:text-base text-gray-600 mb-4">
             Gagal memuat data pelanggaran. Silakan coba lagi.
@@ -278,7 +278,7 @@ const ViewBioViolations = () => {
             <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 group-hover:border-green-500 group-hover:bg-green-50 transition-all">
               <MoveLeft className="h-4 w-4" />
             </div>
-            <span className="font-medium text-sm sm:text-base">Back</span>
+            <span className="font-medium text-sm sm:text-base">Kembali</span>
           </div>
         </Link>
       </div>
@@ -345,7 +345,7 @@ const ViewBioViolations = () => {
               <p className="text-base sm:text-xl font-bold text-gray-900 break-words">
                 {lastViolationDate
                   ? formatStatDate(lastViolationDate.toString())
-                  : "tidak ada data"}
+                  : "Tidak ada data"}
               </p>
               <p className="text-xs sm:text-sm text-gray-600">
                 Pelanggaran Terakhir
@@ -403,7 +403,7 @@ const ViewBioViolations = () => {
                     className="text-gray-600 hover:text-gray-800 h-8 px-3 flex-shrink-0"
                   >
                     <X className="h-3 w-3 mr-1" />
-                    <span className="hidden sm:inline">Clear</span>
+                    <span className="hidden sm:inline">Hapus</span>
                   </Button>
                 )}
               </div>
@@ -430,7 +430,7 @@ const ViewBioViolations = () => {
                     Tindak Lanjut
                   </TableHead>
                   <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">
-                    Documentation
+                    Dokumentasi
                   </TableHead>
                   <TableHead className="text-center font-semibold text-gray-900 py-4 px-4">
                     Tanggal &amp; Waktu
@@ -686,7 +686,7 @@ const ViewBioViolations = () => {
                 {filteredViolations.length} pelanggaran
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs sm:text-sm text-gray-600">Rows:</span>
+                <span className="text-xs sm:text-sm text-gray-600">Baris:</span>
                 <Select
                   value={rowsPerPage}
                   onValueChange={handleRowsPerPageChange}
@@ -714,8 +714,8 @@ const ViewBioViolations = () => {
                   disabled={currentPage === 1}
                   className="h-8 text-xs sm:text-sm px-2 sm:px-3"
                 >
-                  <span className="hidden sm:inline">Previous</span>
-                  <span className="sm:hidden">Prev</span>
+                  <span className="hidden sm:inline">Sebelumnya</span>
+                  <span className="sm:hidden">Sebelumnya</span>
                 </Button>
 
                 <div className="flex items-center gap-1">
@@ -746,8 +746,8 @@ const ViewBioViolations = () => {
                   disabled={currentPage === totalPages}
                   className="h-8 text-xs sm:text-sm px-2 sm:px-3"
                 >
-                  <span className="hidden sm:inline">Next</span>
-                  <span className="sm:inline">Next</span>
+                  <span className="hidden sm:inline">Selanjutnya</span>
+                  <span className="sm:inline">Selanjutnya</span>
                 </Button>
               </div>
             )}
