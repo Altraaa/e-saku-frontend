@@ -277,34 +277,58 @@ const ViewManageActivity = () => {
   }, [isLoading]);
 
   useEffect(() => {
-    const updateIndicator = () => {
-      let activeTabElement;
-      if (activeTab === "extracurricular") {
-        activeTabElement = extracurricularTabRef.current;
-      } else {
-        activeTabElement = studentsTabRef.current;
-      }
+    const handleResize = () => {
+      const activeTabElement = activeTab === "extracurricular" 
+        ? extracurricularTabRef.current 
+        : studentsTabRef.current;
 
       if (activeTabElement && tabsRef.current) {
         const tabRect = activeTabElement.getBoundingClientRect();
         const navRect = tabsRef.current.getBoundingClientRect();
 
-        setIndicatorStyle({
-          left: tabRect.left - navRect.left,
-          width: tabRect.width,
-        });
+        if (tabRect.width > 0) {
+          setIndicatorStyle({
+            left: tabRect.left - navRect.left,
+            width: tabRect.width,
+          });
+        }
       }
     };
 
-    if (tabsRef.current) {
-      updateIndicator();
-    }
-
-    window.addEventListener("resize", updateIndicator);
-    return () => {
-      window.removeEventListener("resize", updateIndicator);
-    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [activeTab]);
+
+  useEffect(() => {
+    const updateIndicator = () => {
+      const initialTabElement = extracurricularTabRef.current;
+      
+      if (initialTabElement && tabsRef.current) {
+        const tabRect = initialTabElement.getBoundingClientRect();
+        const navRect = tabsRef.current.getBoundingClientRect();
+        
+        // Only update if we get valid measurements
+        if (tabRect.width > 0 && navRect.width > 0) {
+          setIndicatorStyle({
+            left: tabRect.left - navRect.left,
+            width: tabRect.width,
+          });
+        }
+      }
+    };
+
+    // Try multiple times with increasing delays to ensure DOM is ready
+    const timers = [
+      setTimeout(updateIndicator, 10),
+      setTimeout(updateIndicator, 50),
+      setTimeout(updateIndicator, 100),
+      setTimeout(updateIndicator, 200)
+    ];
+
+    return () => {
+      timers.forEach(timer => clearTimeout(timer));
+    };
+  }, [extracurricularsLoading, activeTab]);
 
   const handleRowsPerPageChange = (value: string) => {
     setRowsPerPage(value);
