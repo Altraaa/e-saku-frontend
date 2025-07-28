@@ -163,10 +163,10 @@ const ViewManageActivity = () => {
     try {
       await exportAllExtracurricular();
       setIsModalExportOpen(false);
-      toast.success("File berhasil didownload");
+      toast.success("File berhasil diunduh");
     } catch (error) {
-      console.error("Export failed:", error);
-      toast.error("Gagal export file");
+      console.error("Ekspor gagal:", error);
+      toast.error("Gagal ekspor file");
     }
   };
 
@@ -180,10 +180,10 @@ const ViewManageActivity = () => {
         selectedExtracurricularId ? parseInt(selectedExtracurricularId) : 0
       );
       setIsModalSingleExportOpen(false);
-      toast.success("File berhasil didownload");
+      toast.success("File berhasil diunduh");
     } catch (error) {
-      console.error("Export failed:", error);
-      toast.error("Gagal export file");
+      console.error("Ekspor gagal:", error);
+      toast.error("Gagal ekspor file");
     }
   };
 
@@ -982,7 +982,7 @@ const ViewManageActivity = () => {
               {filteredData.length} data
             </div>
             <div className="flex items-center justify-center sm:justify-start space-x-2">
-              <span className="text-sm text-gray-600">Rows:</span>
+              <span className="text-sm text-gray-600">Baris:</span>
               <Select
                 value={rowsPerPage}
                 onValueChange={handleRowsPerPageChange}
@@ -1010,7 +1010,7 @@ const ViewManageActivity = () => {
             </Button>
 
             <div className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages}
+              Halaman {currentPage} dari {totalPages}
             </div>
 
             <Button

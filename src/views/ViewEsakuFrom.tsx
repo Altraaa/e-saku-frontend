@@ -1578,11 +1578,11 @@ const ESakuForm: React.FC = () => {
                           }`}
                         >
                           {isDragging
-                            ? "Drop your file here"
-                            : "Click to upload or drag & drop"}
+                            ? "Unggah file anda di sini"
+                            : "Klik atau seret file untuk mengunggah"}
                         </span>
                         <span className="text-xs text-gray-400 mt-0.5 sm:mt-1 px-2 text-center">
-                          .jpg, .jpeg, .png, .gif (max 10MB)
+                          .jpg, .jpeg, .png, .gif (maks 10MB)
                         </span>
                         {isDragging && (
                           <div className="absolute inset-0 rounded-lg bg-green-500 bg-opacity-10 pointer-events-none animate-pulse" />

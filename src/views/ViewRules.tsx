@@ -193,11 +193,11 @@ const ViewSchoolRules = () => {
   ];
 
   const processSteps: ProcessStepData[] = [
-    { id: 1, step: "Step 1", process: "Apabila ditemukan peserta didik yang melanggar peraturan dan tata tertib sekolah maka dilakukan teguran dan pembinaan" },
-    { id: 2, step: "Step 2", process: "Apabila peserta didik yang mendapat teguran dan pembinaan tetapi tidak mentaatinya, maka akan dilakukan pemanggilan orang tua" },
-    { id: 3, step: "Step 3", process: "Peserta didik laki-laki yang rambutnya tidak sesuai dengan ketentuan akan dipotong rambutnya disekolah oleh tukang cukur dan biaya pemotongan rambut akan ditanggung oleh siswa yang melanggar" },
-    { id: 4, step: "Step 4", process: "Apabila setelah dilakukan pertemuan dengan orang tua tidak ada perubahan maka dilakukan pertemuan antara peserta didik, orang tua, wali kelas, guru BK, Kepala Konsentrasi Keahlian, Wakasek, dan Kepala Sekolah" },
-    { id: 5, step: "Step 5", process: "Apabila sanksi pertama, kedua, dan ketiga tidak menunjukkan adanya perubahan pada diri peserta didik, maka pihak sekolah bersama-sama dengan orang tua/wali peserta didik mengambil keputusan" }
+    { id: 1, step: "Langkah 1", process: "Apabila ditemukan peserta didik yang melanggar peraturan dan tata tertib sekolah maka dilakukan teguran dan pembinaan" },
+    { id: 2, step: "Langkah 2", process: "Apabila peserta didik yang mendapat teguran dan pembinaan tetapi tidak mentaatinya, maka akan dilakukan pemanggilan orang tua" },
+    { id: 3, step: "Langkah 3", process: "Peserta didik laki-laki yang rambutnya tidak sesuai dengan ketentuan akan dipotong rambutnya disekolah oleh tukang cukur dan biaya pemotongan rambut akan ditanggung oleh siswa yang melanggar" },
+    { id: 4, step: "Langkah 4", process: "Apabila setelah dilakukan pertemuan dengan orang tua tidak ada perubahan maka dilakukan pertemuan antara peserta didik, orang tua, wali kelas, guru BK, Kepala Konsentrasi Keahlian, Wakasek, dan Kepala Sekolah" },
+    { id: 5, step: "Langkah 5", process: "Apabila sanksi pertama, kedua, dan ketiga tidak menunjukkan adanya perubahan pada diri peserta didik, maka pihak sekolah bersama-sama dengan orang tua/wali peserta didik mengambil keputusan" }
   ];
 
   const rewardRules: RewardRuleData[] = [
@@ -210,10 +210,10 @@ const ViewSchoolRules = () => {
   ];
 
   const benefitTypes: BenefitTypeData[] = [
-    { id: 1, type: "Recognition Certificate", description: "Students receive official certificates documenting their achievements and contributions" },
-    { id: 2, type: "Public Recognition", description: "Acknowledgment during school assemblies and events to celebrate accomplishments" },
-    { id: 3, type: "Student Portfolio", description: "Achievements are recorded in the student's permanent portfolio for future references" },
-    { id: 4, type: "Leadership Opportunities", description: "Consideration for leadership positions in school organizations and events" }
+    { id: 1, type: "Sertifikat Pengakuan", description: "Siswa menerima sertifikat resmi yang mendokumentasikan pencapaian dan kontribusi mereka" },
+    { id: 2, type: "Pengakuan Publik", description: "Pengakuan selama pertemuan dan acara sekolah untuk merayakan prestasi" },
+    { id: 3, type: "Portofolio Siswa", description: "Pencapaian dicatat dalam portofolio permanen siswa untuk referensi di masa mendatang" },
+    { id: 4, type: "Kesempatan Kepemimpinan", description: "Pertimbangan untuk posisi kepemimpinan dalam organisasi dan acara sekolah" }
   ];
 
   useEffect(() => {
@@ -374,10 +374,10 @@ const ViewSchoolRules = () => {
           <div className="bg-green-600/40 p-2 rounded-lg mr-3">
             <Book className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">School Rules</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Peraturan Sekolah</h1>
         </div>
         <p className="text-gray-600 max-w-3xl">
-          Guidelines and regulations for maintaining a positive learning environment at SMK Negeri 1 Denpasar. These rules are designed to promote discipline, respect, and academic excellence.
+          Pedoman dan peraturan untuk menjaga lingkungan belajar yang positif di SMK Negeri 1 Denpasar. Peraturan ini dirancang untuk mendorong kedisiplinan, rasa hormat, dan keunggulan akademik.
         </p>
       </div>
 
@@ -395,7 +395,7 @@ const ViewSchoolRules = () => {
             >
               <div className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4" />
-                Violations
+                Pelanggaran
               </div>
             </button>
             <button
@@ -409,7 +409,7 @@ const ViewSchoolRules = () => {
             >
               <div className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
-                Sanctions
+                Sanksi
               </div>
             </button>
             <button
@@ -423,7 +423,7 @@ const ViewSchoolRules = () => {
             >
               <div className="flex items-center gap-2">
                 <Award className="h-4 w-4" />
-                Rewards
+                Penghargaan
               </div>
             </button>
 
@@ -453,14 +453,14 @@ const ViewSchoolRules = () => {
           </div>
           <div>
             <h2 className="text-xl font-bold text-gray-800">
-              {activeTab === "violations" && "Violations & Point System"}
-              {activeTab === "sanctions" && "Sanctions System"}
-              {activeTab === "rewards" && "Rewards System"}
+              {activeTab === "violations" && "Pelanggaran & Sistem Poin"}
+              {activeTab === "sanctions" && "Sistem Sanksi"}
+              {activeTab === "rewards" && "Sistem Penghargaan"}
             </h2>
             <p className="text-gray-600 max-w-3xl mt-1">
-              {activeTab === "violations" && "Rules that students must follow to maintain a positive learning environment and the point values associated with violations."}
-              {activeTab === "sanctions" && "Disciplinary measures designed to promote positive behavior change and maintain a productive learning environment."}
-              {activeTab === "rewards" && "A structured approach to recognize and celebrate student achievements across academic, extracurricular, and leadership domains."}
+              {activeTab === "violations" && "Peraturan yang harus diikuti oleh siswa untuk menjaga lingkungan belajar yang positif dan nilai poin yang terkait dengan pelanggaran."}
+              {activeTab === "sanctions" && "Tindakan disipliner yang dirancang untuk mendorong perubahan perilaku positif dan mempertahankan lingkungan belajar yang produktif."}
+              {activeTab === "rewards" && "Pendekatan terstruktur untuk mengenali dan merayakan pencapaian siswa di bidang akademik, ekstrakurikuler, dan kepemimpinan."}
             </p>
           </div>
         </div>
@@ -473,7 +473,7 @@ const ViewSchoolRules = () => {
             <CardHeader className="border-b bg-white px-5 py-4">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <CardTitle className="text-lg font-semibold text-gray-800">
-                  Search & Filter
+                  Cari dan Filter
                 </CardTitle>
                 <div className="flex flex-col sm:flex-row w-full md:w-auto gap-2">
                   <div className="relative w-full sm:w-64 md:w-72">
@@ -481,7 +481,7 @@ const ViewSchoolRules = () => {
                     <Input
                       value={searchText}
                       onChange={handleSearchChange}
-                      placeholder="Search for rules..."
+                      placeholder="Cari Peraturan ..."
                       className="pl-9 bg-white border-gray-200 w-full rounded-lg"
                     />
                   </div>
@@ -505,7 +505,7 @@ const ViewSchoolRules = () => {
                       <Command>
                         <CommandInput placeholder="Search categories..." />
                         <CommandList className="max-h-[300px]">
-                          <CommandEmpty>No categories found.</CommandEmpty>
+                          <CommandEmpty>Kategori tidak ditemukan.</CommandEmpty>
                           <CommandGroup heading="Categories">
                             {uniqueCategories.map(category => (
                               <CommandItem 
@@ -516,7 +516,7 @@ const ViewSchoolRules = () => {
                                 <span>{category}</span>
                                 {selectedFilters.includes(category) && (
                                   <Badge variant="outline" className={getCategoryClass(category, true)}>
-                                    Selected
+                                    Dipilih
                                   </Badge>
                                 )}
                               </CommandItem>
@@ -545,7 +545,7 @@ const ViewSchoolRules = () => {
                               className="w-full h-7 text-xs"
                             >
                               <X className="h-3 w-3 mr-1.5" />
-                              Clear all filters
+                              Hapus Filter
                             </Button>
                           )}
                         </div>
@@ -562,29 +562,29 @@ const ViewSchoolRules = () => {
               <CardHeader className="bg-green-50 border-b border-green-100 px-5 py-4">
                 <CardTitle className="text-md font-medium text-green-800 flex items-center gap-2">
                   <HelpCircle className="h-4 w-4 text-green-600" />
-                  Point System
+                  Sistem Poin
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-3">
                 <p className="text-gray-600 text-sm">
-                  Each violation has an associated point value reflecting its severity. Points accumulate and determine the appropriate sanctions.
+                  Setiap pelanggaran memiliki nilai poin terkait yang mencerminkan tingkat keparahannya. Poin terakumulasi dan menentukan sanksi yang sesuai.
                 </p>
                 <div className="space-y-2 mt-2">
                   <div className="flex items-center gap-2">
                     <div className="bg-blue-500 w-4 h-4 rounded-full"></div>
-                    <span className="text-sm text-gray-700">5-10 points (Minor)</span>
+                    <span className="text-sm text-gray-700">5-10 poin (Ringan)</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="bg-yellow-500 w-4 h-4 rounded-full"></div>
-                    <span className="text-sm text-gray-700">11-20 points (Moderate)</span>
+                    <span className="text-sm text-gray-700">11-20 poin (Sedang)</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="bg-orange-500 w-4 h-4 rounded-full"></div>
-                    <span className="text-sm text-gray-700">21-30 points (Serious)</span>
+                    <span className="text-sm text-gray-700">21-30 poin (Serius)</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="bg-red-500 w-4 h-4 rounded-full"></div>
-                    <span className="text-sm text-gray-700">31-50 points (Severe)</span>
+                    <span className="text-sm text-gray-700">31-50 poin (Berat)</span>
                   </div>
                 </div>
               </CardContent>
@@ -594,7 +594,7 @@ const ViewSchoolRules = () => {
               <CardHeader className="border-b-2 border-green-500 bg-white px-5 py-4">
                 <CardTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5 text-green-600" />
-                  Violations & Point Values
+                  Pelanggaran & Poin
                 </CardTitle>
               </CardHeader>
               
@@ -602,9 +602,9 @@ const ViewSchoolRules = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50">
-                      <TableHead className="hidden md:table-cell w-36 px-5 py-3 text-center font-medium text-gray-700">Category</TableHead>
-                      <TableHead className="text-left w-full px-5 py-3 font-medium text-gray-700">Rule</TableHead>
-                      <TableHead className="hidden md:table-cell w-24 px-5 py-3 text-center font-medium text-gray-700">Point</TableHead>
+                      <TableHead className="hidden md:table-cell w-36 px-5 py-3 text-center font-medium text-gray-700">Kategori</TableHead>
+                      <TableHead className="text-left w-full px-5 py-3 font-medium text-gray-700">Peraturan</TableHead>
+                      <TableHead className="hidden md:table-cell w-24 px-5 py-3 text-center font-medium text-gray-700">Poin</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -629,7 +629,7 @@ const ViewSchoolRules = () => {
                                     </div>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p className="text-xs">{rule.point} point violation</p>
+                                    <p className="text-xs">{rule.point} poin</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
@@ -647,7 +647,7 @@ const ViewSchoolRules = () => {
                                   </div>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p className="text-xs">{rule.point} point violation</p>
+                                  <p className="text-xs">{rule.point} poin</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -659,16 +659,16 @@ const ViewSchoolRules = () => {
                         <TableCell colSpan={3} className="text-center py-12 text-gray-500">
                           <div className="flex flex-col items-center space-y-3">
                             <Search className="w-12 h-12 text-gray-300" />
-                            <h3 className="font-medium text-gray-700 text-lg">No matching rules found</h3>
+                            <h3 className="font-medium text-gray-700 text-lg">Peraturan tidak ditemukan.</h3>
                             <p className="text-sm text-gray-500 max-w-md">
-                              Try adjusting your search terms or filters.
+                              Cobalah perbaiki kata kunci pencarian atau filter.
                             </p>
                             <Button 
                               variant="outline" 
                               className="mt-2 text-green-600"
                               onClick={clearFilters}
                             >
-                              Clear filters
+                              Hapus Filter
                             </Button>
                           </div>
                         </TableCell>
@@ -682,10 +682,10 @@ const ViewSchoolRules = () => {
                 <CardFooter className="flex flex-col gap-2 md:gap-0 md:flex-row justify-between items-center border-t p-4">
                   <div className="flex flex-col md:flex-row items-center space-x-4">
                     <div className="text-sm text-gray-500">
-                      Showing {paginatedViolations.length} of {filteredViolations.length} violations
+                      Menampilkan {paginatedViolations.length} dari {filteredViolations.length} pelanggaran
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-600">Rows:</span>
+                      <span className="text-sm text-gray-600">Baris:</span>
                       <Select
                         value={rowsPerPage}
                         onValueChange={handleRowsPerPageChange}
@@ -716,7 +716,7 @@ const ViewSchoolRules = () => {
                     </Button>
                     
                     <div className="text-sm text-gray-600">
-                      Page {currentPage} of {Math.max(1, totalPages)}
+                      Halaman {currentPage} dari {Math.max(1, totalPages)}
                     </div>
                     
                     <Button 
@@ -743,12 +743,12 @@ const ViewSchoolRules = () => {
               <CardHeader className="bg-amber-50 border-b border-amber-100 px-5 py-4">
                 <CardTitle className="text-md font-medium text-amber-800 flex items-center gap-2">
                   <HelpCircle className="h-4 w-4 text-amber-600" />
-                  Sanction Levels
+                  Tingkatan Sanksi
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-3">
                 <p className="text-gray-600 text-sm">
-                  The progressive disciplinary system is designed to correct behavior and provide opportunities for improvement.
+                  Sistem disipliner progresif dirancang untuk memperbaiki perilaku dan memberikan kesempatan untuk perbaikan.
                 </p>
                 
                 <div className="space-y-3 mt-2">
@@ -757,7 +757,7 @@ const ViewSchoolRules = () => {
                       <span className="bg-green-200 h-3 w-3 rounded-full mr-2"></span>
                       <span className="text-green-800 font-medium text-sm">Pelanggaran Ringan</span>
                     </div>
-                    <p className="text-green-700 text-xs pl-5">5-20 points - Verbal Warning</p>
+                    <p className="text-green-700 text-xs pl-5">5-20 poin - Peringatan Verbal</p>
                   </div>
                   
                   <div className="border border-yellow-100 bg-yellow-50 rounded-md p-3">
@@ -765,7 +765,7 @@ const ViewSchoolRules = () => {
                       <span className="bg-yellow-300 h-3 w-3 rounded-full mr-2"></span>
                       <span className="text-yellow-800 font-medium text-sm">Pelanggaran Sedang</span>
                     </div>
-                    <p className="text-yellow-700 text-xs pl-5">25-60 points - Parent Notification</p>
+                    <p className="text-yellow-700 text-xs pl-5">25-60 poin - Pemberitahuan Orang Tua</p>
                   </div>
                   
                   <div className="border border-red-100 bg-red-50 rounded-md p-3">
@@ -773,7 +773,7 @@ const ViewSchoolRules = () => {
                       <span className="bg-red-300 h-3 w-3 rounded-full mr-2"></span>
                       <span className="text-red-800 font-medium text-sm">Pelanggaran Berat</span>
                     </div>
-                    <p className="text-red-700 text-xs pl-5">65+ points - Serious Consequences</p>
+                    <p className="text-red-700 text-xs pl-5">65+ poin - Konsekuensi Serius</p>
                   </div>
                 </div>
               </CardContent>
@@ -783,16 +783,16 @@ const ViewSchoolRules = () => {
               <CardHeader className="border-b-2 border-amber-500 bg-white px-5 py-4">
                 <CardTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">
                   <Shield className="h-5 w-5 text-amber-600" />
-                  Sanction Levels & Consequences
+                  Tingkatan Sanksi & Konsekuensi
                 </CardTitle>
               </CardHeader>
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50">
-                      <TableHead className="w-44 px-5 py-3 text-center font-medium text-gray-700">Level</TableHead>
-                      <TableHead className="w-36 px-5 py-3 text-center font-medium text-gray-700">Point Range</TableHead>
-                      <TableHead className="px-5 py-3 text-left font-medium text-gray-700">Action</TableHead>
+                      <TableHead className="w-44 px-5 py-3 text-center font-medium text-gray-700">Tingkatan</TableHead>
+                      <TableHead className="w-36 px-5 py-3 text-center font-medium text-gray-700">Rentang Poin</TableHead>
+                      <TableHead className="px-5 py-3 text-left font-medium text-gray-700">Aksi</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -820,7 +820,7 @@ const ViewSchoolRules = () => {
             <CardHeader className="border-b-2 border-amber-500 bg-white px-5 py-4">
               <CardTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-amber-600" />
-                Disciplinary Process Steps
+                Langkah Pendisiplinan
               </CardTitle>
             </CardHeader>
             <CardContent className="p-5">
@@ -849,40 +849,40 @@ const ViewSchoolRules = () => {
               <CardHeader className="bg-emerald-50 border-b border-emerald-100 px-5 py-4">
                 <CardTitle className="text-md font-medium text-emerald-800 flex items-center gap-2">
                   <HelpCircle className="h-4 w-4 text-emerald-600" />
-                  Recognition System
+                  Sistem Pengakuan
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-3">
                 <p className="text-gray-600 text-sm">
-                  SMK Negeri 1 Denpasar acknowledges and rewards positive contributions and achievements across different levels.
+                  SMK Negeri 1 Denpasar mengakui dan memberikan penghargaan atas kontribusi positif dan prestasi di berbagai tingkatan.
                 </p>
                 
                 <div className="mt-3">
-                  <h4 className="text-emerald-700 font-medium mb-2 text-sm">Benefits of Recognition:</h4>
+                  <h4 className="text-emerald-700 font-medium mb-2 text-sm">Manfaat dari Pengakuan:</h4>
                   <div className="grid grid-cols-1 gap-2">
                     <div className="flex items-center">
                       <div className="w-4 h-4 rounded-full bg-emerald-200 mr-2 flex items-center justify-center">
                         <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                       </div>
-                      <span className="text-gray-600 text-sm">Reward points counteract violation points</span>
+                      <span className="text-gray-600 text-sm">Poin penghargaan menutupi poin pelanggaran</span>
                     </div>
                     <div className="flex items-center">
                       <div className="w-4 h-4 rounded-full bg-emerald-200 mr-2 flex items-center justify-center">
                         <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                       </div>
-                      <span className="text-gray-600 text-sm">Official recognition in school records</span>
+                      <span className="text-gray-600 text-sm">Pengakuan resmi di catatan sekolah</span>
                     </div>
                     <div className="flex items-center">
                       <div className="w-4 h-4 rounded-full bg-emerald-200 mr-2 flex items-center justify-center">
                         <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                       </div>
-                      <span className="text-gray-600 text-sm">Enhanced leadership opportunities</span>
+                      <span className="text-gray-600 text-sm">Meningkatkan peluang menjadi pemimpin</span>
                     </div>
                     <div className="flex items-center">
                       <div className="w-4 h-4 rounded-full bg-emerald-200 mr-2 flex items-center justify-center">
                         <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                       </div>
-                      <span className="text-gray-600 text-sm">Building student portfolios</span>
+                      <span className="text-gray-600 text-sm">Membangun portofolio siswa</span>
                     </div>
                   </div>
                 </div>
@@ -893,16 +893,16 @@ const ViewSchoolRules = () => {
               <CardHeader className="border-b-2 border-emerald-500 bg-white px-5 py-4">
                 <CardTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">
                   <Award className="h-5 w-5 text-emerald-600" />
-                  Achievement Recognition System
+                  Sistem Pengakuan Penghargaan
                 </CardTitle>
               </CardHeader>
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50">
-                      <TableHead className="px-5 py-3 text-left font-medium text-gray-700">Achievement Type</TableHead>
-                      <TableHead className="w-36 px-5 py-3 text-center font-medium text-gray-700">Level</TableHead>
-                      <TableHead className="w-24 px-5 py-3 text-center font-medium text-gray-700">Points</TableHead>
+                      <TableHead className="px-5 py-3 text-left font-medium text-gray-700">Jenis Prestasi</TableHead>
+                      <TableHead className="w-36 px-5 py-3 text-center font-medium text-gray-700">Tingkat Prestasi</TableHead>
+                      <TableHead className="w-24 px-5 py-3 text-center font-medium text-gray-700">Poin</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
