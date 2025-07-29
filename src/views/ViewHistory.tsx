@@ -373,7 +373,7 @@ const ViewHistory = () => {
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
         <div className="w-full flex justify-between sm:w-[180px]">
           <div className="flex gap-4 w-full">
-            <div className="bg-white">
+            <div className="bg-white rounded-md">
               <Select
                 onValueChange={handleHistoryChange}
                 value={selectedHistory}

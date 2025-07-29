@@ -31,6 +31,8 @@ import Report from "./pages/Report";
 import { Toaster } from "react-hot-toast";
 import StudentProfile from "./pages/ProfileStudent";
 import StudentExtra from "./pages/StudentExtra";
+import ManageUser from "./pages/ManageUser";
+
 // import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const LayoutWrapper = () => {
@@ -109,6 +111,7 @@ export function AppContent() {
           <Route path="/manageactivity" element={<ManageActivity />} />
           <Route path="/rules" element={<Rules />} />
           <Route path="/student/extra" element={<StudentExtra />} />
+          <Route path="/manageuser" element={<ManageUser />} />
           {/* <Route path="/privacypolicy" element={<PrivacyPolicy/>} /> */}
         </Route>
       </Route>
