@@ -124,11 +124,11 @@ const ViewStudent = () => {
 
   const validateForm = () => {
     if (!newClass.name.trim()) {
-      setSubmitError("Class Name is required");
+      setSubmitError("Nama kelas diperlukan");
       return false;
     }
     if (!newClass.majorId) {
-      setSubmitError("Majors are required");
+      setSubmitError("Jurusan diperlukan");
       return false;
     }
     return true;
@@ -278,7 +278,7 @@ const ViewStudent = () => {
               <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-green-600 break-words">
-              {classrooms?.[0]?.teacher?.name || "Teacher name not available"}
+              {classrooms?.[0]?.teacher?.name || "Nama Pengampu tidak ditemukan"}
             </h1>
           </div>
           <p className="text-sm sm:text-base md:text-lg font-semibold mb-2">
@@ -304,16 +304,16 @@ const ViewStudent = () => {
               className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto text-sm sm:text-base"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Add Class
+              Tambah Kelas Baru
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-3 sm:p-4 md:p-6 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-base sm:text-lg md:text-xl">
-                Add New Class
+                Tambah Kelas Baru
               </DialogTitle>
               <DialogDescription className="text-xs sm:text-sm md:text-base">
-                Create a new class by filling in the information below
+                Tambahkan Kelas baru dengan mengisi informasi di bawah ini.
               </DialogDescription>
             </DialogHeader>
 
@@ -324,12 +324,12 @@ const ViewStudent = () => {
                     htmlFor="className"
                     className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
                   >
-                    Class Name <span className="text-red-500">*</span>
+                    Nama Kelas <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     id="className"
-                    placeholder="Enter class name (e.g., XI TKR 1)"
+                    placeholder="Masukkan nama kelas (contoh: XI TKR 1)"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200 text-xs sm:text-sm md:text-base"
                     value={newClass.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
@@ -342,7 +342,7 @@ const ViewStudent = () => {
                     htmlFor="majorSelect"
                     className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
                   >
-                    Major <span className="text-red-500">*</span>
+                    Jurusan <span className="text-red-500">*</span>
                   </label>
                   <Select
                     value={newClass.majorId?.toString()}
@@ -351,7 +351,7 @@ const ViewStudent = () => {
                     }
                   >
                     <SelectTrigger className="border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-lg h-9 sm:h-10 bg-white text-xs sm:text-sm md:text-base">
-                      <SelectValue placeholder="Select a major" />
+                      <SelectValue placeholder="Pilihan Jurusan" />
                     </SelectTrigger>
                     <SelectContent>
                       {majors?.map((major) => (
@@ -372,7 +372,7 @@ const ViewStudent = () => {
                     htmlFor="teacherSelect"
                     className="text-xs sm:text-sm md:text-base font-medium text-gray-500"
                   >
-                    Teacher (Auto-assigned)
+                    Guru Pengampu (Otomatis)
                   </label>
                   <div className="relative">
                     <input
@@ -389,8 +389,7 @@ const ViewStudent = () => {
                     </div>
                   </div>
                   <p className="text-xs text-gray-500">
-                    Classes will be assigned to the current teacher
-                    automatically
+                    Kelas akan ditugaskan ke guru saat ini secara otomatis
                   </p>
                 </div>
 
@@ -410,7 +409,7 @@ const ViewStudent = () => {
                     <CardContent className="p-3">
                       <div className="flex items-center space-x-2 text-xs sm:text-sm text-green-600">
                         <div className="w-4 h-4 flex-shrink-0">✓</div>
-                        <span>Class created successfully!</span>
+                        <span>Kelas berhasil ditambahkan!</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -427,35 +426,34 @@ const ViewStudent = () => {
               <Card className="bg-gray-50 border-gray-200">
                 <CardContent className="p-3 sm:p-4">
                   <h4 className="text-xs sm:text-sm md:text-base font-medium mb-2">
-                    Class Creation Guidelines:
+                    Aturan Pembuatan Kelas:
                   </h4>
                   <ul className="space-y-1 text-xs sm:text-sm">
                     <li className="flex items-start">
                       <span className="mr-1">•</span>
                       <span>
-                        Class name should follow format:
+                        Format nama Kelas harus mengikuti pola:
                         <p className="font-medium">
-                          Grade + Program + Number (e.g., XI TKR 1)
+                          Tingkat + Jurusan + Indeks (contoh: XI TKR 1)
                         </p>
                       </span>
                     </li>
                     <li className="flex items-start">
                       <span className="mr-1">•</span>
                       <span>
-                        The major must be in accordance with the class that will
-                        be created
+                        Jurusan harus sesuai dengan kelas yang akan dibuat.
                       </span>
                     </li>
                     <li className="flex items-start">
                       <span className="mr-1">•</span>
                       <span>
-                        Teacher assignment is automatic based on current user
+                        Guru pengampu akan otomatis ditetapkan berdasarkan guru yang membuat kelas.
                       </span>
                     </li>
                     <li className="flex items-start">
                       <span className="mr-1">•</span>
                       <span>
-                        Students can be added to the class after creation
+                        Siswa dapat ditambahkan ke kelas setelah kelas dibuat.
                       </span>
                     </li>
                   </ul>
@@ -469,7 +467,7 @@ const ViewStudent = () => {
                   disabled={submitStatus === "submitting"}
                   className="w-full sm:w-auto text-xs sm:text-sm"
                 >
-                  Cancel
+                  Batal
                 </Button>
                 <Button
                   onClick={handleSubmitClass}
@@ -479,17 +477,17 @@ const ViewStudent = () => {
                   {submitStatus === "submitting" ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Creating Class...
+                      Membuat Kelas ...
                     </>
                   ) : submitStatus === "success" ? (
                     <>
                       <div className="w-4 h-4 mr-2">✓</div>
-                      Class Created!
+                      Kelas Berhasil Dibuat!
                     </>
                   ) : (
                     <>
                       <Plus className="w-4 h-4 mr-2" />
-                      Create Class
+                      Buat Kelas
                     </>
                   )}
                 </Button>
@@ -510,10 +508,10 @@ const ViewStudent = () => {
           <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-3 sm:p-4 md:p-6 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-base sm:text-lg md:text-xl">
-                Edit Class
+                Edit Kelas
               </DialogTitle>
               <DialogDescription className="text-xs sm:text-sm md:text-base">
-                Update class information below
+                Ubah informasi kelas di bawah ini.
               </DialogDescription>
             </DialogHeader>
 
@@ -525,12 +523,12 @@ const ViewStudent = () => {
                       htmlFor="editClassName"
                       className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
                     >
-                      Class Name <span className="text-red-500">*</span>
+                      Nama Kelas <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       id="editClassName"
-                      placeholder="Enter class name"
+                      placeholder="Masukkan nama kelas"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200 text-xs sm:text-sm md:text-base"
                       value={editingClass.name}
                       onChange={(e) =>
@@ -547,7 +545,7 @@ const ViewStudent = () => {
                       htmlFor="editMajorSelect"
                       className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
                     >
-                      Major <span className="text-red-500">*</span>
+                      Jurusan <span className="text-red-500">*</span>
                     </label>
                     <Select
                       value={editingClass.major_id?.toString()}
@@ -559,7 +557,7 @@ const ViewStudent = () => {
                       }
                     >
                       <SelectTrigger className="border-gray-300 focus:ring-green-500 focus:border-green-500 rounded-lg h-9 sm:h-10 bg-white text-xs sm:text-sm md:text-base">
-                        <SelectValue placeholder="Select a major" />
+                        <SelectValue placeholder="Pilih Jurusan" />
                       </SelectTrigger>
                       <SelectContent>
                         {majors?.map((major) => (
@@ -591,7 +589,7 @@ const ViewStudent = () => {
                       <CardContent className="p-3">
                         <div className="flex items-center space-x-2 text-xs sm:text-sm text-green-600">
                           <div className="w-4 h-4 flex-shrink-0">✓</div>
-                          <span>Class updated successfully!</span>
+                          <span>Kelas berhasil diperbarui!</span>
                         </div>
                       </CardContent>
                     </Card>
@@ -605,16 +603,16 @@ const ViewStudent = () => {
                     disabled={submitStatus === "submitting"}
                     className="w-full sm:w-auto text-xs sm:text-sm"
                   >
-                    Cancel
+                    Batal
                   </Button>
                   <Button
                     onClick={() => {
                       if (!editingClass.name.trim()) {
-                        setSubmitError("Class Name is required");
+                        setSubmitError("Nama kelas diperlukan");
                         return;
                       }
                       if (!editingClass.major_id) {
-                        setSubmitError("Majors are required");
+                        setSubmitError("Jurusan diperlukan");
                         return;
                       }
 
@@ -640,7 +638,7 @@ const ViewStudent = () => {
                             setSubmitStatus("error");
                             setSubmitError(
                               error?.response?.data?.message ||
-                                "Failed to update class. Please try again."
+                                "Gagal memperbarui kelas. Silakan coba lagi."
                             );
                           },
                         }
@@ -652,15 +650,15 @@ const ViewStudent = () => {
                     {submitStatus === "submitting" ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Updating Class...
+                        Memperbarui Kelas...
                       </>
                     ) : submitStatus === "success" ? (
                       <>
                         <div className="w-4 h-4 mr-2">✓</div>
-                        Class Updated!
+                        Kelas berhasil diperbarui!
                       </>
                     ) : (
-                      "Update Class"
+                      "Perbarui Kelas"
                     )}
                   </Button>
                 </div>
@@ -678,14 +676,14 @@ const ViewStudent = () => {
             >
               <SelectTrigger className="border-green-300 focus:ring-green-400 focus:border-green-500 rounded-lg h-9 sm:h-10 bg-white shadow-sm text-xs sm:text-sm md:text-base">
                 <SelectValue
-                  placeholder={majorsLoading ? "Loading..." : "Pilih Jurusan"}
+                  placeholder={majorsLoading ? "Memuat..." : "Pilih Jurusan"}
                 />
               </SelectTrigger>
               <SelectContent className="max-h-60 overflow-y-auto z-10 text-xs sm:text-sm md:text-base">
                 <SelectItem value="all">Semua Jurusan</SelectItem>
                 {majorsError ? (
                   <SelectItem value="error" disabled>
-                    Error loading majors
+                    Gagal memuat jurusan
                   </SelectItem>
                 ) : (
                   majors?.map((major: IMajor) => (
@@ -703,7 +701,7 @@ const ViewStudent = () => {
             <input
               type="text"
               id="searchName"
-              placeholder="Search by class name..."
+              placeholder="Cari nama kelas ..."
               className="pl-9 pr-4 py-2 bg-white border border-gray-300 w-full rounded-lg h-9 sm:h-10 text-xs sm:text-sm md:text-base outline-none placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-200 shadow-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -722,10 +720,10 @@ const ViewStudent = () => {
                   <X className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" />
                 </div>
                 <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-                  Error Loading Classes
+                  Gagal memuat kelas
                 </h3>
                 <p className="text-sm sm:text-base text-gray-500">
-                  Unable to load classes. Please try again later.
+                  Terjadi kesalahan saat memuat data kelas. Silakan coba lagi nanti.
                 </p>
               </CardContent>
             </Card>
@@ -738,12 +736,12 @@ const ViewStudent = () => {
                   <Search className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                 </div>
                 <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-                  No Classes Found
+                  Kelas tidak ditemukan
                 </h3>
                 <p className="text-sm sm:text-base text-gray-500 mb-4">
                   {searchTerm || programFilter !== "all"
-                    ? "No classes match your current filters."
-                    : "You haven't created any classes yet."}
+                    ? "Tidak ada kelas yang cocok dengan filter Anda saat ini."
+                    : "Anda belum membuat kelas apa pun."}
                 </p>
                 {!searchTerm && programFilter === "all" && (
                   <Button
@@ -751,7 +749,7 @@ const ViewStudent = () => {
                     className="bg-green-500 hover:bg-green-600 text-white w-full sm:w-auto text-sm"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Class
+                    Buat Kelas Pertama Anda
                   </Button>
                 )}
               </CardContent>
@@ -800,7 +798,7 @@ const ViewStudent = () => {
                           className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors duration-200 w-full text-left"
                         >
                           <Edit className="w-4 h-4 mr-3 text-gray-500" />
-                          Edit Class
+                          Edit Kelas
                         </button>
                         <hr className="border-gray-100" />
                         <button
@@ -810,7 +808,7 @@ const ViewStudent = () => {
                           className="flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors duration-200 w-full text-left"
                         >
                           <Trash2 className="w-4 h-4 mr-3 text-red-500" />
-                          Delete Class
+                          Hapus Kelas
                         </button>
                       </div>
                     </PopoverContent>

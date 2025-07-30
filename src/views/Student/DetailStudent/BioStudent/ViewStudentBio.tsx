@@ -203,9 +203,9 @@ const ViewStudentBio = () => {
         const localUrl = URL.createObjectURL(file);
         setPhotoUrl(localUrl);
         setSelectedFile(file);
-        console.log("File selected:", file);
+        console.log("File terpilih:", file);
       } else {
-        console.log("No file selected");
+        console.log("Tidak ada file yang dipilih");
       }
     };
 
@@ -337,7 +337,7 @@ const handleSaveChanges = () => {
         refetch();
       },
       onError: (error) => {
-        console.error("Error updating data:", error);
+        console.error("Kesalahan memperbarui data:", error);
         toast.error("Gagal memperbarui profil. Coba lagi.");
       },
     }
@@ -400,10 +400,10 @@ const handleSaveChanges = () => {
       try {
         await exportStudents(studentId);
         setIsModalExportOpen(false);
-        toast.success("File berhasil didownload");
+        toast.success("File berhasil diunduh");
       } catch (error) {
-        console.error("Export failed:", error);
-        toast.error("Gagal export file");
+        console.error("Ekspor Gagal:", error);
+        toast.error("Gagal ekspor file");
       }
     };
 
@@ -430,7 +430,7 @@ const handleSaveChanges = () => {
   };
 
   if (!id) {
-    return <div className="p-4 md:p-6 text-red-500">Invalid student ID</div>;
+    return <div className="p-4 md:p-6 text-red-500">ID Siswa tidak valid</div>;
   }
 
   if (loading) {
@@ -442,7 +442,7 @@ const handleSaveChanges = () => {
   }
 
   if (!formData) {
-    return <div className="p-4 md:p-6 text-red-500">Student not found</div>;
+    return <div className="p-4 md:p-6 text-red-500">Siswa tidak ditemukan</div>;
   }
 
   const imageSrc = photoUrl
@@ -466,7 +466,7 @@ const handleSaveChanges = () => {
               <MoveLeft className="h-4 w-4" />
             </div>
             <span className="font-medium text-sm md:text-base">
-              Back to Class
+              Kembali ke Kelas
             </span>
           </button>
           <div className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 md:mb-4 mt-2 md:mt-4">
@@ -513,7 +513,7 @@ const handleSaveChanges = () => {
                     type="button"
                     className="w-full bg-blue-600 p-3 font-semibold text-white rounded-md hover:bg-blue-500 transition-all duration-200 text-sm md:text-base"
                   >
-                    Save Profile Picture
+                    Simpan Foto Profil
                   </Button>
                 ) : (
                   <Button
@@ -521,7 +521,7 @@ const handleSaveChanges = () => {
                     type="button"
                     className="w-full bg-blue-600 p-3 font-semibold text-white rounded-md hover:bg-blue-500 transition-all duration-200 text-sm md:text-base"
                   >
-                    Update Profile Picture
+                    Perbarui Foto Profil
                   </Button>
                 )}
 

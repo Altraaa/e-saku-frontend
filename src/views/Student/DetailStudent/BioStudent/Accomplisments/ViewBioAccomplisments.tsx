@@ -103,7 +103,7 @@ const ViewBioAccomplishments = () => {
     accomplishmentsDelete ?? 0
   );
 
-  const studentName = student ? student.name : "Loading...";
+  const studentName = student ? student.name : "Memuat...";
 
   const { data: studentAccomplishments = [] } =
     useAccomplishmentsByStudentId(studentId);
@@ -279,7 +279,7 @@ const ViewBioAccomplishments = () => {
         <div className="text-center">
           <AlertTriangle className="h-8 w-8 sm:h-12 sm:w-12 text-red-500 mx-auto mb-4" />
           <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
-            Error Loading Data
+            Error Memuat Data
           </h3>
           <p className="text-sm sm:text-base text-gray-600 mb-4">
             Gagal memuat data pelanggaran. Silakan coba lagi.
@@ -312,7 +312,7 @@ const ViewBioAccomplishments = () => {
             <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 group-hover:border-green-500 group-hover:bg-green-50 transition-all">
               <MoveLeft className="h-4 w-4" />
             </div>
-            <span className="font-medium">Back</span>
+            <span className="font-medium">Kembali</span>
           </div>
         </Link>
       </div>
@@ -379,7 +379,7 @@ const ViewBioAccomplishments = () => {
                 <p className="text-lg sm:text-2xl font-bold text-gray-900">
                   {lastAccomplishmentDate
                     ? formatStatDate(lastAccomplishmentDate.toString())
-                    : "tidak ada data"}
+                    : "Tidak ada data"}
                 </p>
                 <p className="text-xs sm:text-sm text-gray-600">
                   Prestasi Terakhir
@@ -437,7 +437,7 @@ const ViewBioAccomplishments = () => {
                   className="text-gray-600 hover:text-gray-800 h-8 w-full sm:w-auto"
                 >
                   <X className="h-3 w-3 mr-1" />
-                  Clear
+                  Hapus
                 </Button>
               )}
             </div>
@@ -550,7 +550,7 @@ const ViewBioAccomplishments = () => {
                     Deskripsi
                   </TableHead>
                   <TableHead className="text-center font-semibold text-gray-900 py-4">
-                    Documentation
+                    Dokumentasi
                   </TableHead>
                   <TableHead className="text-center font-semibold text-gray-900 py-4">
                     Tanggal
@@ -679,7 +679,7 @@ const ViewBioAccomplishments = () => {
                 {filteredAccomplishments.length} prestasi
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Rows:</span>
+                <span className="text-sm text-gray-600">Baris:</span>
                 <Select
                   value={rowsPerPage}
                   onValueChange={handleRowsPerPageChange}
@@ -707,7 +707,7 @@ const ViewBioAccomplishments = () => {
                   disabled={currentPage === 1}
                   className="h-8 text-xs"
                 >
-                  Previous
+                  Sebelumnya
                 </Button>
 
                 <div className="flex items-center space-x-1">
@@ -738,7 +738,7 @@ const ViewBioAccomplishments = () => {
                   disabled={currentPage === totalPages}
                   className="h-8 text-xs"
                 >
-                  Next
+                  Selanjutnya
                 </Button>
               </div>
             )}

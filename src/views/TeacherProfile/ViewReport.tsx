@@ -672,7 +672,7 @@ useEffect(() => {
               {filteredReports.length} data
             </div>
             <div className="flex items-center justify-center sm:justify-start space-x-2">
-              <span className="text-sm text-gray-600">Rows:</span>
+              <span className="text-sm text-gray-600">Baris:</span>
               <Select
                 value={rowsPerPage}
                 onValueChange={handleRowsPerPageChange}
@@ -700,7 +700,7 @@ useEffect(() => {
             </Button>
 
             <div className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages}
+              Halaman {currentPage} dari {totalPages}
             </div>
 
             <Button

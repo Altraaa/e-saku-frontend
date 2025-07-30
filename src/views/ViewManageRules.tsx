@@ -179,8 +179,8 @@ const ViewManageRules: React.FC = () => {
         const data = await fetchRules();
         setRules(data);
       } catch (error) {
-        console.error("Failed to fetch rules:", error);
-        setRulesError("Failed to load rules. Please try again later.");
+        console.error("Gagal untuk mendapatkan data peraturan:", error);
+        setRulesError("Gagal memuat data peraturan. Silakan coba lagi.");
       } finally {
         setIsLoadingRules(false);
       }
@@ -270,7 +270,7 @@ const performSave = async () => {
         "name", 
         editingItem?.id // Kirim ID item yang sedang diedit
       )) {
-        toast.error("Rule name already exists.");
+        toast.error("Nama peraturan sudah digunakan.");
         return;
       }
       isValid = !!formData.name && (formData.points ?? 0) > 0;
@@ -283,7 +283,7 @@ const performSave = async () => {
         "type",
         editingItem?.id // Kirim ID item yang sedang diedit
       )) {
-        toast.error("Achievement type already exists.");
+        toast.error("Nama jenis prestasi sudah digunakan.");
         return;
       }
       isValid = !!formData.type && (formData.point ?? 0) > 0;
@@ -296,7 +296,7 @@ const performSave = async () => {
         "rank",
         editingItem?.id // Kirim ID item yang sedang diedit
       )) {
-        toast.error("Achievement rank already exists.");
+        toast.error("Nama peringkat prestasi sudah digunakan.");
         return;
       }
       isValid = !!formData.rank && (formData.point ?? 0) > 0;
@@ -309,7 +309,7 @@ const performSave = async () => {
         "level",
         editingItem?.id
       )) {
-        toast.error("Achievement level already exists.");
+        toast.error("Nama tingkat prestasi sudah digunakan.");
         return;
       }
       isValid = !!formData.level && (formData.point ?? 0) > 0;
@@ -317,11 +317,11 @@ const performSave = async () => {
   }
 
   if (!isValid) {
-    toast.error("Please fill all fields with valid values.");
+    toast.error("Isi semua input dengan data yang benar.");
     return;
   }
 
-  const loadingId = toast.loading("Saving...");
+  const loadingId = toast.loading("Menyimpan...");
 
   try {
     if (editingItem) {
@@ -330,7 +330,7 @@ const performSave = async () => {
         await ApiRules.update((editingItem as IRules).id, formData as IRules);
         const updatedRules = await fetchRules();
         setRules(updatedRules);
-        toast.success(`${itemName} updated successfully!`);
+        toast.success(`${itemName} berhasil diperbaharui!`);
       } else if (isType) {
         updateType.mutate(
           {
@@ -341,12 +341,12 @@ const performSave = async () => {
             onSuccess: () => {
               toast.dismiss(loadingId);
               refetchTypes();
-              toast.success(`${itemName} updated successfully!`);
+              toast.success(`${itemName} berhasil diperbaharui!`);
             },
             onError: (error) => {
               toast.dismiss(loadingId);
-              console.error("Update type error:", error);
-              toast.error("Failed to update type.");
+              console.error("Gagal memperbarui jenis prestasi:", error);
+              toast.error("Gagal memperbarui jenis prestasi.");
             },
           }
         );
@@ -361,12 +361,12 @@ const performSave = async () => {
             onSuccess: () => {
               toast.dismiss(loadingId);
               refetchRanks();
-              toast.success(`${itemName} updated successfully!`);
+              toast.success(`${itemName} berhasil diperbaharui!`);
             },
             onError: (error) => {
               toast.dismiss(loadingId);
-              console.error("Update rank error:", error);
-              toast.error("Failed to update rank.");
+              console.error("Gagal memperbarui peringkat prestasi:", error);
+              toast.error("Gagal memperbarui peringkat prestasi.");
             },
           }
         );
@@ -381,12 +381,12 @@ const performSave = async () => {
             onSuccess: () => {
               toast.dismiss(loadingId);
               refetchLevels();
-              toast.success(`${itemName} updated successfully!`);
+              toast.success(`${itemName} berhasil diperbaharui!`);
             },
             onError: (error) => {
               toast.dismiss(loadingId);
-              console.error("Update level error:", error);
-              toast.error("Failed to update level.");
+              console.error("Gagal memperbarui tingkatan prestasi:", error);
+              toast.error("Gagal memperbarui tingkatan prestasi.");
             },
           }
         );
@@ -397,18 +397,18 @@ const performSave = async () => {
       if (isRule) {
         const added = await ApiRules.create(formData as IRules);
         setRules((prev) => [...prev, added]);
-        toast.success(`${itemName} added successfully!`);
+        toast.success(`${itemName} berhasil ditambahkan!`);
       } else if (isType) {
         createType.mutate(formData as IType, {
           onSuccess: () => {
             toast.dismiss(loadingId);
             refetchTypes();
-            toast.success(`${itemName} added successfully!`);
+            toast.success(`${itemName} berhasil ditambahkan!`);
           },
           onError: (error) => {
             toast.dismiss(loadingId);
-            console.error("Create type error:", error);
-            toast.error("Failed to add type.");
+            console.error("Gagal menambahkan jenis prestasi:", error);
+            toast.error("Gagal menambahkan jenis prestasi.");
           },
         });
         return;
@@ -417,12 +417,12 @@ const performSave = async () => {
           onSuccess: () => {
             toast.dismiss(loadingId);
             refetchRanks();
-            toast.success(`${itemName} added successfully!`);
+            toast.success(`${itemName} berhasil ditambahkan!`);
           },
           onError: (error) => {
             toast.dismiss(loadingId);
-            console.error("Create rank error:", error);
-            toast.error("Failed to add rank.");
+            console.error("Gagal menambahkan peringkat prestasi:", error);
+            toast.error("Gagal menambahkan peringkat prestasi.");
           },
         });
         return;
@@ -431,12 +431,12 @@ const performSave = async () => {
           onSuccess: () => {
             toast.dismiss(loadingId);
             refetchLevels();
-            toast.success(`${itemName} added successfully!`);
+            toast.success(`${itemName} berhasil ditambahkan!`);
           },
           onError: (error) => {
             toast.dismiss(loadingId);
-            console.error("Create level error:", error);
-            toast.error("Failed to add level.");
+            console.error("Gagal membuat tingkatan prestasi:", error);
+            toast.error("Gagal membuat tingkatan prestasi.");
           },
         });
         return;
@@ -449,8 +449,8 @@ const performSave = async () => {
     setIsEditDialogOpen(false);
   } catch (error) {
     toast.dismiss(loadingId);
-    console.error("Unexpected save error:", error);
-    toast.error("Failed to save. Please try again.");
+    console.error("Kesalahan tak terduga ketika meyimpan:", error);
+    toast.error("Gagal untuk menyimpan. Silakan coba lagi.");
   }
 };
 
@@ -460,12 +460,12 @@ const performSave = async () => {
     const actionType = editingItem ? "update" : "add";
     const itemType =
       activeTab === "rules"
-        ? "Rule"
+        ? "Peraturan"
         : activeAchievementTab === "types"
-        ? "Achievement Type"
+        ? "Jenis Prestasi"
         : activeAchievementTab === "ranks"
-        ? "Achievement Rank"
-        : "Achievement Level";
+        ? "Peringkat Prestasi"
+        : "Tingkatan Prestasi";
 
     setConfirmationModal({
       isOpen: true,
@@ -485,23 +485,23 @@ const performSave = async () => {
 
   // Delete function
   const performDelete = async (id: string, isRule: boolean) => {
-    const loadingId = toast.loading("Deleting...");
+    const loadingId = toast.loading("Menghapus...");
     try {
       if (isRule) {
         await ApiRules.delete(id);
         setRules((prev) => prev.filter((r) => r.id !== id));
-        toast.success("Rule deleted successfully!");
+        toast.success("Peraturan berhasil dihapus!");
       } else if (activeAchievementTab === "types") {
         await deleteType.mutateAsync(id, {
           onSuccess: () => {
             toast.dismiss(loadingId);
             refetchTypes();
-            toast.success("Achievement type deleted successfully!");
+            toast.success("Jenis prestasi berhasil dihapus!");
           },
           onError: (error) => {
             toast.dismiss(loadingId);
-            console.error("Delete type error:", error);
-            toast.error("Failed to delete type. Please try again.");
+            console.error("Kesalahan menghapus jenis prestasi:", error);
+            toast.error("Gagal menghapus jenis prestasi. Silakan coba lagi.");
           },
         });
       } else if (activeAchievementTab === "ranks") {
@@ -509,12 +509,12 @@ const performSave = async () => {
           onSuccess: () => {
             toast.dismiss(loadingId);
             refetchRanks();
-            toast.success("Achievement rank deleted successfully!");
+            toast.success("Peringkat prestasi berhasil dihapus!");
           },
           onError: (error) => {
             toast.dismiss(loadingId);
-            console.error("Delete rank error:", error);
-            toast.error("Failed to delete rank. Please try again.");
+            console.error("Kesalahan menghapus peringkat prestasi:", error);
+            toast.error("Gagal menghapus peringkat prestasi. Silakan coba lagi.");
           },
         });
       } else if (activeAchievementTab === "levels") {
@@ -522,12 +522,12 @@ const performSave = async () => {
           onSuccess: () => {
             toast.dismiss(loadingId);
             refetchLevels();
-            toast.success("Achievement level deleted successfully!");
+            toast.success("Tingkatan prestasi berhasil dihapus!");
           },
           onError: (error) => {
             toast.dismiss(loadingId);
-            console.error("Delete level error:", error);
-            toast.error("Failed to delete level. Please try again.");
+            console.error("Kesalahan menghapus tingkatan prestasi:", error);
+            toast.error("Gagal menghapus tingkatan prestasi. Silakan coba lagi.");
           },
         });
       }
@@ -535,27 +535,27 @@ const performSave = async () => {
       toast.dismiss(loadingId);
     } catch (error) {
       toast.dismiss(loadingId);
-      console.error("Unexpected delete error:", error);
-      toast.error("Failed to delete. Please try again.");
+      console.error("Kesalahan tak terduga ketika menghapus:", error);
+      toast.error("Gagal untuk menghapus. Silakan coba lagi.");
     }
   };
 
   // Confirm delete action
   const confirmDelete = (id: string, isRule: boolean, itemName: string) => {
     const itemType = isRule
-      ? "Rule"
+      ? "Peraturan"
       : activeAchievementTab === "types"
-      ? "Achievement Type"
+      ? "Jenis Prestasi"
       : activeAchievementTab === "ranks"
-      ? "Achievement Rank"
-      : "Achievement Level";
+      ? "Peringkat Prestasi"
+      : "Tingkatan Prestasi";
 
     setConfirmationModal({
       isOpen: true,
       type: "delete",
-      title: `Delete ${itemType}`,
+      title: `Hapus ${itemType}`,
       description: `Anda yakin untuk menghapus "${itemName}"? Tindakan ini tidak dapat dibatalkan.`,
-      confirmText: "Delete",
+      confirmText: "Hapus",
       onConfirm: () => {
         setConfirmationModal(null);
         setIsEditDialogOpen(false);
@@ -633,7 +633,7 @@ const performSave = async () => {
             <Input
               value={formData.name || ""}
               onChange={(e) => handleFormChange("name", e.target.value)}
-              placeholder="Enter rule name..."
+              placeholder="Masukkan nama peraturan..."
             />
           </div>
 
@@ -645,7 +645,7 @@ const performSave = async () => {
               onChange={(e) =>
                 handleFormChange("points", parseInt(e.target.value) || 0)
               }
-              placeholder="Enter point value"
+              placeholder="Masukkan nilai poin"
               min="1"
             />
           </div>
@@ -658,12 +658,12 @@ const performSave = async () => {
         <>
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">
-              Achievement Type
+              Jenis Prestasi
             </label>
             <Input
               value={formData.type || ""}
               onChange={(e) => handleFormChange("type", e.target.value)}
-              placeholder="Enter achievement type..."
+              placeholder="Masukkan jenis prestasi..."
             />
           </div>
           <div className="space-y-2">
@@ -674,7 +674,7 @@ const performSave = async () => {
               onChange={(e) =>
                 handleFormChange("point", parseInt(e.target.value) || 0)
               }
-              placeholder="Enter point value"
+              placeholder="Masukkan nilai poin"
               min="1"
             />
           </div>
@@ -687,12 +687,12 @@ const performSave = async () => {
         <>
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">
-              Achievement Rank
+              Peringkat Prestasi
             </label>
             <Input
               value={formData.rank || ""}
               onChange={(e) => handleFormChange("rank", e.target.value)}
-              placeholder="Enter achievement rank..."
+              placeholder="Masukkan peringkat prestasi..."
             />
           </div>
           <div className="space-y-2">
@@ -703,7 +703,7 @@ const performSave = async () => {
               onChange={(e) =>
                 handleFormChange("point", parseInt(e.target.value) || 0)
               }
-              placeholder="Enter point value"
+              placeholder="Masukkan nilai poin"
               min="1"
             />
           </div>
@@ -716,12 +716,12 @@ const performSave = async () => {
         <>
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">
-              Achievement Level
+              Tingkatan Prestasi
             </label>
             <Input
               value={formData.level || ""}
               onChange={(e) => handleFormChange("level", e.target.value)}
-              placeholder="Enter achievement level..."
+              placeholder="Masukkan tingkatan prestasi..."
             />
           </div>
           <div className="space-y-2">
@@ -732,7 +732,7 @@ const performSave = async () => {
               onChange={(e) =>
                 handleFormChange("point", parseInt(e.target.value) || 0)
               }
-              placeholder="Enter point value"
+              placeholder="Masukkan nilai poin"
               min="1"
             />
           </div>
@@ -746,13 +746,13 @@ const performSave = async () => {
   // Get title for dialog based on active tab
   const getDialogTitle = () => {
     if (activeTab === "rules") {
-      return editingItem ? "Edit Rule" : "Add New Rule";
+      return editingItem ? "Edit Peraturan" : "Tambah Peraturan Baru";
     }
 
     let title = "";
-    if (activeAchievementTab === "types") title = "Achievement Type";
-    if (activeAchievementTab === "ranks") title = "Achievement Rank";
-    if (activeAchievementTab === "levels") title = "Achievement Level";
+    if (activeAchievementTab === "types") title = "Jenis Prestasi";
+    if (activeAchievementTab === "ranks") title = "Peringkat Prestasi";
+    if (activeAchievementTab === "levels") title = "Tingkatan Prestasi";
 
     return editingItem ? `Edit ${title}` : `Add New ${title}`;
   };
@@ -763,11 +763,11 @@ const performSave = async () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="px-6 py-5">
           <h1 className="text-3xl font-bold text-green-500">
-            School Management System
+            Sistem Peraturan Sekolah
           </h1>
           <div className="mt-1 flex items-center">
             <span className="text-gray-600">
-              Manage school rules and achievement points
+              Atur peraturan sekolah dan poin prestasi
             </span>
           </div>
         </div>
@@ -780,14 +780,14 @@ const performSave = async () => {
             <TabsList className="grid w-full grid-cols-2 bg-gray-100">
               <TabsTrigger value="rules" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
-                Rules Management
+                Manajemen Peraturan
               </TabsTrigger>
               <TabsTrigger
                 value="achievements"
                 className="flex items-center gap-2"
               >
                 <Trophy className="h-4 w-4" />
-                Achievement Management
+                Manajemen Prestasi
               </TabsTrigger>
             </TabsList>
           </div>
@@ -797,7 +797,7 @@ const performSave = async () => {
             <div className="px-6 pt-4 pb-4 border-b border-gray-200">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                 <CardTitle className="text-xl font-bold text-gray-900">
-                  Rules Management
+                  Manajemen Peraturan
                 </CardTitle>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   <Button
@@ -805,12 +805,12 @@ const performSave = async () => {
                     className="bg-green-500 hover:bg-green-600 text-white transition-all duration-300 w-full sm:w-auto"
                   >
                     <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
-                    <span className="truncate">Add New Rule</span>
+                    <span className="truncate">Tambah Peraturan Baru</span>
                   </Button>
                   <div className="relative flex w-full">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                     <Input
-                      placeholder="Search rules..."
+                      placeholder="Cari peraturan..."
                       onChange={handleSearchChange(
                         setRulesSearchText,
                         setRulesCurrentPage
@@ -836,7 +836,7 @@ const performSave = async () => {
                     variant="outline"
                     className="text-red-600 border-red-600 hover:bg-red-50"
                   >
-                    Try Again
+                    Coba Lagi
                   </Button>
                 </div>
               ) : (
@@ -849,13 +849,13 @@ const performSave = async () => {
                           No
                         </TableHead>
                         <TableHead className="text-left font-medium text-black">
-                          Rule
+                          Peraturan
                         </TableHead>
                         <TableHead className="text-center font-medium text-black">
-                          Points
+                          Poin
                         </TableHead>
                         <TableHead className="text-center font-medium text-black">
-                          Actions
+                          Aksi
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -917,12 +917,12 @@ const performSave = async () => {
                           >
                             <AlertCircle className="mx-auto h-12 w-12 text-gray-300 mb-4" />
                             <p className="text-lg font-medium mb-2">
-                              No rules found
+                              Tidak ada peraturan yang ditemukan
                             </p>
                             <p className="text-sm">
                               {rulesSearchText
-                                ? "Try adjusting your search criteria"
-                                : "Start by adding your first rule"}
+                                ? "Coba sesuaikan kriteria pencarian Anda"
+                                : "Mulailah dengan menambahkan peraturan pertama Anda"}
                             </p>
                           </TableCell>
                         </TableRow>
@@ -935,11 +935,11 @@ const performSave = async () => {
                     <div className="px-4 sm:px-6 pt-4 pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center border-t space-y-4 sm:space-y-0">
                       <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                         <div className="text-sm text-gray-500 text-center sm:text-left">
-                          Showing {paginatedRules.length} of{" "}
-                          {filteredRules.length} rules
+                          Menampilkan {paginatedRules.length} dari{" "}
+                          {filteredRules.length} peraturan
                         </div>
                         <div className="flex items-center justify-center sm:justify-start space-x-2">
-                          <span className="text-sm text-gray-600">Rows:</span>
+                          <span className="text-sm text-gray-600">Baris:</span>
                           <Select
                             value={String(rulesRowsPerPage)}
                             onValueChange={(value) => {
@@ -975,7 +975,7 @@ const performSave = async () => {
                         </Button>
 
                         <div className="text-sm text-gray-600 px-2">
-                          Page {rulesCurrentPage} of {rulesTotalPages}
+                          Halaman {rulesCurrentPage} dari {rulesTotalPages}
                         </div>
 
                         <Button
@@ -1008,9 +1008,9 @@ const performSave = async () => {
             >
               <div className="px-6 pt-4 pb-4 border-b border-gray-200">
                 <TabsList className="grid w-full grid-cols-3 bg-gray-100">
-                  <TabsTrigger value="types">Achievement Types</TabsTrigger>
-                  <TabsTrigger value="ranks">Achievement Ranks</TabsTrigger>
-                  <TabsTrigger value="levels">Achievement Levels</TabsTrigger>
+                  <TabsTrigger value="types">Jenis Prestasi</TabsTrigger>
+                  <TabsTrigger value="ranks">Peringkat Prestasi</TabsTrigger>
+                  <TabsTrigger value="levels">Tingkatan Prestasi</TabsTrigger>
                 </TabsList>
               </div>
 
@@ -1019,7 +1019,7 @@ const performSave = async () => {
                 <div className="px-6 pt-4 pb-4 border-b border-gray-200">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                     <CardTitle className="text-xl font-bold text-gray-900">
-                      Achievement Type Management
+                      Manajemen Jenis Prestasi
                     </CardTitle>
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                       <Button
@@ -1027,12 +1027,12 @@ const performSave = async () => {
                         className="bg-green-500 hover:bg-green-600 text-white transition-all duration-300 w-full sm:w-auto"
                       >
                         <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
-                        <span className="truncate">Add Achievement Type</span>
+                        <span className="truncate">Tambah Jenis</span>
                       </Button>
                       <div className="relative flex w-full">
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                         <Input
-                          placeholder="Search types..."
+                          placeholder="Cari jenis..."
                           onChange={handleSearchChange(
                             setTypesSearchText,
                             setTypesCurrentPage
@@ -1052,13 +1052,13 @@ const performSave = async () => {
                           No
                         </TableHead>
                         <TableHead className="text-center font-medium text-black">
-                          Achievement Type
+                          Jenis Prestasi
                         </TableHead>
                         <TableHead className="text-center font-medium text-black">
-                          Points
+                          Poin
                         </TableHead>
                         <TableHead className="text-center font-medium text-black">
-                          Actions
+                          Aksi
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1121,13 +1121,13 @@ const performSave = async () => {
                             <Award className="mx-auto h-12 w-12 text-gray-300 mb-4" />
                             <p className="text-lg font-medium mb-2">
                               {typesData && typesData.length === 0
-                                ? "No achievement types found"
-                                : "Loading achievement types..."}
+                                ? "Tidak ada jenis prestasi yang ditemukan"
+                                : "Memuat jenis prestasi..."}
                             </p>
                             <p className="text-sm">
                               {typesSearchText
-                                ? "Try adjusting your search criteria"
-                                : "Start by adding your first achievement type"}
+                                ? "Coba sesuaikan kriteria pencarian Anda"
+                                : "Mulailah dengan menambahkan jenis prestasi pertama Anda"}
                             </p>
                           </TableCell>
                         </TableRow>
@@ -1140,11 +1140,11 @@ const performSave = async () => {
                     <div className="px-4 sm:px-6 pt-4 pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center border-t space-y-4 sm:space-y-0">
                       <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                         <div className="text-sm text-gray-500 text-center sm:text-left">
-                          Showing {paginatedTypes.length} of{" "}
-                          {filteredTypes.length} types
+                          Menampilkan {paginatedTypes.length} dari{" "}
+                          {filteredTypes.length} jenis
                         </div>
                         <div className="flex items-center justify-center sm:justify-start space-x-2">
-                          <span className="text-sm text-gray-600">Rows:</span>
+                          <span className="text-sm text-gray-600">Baris:</span>
                           <Select
                             value={String(typesRowsPerPage)}
                             onValueChange={(value) => {
@@ -1180,7 +1180,7 @@ const performSave = async () => {
                         </Button>
 
                         <div className="text-sm text-gray-600 px-2">
-                          Page {typesCurrentPage} of {typesTotalPages}
+                          Halaman {typesCurrentPage} dari {typesTotalPages}
                         </div>
 
                         <Button
@@ -1207,7 +1207,7 @@ const performSave = async () => {
                 <div className="px-6 pt-4 pb-4 border-b border-gray-200">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                     <CardTitle className="text-xl font-bold text-gray-900">
-                      Achievement Rank Management
+                      Manajemen Peringkat Prestasi
                     </CardTitle>
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                       <Button
@@ -1215,12 +1215,12 @@ const performSave = async () => {
                         className="bg-green-500 hover:bg-green-600 text-white transition-all duration-300 w-full sm:w-auto"
                       >
                         <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
-                        <span className="truncate">Add Achievement Rank</span>
+                        <span className="truncate">Tambah Peringkat</span>
                       </Button>
                       <div className="relative flex w-full">
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                         <Input
-                          placeholder="Search ranks..."
+                          placeholder="Cari peringkat..."
                           onChange={handleSearchChange(
                             setRanksSearchText,
                             setRanksCurrentPage
@@ -1240,13 +1240,13 @@ const performSave = async () => {
                           No
                         </TableHead>
                         <TableHead className="text-center font-medium text-black">
-                          Achievement Rank
+                          Peringkat Prestasi
                         </TableHead>
                         <TableHead className="text-center font-medium text-black">
-                          Points
+                          Poin
                         </TableHead>
                         <TableHead className="text-center font-medium text-black">
-                          Actions
+                          Aksi
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1309,13 +1309,13 @@ const performSave = async () => {
                             <Award className="mx-auto h-12 w-12 text-gray-300 mb-4" />
                             <p className="text-lg font-medium mb-2">
                               {ranksData && ranksData.length === 0
-                                ? "No achievement ranks found"
-                                : "Loading achievement ranks..."}
+                                ? "Tidak ada peringkat prestasi yang ditemukan"
+                                : "Memuat peringkat prestasi..."}
                             </p>
                             <p className="text-sm">
                               {ranksSearchText
-                                ? "Try adjusting your search criteria"
-                                : "Start by adding your first achievement rank"}
+                                ? "Coba sesuaikan kriteria pencarian Anda"
+                                : "Mulailah dengan menambahkan peringkat prestasi pertama Anda"}
                             </p>
                           </TableCell>
                         </TableRow>
@@ -1328,11 +1328,11 @@ const performSave = async () => {
                     <div className="px-4 sm:px-6 pt-4 pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center border-t space-y-4 sm:space-y-0">
                       <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                         <div className="text-sm text-gray-500 text-center sm:text-left">
-                          Showing {paginatedRanks.length} of{" "}
-                          {filteredRanks.length} ranks
+                          Menampilkan {paginatedRanks.length} dari{" "}
+                          {filteredRanks.length} peringkat
                         </div>
                         <div className="flex items-center justify-center sm:justify-start space-x-2">
-                          <span className="text-sm text-gray-600">Rows:</span>
+                          <span className="text-sm text-gray-600">Baris:</span>
                           <Select
                             value={String(ranksRowsPerPage)}
                             onValueChange={(value) => {
@@ -1368,7 +1368,7 @@ const performSave = async () => {
                         </Button>
 
                         <div className="text-sm text-gray-600 px-2">
-                          Page {ranksCurrentPage} of {ranksTotalPages}
+                          Halaman {ranksCurrentPage} dari {ranksTotalPages}
                         </div>
 
                         <Button
@@ -1395,7 +1395,7 @@ const performSave = async () => {
                 <div className="px-6 pt-4 pb-4 border-b border-gray-200">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                     <CardTitle className="text-xl font-bold text-gray-900">
-                      Achievement Level Management
+                      Manajemen Tingkatan Prestasi
                     </CardTitle>
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                       <Button
@@ -1403,12 +1403,12 @@ const performSave = async () => {
                         className="bg-green-500 hover:bg-green-600 text-white transition-all duration-300 w-full sm:w-auto"
                       >
                         <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
-                        <span className="truncate">Add Achievement Level</span>
+                        <span className="truncate">Tambah Tingkat</span>
                       </Button>
                       <div className="relative flex w-full">
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                         <Input
-                          placeholder="Search levels..."
+                          placeholder="Cari tingkat..."
                           onChange={handleSearchChange(
                             setLevelsSearchText,
                             setLevelsCurrentPage
@@ -1428,13 +1428,13 @@ const performSave = async () => {
                           No
                         </TableHead>
                         <TableHead className="text-center font-medium text-black">
-                          Achievement Level
+                          Tingkat Prestasi
                         </TableHead>
                         <TableHead className="text-center font-medium text-black">
-                          Points
+                          Poin
                         </TableHead>
                         <TableHead className="text-center font-medium text-black">
-                          Actions
+                          Aksi
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1497,13 +1497,13 @@ const performSave = async () => {
                             <Award className="mx-auto h-12 w-12 text-gray-300 mb-4" />
                             <p className="text-lg font-medium mb-2">
                               {levelsData && levelsData.length === 0
-                                ? "No achievement levels found"
-                                : "Loading achievement levels..."}
+                                ? "Tidak ada tingkatan prestasi yang ditemukan"
+                                : "Memuat tingkatan prestasi..."}
                             </p>
                             <p className="text-sm">
                               {levelsSearchText
-                                ? "Try adjusting your search criteria"
-                                : "Start by adding your first achievement level"}
+                                ? "Coba sesuaikan kriteria pencarian Anda"
+                                : "Mulailah dengan menambahkan tingkatan prestasi pertama Anda"}
                             </p>
                           </TableCell>
                         </TableRow>
@@ -1516,11 +1516,11 @@ const performSave = async () => {
                     <div className="px-4 sm:px-6 pt-4 pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center border-t space-y-4 sm:space-y-0">
                       <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                         <div className="text-sm text-gray-500 text-center sm:text-left">
-                          Showing {paginatedLevels.length} of{" "}
-                          {filteredLevels.length} levels
+                          Menampilkan {paginatedLevels.length} dari{" "}
+                          {filteredLevels.length} tingkat
                         </div>
                         <div className="flex items-center justify-center sm:justify-start space-x-2">
-                          <span className="text-sm text-gray-600">Rows:</span>
+                          <span className="text-sm text-gray-600">Baris:</span>
                           <Select
                             value={String(levelsRowsPerPage)}
                             onValueChange={(value) => {
@@ -1558,7 +1558,7 @@ const performSave = async () => {
                         </Button>
 
                         <div className="text-sm text-gray-600 px-2">
-                          Page {levelsCurrentPage} of {levelsTotalPages}
+                          Halaman {levelsCurrentPage} dari {levelsTotalPages}
                         </div>
 
                         <Button
@@ -1598,8 +1598,8 @@ const performSave = async () => {
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-600">
               {editingItem
-                ? "Modify the selected item details"
-                : "Create a new item"}
+                ? "Ubah detail item yang dipilih"
+                : "Tambahkan item baru"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -1617,7 +1617,7 @@ const performSave = async () => {
                 onClick={confirmSave}
                 className="flex-1 bg-green-500 hover:bg-green-600"
               >
-                {editingItem ? "Update" : "Create"}
+                {editingItem ? "Perbarui" : "Tambahkan"}
               </Button>
             </div>
           </div>

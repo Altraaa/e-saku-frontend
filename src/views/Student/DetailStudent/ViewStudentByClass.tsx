@@ -84,7 +84,7 @@ const ClassHeader: React.FC<ClassHeaderProps> = ({
             className="mb-3 text-gray-600 hover:text-green-600"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Classes
+            Kembali ke Kelas
           </Button>
         )}
 
@@ -285,7 +285,7 @@ const ViewStudentByClass: React.FC = () => {
   };
 
   const handleConfirmDelete = async () => {
-    const loadingId = toast.loading("Deleting...");
+    const loadingId = toast.loading("Menghapus...");
 
     if (studentToDelete) {
       try {
@@ -305,10 +305,10 @@ const ViewStudentByClass: React.FC = () => {
     try {
       await exportStudents(classId);
       setIsModalExportOpen(false);
-      toast.success("File berhasil didownload");
+      toast.success("File berhasil diunduh");
     } catch (error) {
-      console.error("Export failed:", error);
-      toast.error("Gagal export file");
+      console.error("Ekspor gagal:", error);
+      toast.error("Gagal ekspor file");
     }
   };
 
@@ -329,7 +329,7 @@ const ViewStudentByClass: React.FC = () => {
     const validation = StudentImportService.validateFile(file);
 
     if (!validation.isValid) {
-      setUploadError(validation.error || "Invalid file");
+      setUploadError(validation.error || "File tidak valid");
       setSelectedFile(null);
       return false;
     }
@@ -380,7 +380,7 @@ const ViewStudentByClass: React.FC = () => {
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
       if (files.length > 1) {
-        setUploadError("Please select only one file at a time");
+        setUploadError("Hanya satu file yang diperbolehkan");
         return;
       }
       const file = files[0];
@@ -408,7 +408,7 @@ const ViewStudentByClass: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
     } else {
       setUploadStatus("error");
-      toast.error("Data siswa gagal diimport");
+      toast.error("Data siswa gagal diimpor");
       setUploadError(result.message);
     }
   };
@@ -475,7 +475,7 @@ const ViewStudentByClass: React.FC = () => {
   ): void {
     event.preventDefault();
 
-    const loadingId = toast.loading("Adding student...");
+    const loadingId = toast.loading("Menambahkan siswa...");
     setIsAddStudentModalOpen(false);
 
     createStudent.mutate(newStudent, {
@@ -486,7 +486,7 @@ const ViewStudentByClass: React.FC = () => {
       },
       onError: (error: any) => {
         toast.dismiss(loadingId);
-        toast.error("Failed to add student.");
+        toast.error("Gagal menambahkan siswa.");
         setSubmitError(error?.response?.data?.message);
       },
     });
@@ -503,7 +503,7 @@ const ViewStudentByClass: React.FC = () => {
           <MoveLeft className="h-4 w-4" />
         </div>
         <span className="font-medium text-sm md:text-base">
-          Back to Classes
+          Kembali ke Kelas
         </span>
       </Button>
       <ClassHeader
@@ -523,16 +523,16 @@ const ViewStudentByClass: React.FC = () => {
               className="hover:bg-[#009616] hover:text-white transition-all duration-300 w-full sm:w-auto"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Add Student
+              Tambah Siswa
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-[95vw] sm:max-w-[500px] p-3 sm:p-4 md:p-6 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-base sm:text-lg md:text-xl">
-                Add New Student
+                Tambah Siswa Baru
               </DialogTitle>
               <DialogDescription className="text-xs sm:text-sm md:text-base">
-                Create a new student by filling in the information below
+                Buat siswa baru dengan mengisi informasi di bawah ini
               </DialogDescription>
             </DialogHeader>
 
@@ -543,12 +543,12 @@ const ViewStudentByClass: React.FC = () => {
                     htmlFor="studentName"
                     className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
                   >
-                    Student Name <span className="text-red-500">*</span>
+                    Nama Siswa <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     id="studentName"
-                    placeholder="Enter student full name"
+                    placeholder="Masukkan nama siswa"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200 text-xs sm:text-sm md:text-base"
                     value={newStudent.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
@@ -566,7 +566,7 @@ const ViewStudentByClass: React.FC = () => {
                   <input
                     type="text"
                     id="studentNis"
-                    placeholder="Enter NIS number"
+                    placeholder="Masukkan NIS"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200 text-xs sm:text-sm md:text-base"
                     value={newStudent.nis}
                     onChange={(e) => handleInputChange("nis", e.target.value)}
@@ -584,7 +584,7 @@ const ViewStudentByClass: React.FC = () => {
                   <input
                     type="text"
                     id="studentNisn"
-                    placeholder="Enter NISN number"
+                    placeholder="Masukkan NISN"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200 text-xs sm:text-sm md:text-base"
                     value={newStudent.nisn}
                     onChange={(e) => handleInputChange("nisn", e.target.value)}
@@ -597,7 +597,7 @@ const ViewStudentByClass: React.FC = () => {
                     htmlFor="studentClass"
                     className="text-xs sm:text-sm md:text-base font-medium text-gray-900"
                   >
-                    Class <span className="text-red-500">*</span>
+                    Kelas <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -605,7 +605,7 @@ const ViewStudentByClass: React.FC = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors duration-200 text-xs sm:text-sm md:text-base"
                     value={
                       classes?.find((c) => c.id === newStudent.class_id)
-                        ?.name || "Select a class first"
+                        ?.name || "Pilih kelas terlebih dahulu"
                     }
                     disabled
                   />
@@ -616,14 +616,14 @@ const ViewStudentByClass: React.FC = () => {
                     htmlFor="teacherSelect"
                     className="text-xs sm:text-sm md:text-base font-medium text-gray-500"
                   >
-                    Teacher (Auto-assigned)
+                    Guru Pengampu(Otomatis)
                   </label>
                   <div className="relative">
                     <input
                       type="text"
                       value={
                         classes?.find((c) => c.id === newStudent.class_id)
-                          ?.teacher?.name || "Select a class first"
+                          ?.teacher?.name || "Pilih kelas terlebih dahulu"
                       }
                       disabled
                       className="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-600 cursor-not-allowed text-xs sm:text-sm md:text-base"
@@ -633,8 +633,7 @@ const ViewStudentByClass: React.FC = () => {
                     </div>
                   </div>
                   <p className="text-xs text-gray-500">
-                    Teacher will be assigned automatically based on selected
-                    class
+                    Kelas akan ditugaskan ke guru saat ini secara otomatis
                   </p>
                 </div>
 
@@ -654,7 +653,7 @@ const ViewStudentByClass: React.FC = () => {
                     <CardContent className="p-3">
                       <div className="flex items-center space-x-2 text-xs sm:text-sm text-green-600">
                         <div className="w-4 h-4 flex-shrink-0">✓</div>
-                        <span>Student created successfully!</span>
+                        <span>Siswa berhasil ditambahkan!</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -671,33 +670,32 @@ const ViewStudentByClass: React.FC = () => {
               <Card className="bg-gray-50 border-gray-200">
                 <CardContent className="p-3 sm:p-4">
                   <h4 className="text-xs sm:text-sm md:text-base font-medium mb-2">
-                    Student Creation Guidelines:
+                    Panduan Pengisian Data Siswa:
                   </h4>
                   <ul className="space-y-1 text-xs sm:text-sm">
                     <li className="flex items-start">
                       <span className="mr-1">•</span>
                       <span>
-                        Student name should be entered as full name
+                        Nama siswa harus diisi lengkap sesuai KTP atau Akta Kelahiran
                         <p className="font-medium">
-                          (e.g., Ahmad Rizki Maulana)
+                          (contoh: Ahmad Rizki Maulana)
                         </p>
                       </span>
                     </li>
                     <li className="flex items-start">
                       <span className="mr-1">•</span>
-                      <span>NIS and NISN must be unique for each student</span>
+                      <span>NIS dan NISN harus unik untuk tiap siswa</span>
                     </li>
                     <li className="flex items-start">
                       <span className="mr-1">•</span>
                       <span>
-                        Teacher assignment is automatic based on selected class
+                        Guru akan otomatis ditugaskan sesuai kelas
                       </span>
                     </li>
                     <li className="flex items-start">
                       <span className="mr-1">•</span>
                       <span>
-                        Class selection determines the student's major and
-                        teacher
+                        Pemilihan kelas menentukan jurusan dan guru siswa
                       </span>
                     </li>
                   </ul>
@@ -711,7 +709,7 @@ const ViewStudentByClass: React.FC = () => {
                   disabled={submitStatus === "submitting"}
                   className="w-full sm:w-auto text-xs sm:text-sm"
                 >
-                  Cancel
+                  Batal
                 </Button>
                 <Button
                   onClick={handleSubmitStudent}
@@ -721,17 +719,17 @@ const ViewStudentByClass: React.FC = () => {
                   {submitStatus === "submitting" ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Creating Student...
+                      Menambahkan Siswa...
                     </>
                   ) : submitStatus === "success" ? (
                     <>
                       <div className="w-4 h-4 mr-2">✓</div>
-                      Student Created!
+                      Siswa berhasil ditambahkan!
                     </>
                   ) : (
                     <>
                       <Plus className="w-4 h-4 mr-2" />
-                      Create Student
+                      Tambah Siswa
                     </>
                   )}
                 </Button>
@@ -749,7 +747,7 @@ const ViewStudentByClass: React.FC = () => {
             className="text-green-600 hover:text-white hover:bg-green-600 border border-green-500 transition-all duration-300 w-full sm:w-auto"
           >
             <UploadIcon className="mr-2 h-4 w-4" />
-            Export Excel
+            Ekspor ke Excel
           </Button>
 
           <Dialog
@@ -769,7 +767,7 @@ const ViewStudentByClass: React.FC = () => {
                 className="hover:bg-[#009616] hover:text-white transition-all duration-300 w-full sm:w-auto"
               >
                 <Download className="mr-2 h-4 w-4 flex-shrink-0" />
-                <span className="truncate">Import Excel</span>
+                <span className="truncate">Impor dari Excel</span>
               </Button>
             </DialogTrigger>
             <DialogContent
@@ -778,11 +776,10 @@ const ViewStudentByClass: React.FC = () => {
             >
               <DialogHeader>
                 <DialogTitle className="text-base sm:text-lg lg:text-xl leading-tight">
-                  Import Student Data untuk {classroom?.name}
+                  Impor data siswa untuk {classroom?.name}
                 </DialogTitle>
                 <DialogDescription className="text-xs sm:text-sm leading-relaxed">
-                  Upload file Excel (.xls atau .xlsx) yang berisi data siswa
-                  untuk kelas ini
+                  Unggah file Excel (.xls atau .xlsx) yang berisi data siswa untuk kelas ini
                 </DialogDescription>
               </DialogHeader>
 
@@ -795,7 +792,7 @@ const ViewStudentByClass: React.FC = () => {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm sm:text-lg font-semibold">
-                          Upload Berhasil!
+                          Unggah Berhasil!
                         </p>
                         <p className="text-xs sm:text-sm text-gray-600 break-words">
                           Data siswa berhasil diunggah ke kelas{" "}
@@ -849,11 +846,11 @@ const ViewStudentByClass: React.FC = () => {
                               }`}
                             >
                               {isDragging
-                                ? "Drop your Excel file here"
-                                : "Click to upload or drag & drop"}
+                                ? "Lepaskan file di sini untuk mengunggah"
+                                : "Klik atau seret file Excel di sini untuk mengunggah"}
                             </span>
                             <span className="text-xs text-gray-400 mt-0.5 sm:mt-1 px-2 text-center">
-                              .xls or .xlsx (max 10MB)
+                              .xls or .xlsx (maks 10MB)
                             </span>
                           </label>
                           {isDragging && (
@@ -942,7 +939,7 @@ const ViewStudentByClass: React.FC = () => {
                       disabled={uploadStatus === "uploading"}
                     >
                       <FileSpreadsheet className="w-4 h-4 mr-2" />
-                      Download Template
+                      Unduh Templete
                     </Button>
                   )}
 
@@ -952,7 +949,7 @@ const ViewStudentByClass: React.FC = () => {
                         onClick={() => setIsImportModalOpen(false)}
                         className="bg-green-500 hover:bg-green-600 text-white flex-1 sm:flex-none"
                       >
-                        Continue
+                        Lanjutkan
                       </Button>
                     ) : (
                       <>
@@ -962,7 +959,7 @@ const ViewStudentByClass: React.FC = () => {
                           disabled={uploadStatus === "uploading"}
                           className="flex-1 sm:flex-none"
                         >
-                          Cancel
+                          Batal
                         </Button>
                         <Button
                           onClick={handleFileUpload}
@@ -975,7 +972,7 @@ const ViewStudentByClass: React.FC = () => {
                             <>
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                               <span className="hidden sm:inline">
-                                Uploading... {uploadProgress}%
+                                Mengunggah... {uploadProgress}%
                               </span>
                               <span className="sm:hidden">
                                 {uploadProgress}%
@@ -984,7 +981,7 @@ const ViewStudentByClass: React.FC = () => {
                           ) : (
                             <>
                               <Upload className="w-4 h-4 mr-2" />
-                              Upload File
+                              Unggah File
                             </>
                           )}
                         </Button>
@@ -1000,7 +997,7 @@ const ViewStudentByClass: React.FC = () => {
             onClick={() => handleDeleteStudentByClass(classId)}
           >
             <Trash className="mr-1 h-4 w-4 flex-shrink-0" />
-            <span className="truncate">Delete Students Data</span>
+            <span className="truncate">Hapus Data Siswa</span>
           </Button>
         </div>
       </div>
@@ -1298,7 +1295,7 @@ const ViewStudentByClass: React.FC = () => {
               {filteredStudents.length} siswa
             </div>
             <div className="flex items-center justify-center sm:justify-start space-x-2">
-              <span className="text-sm text-gray-600">Rows:</span>
+              <span className="text-sm text-gray-600">Baris:</span>
               <Select
                 value={String(rowsPerPage)}
                 onValueChange={handleRowsPerPageChange}
@@ -1329,7 +1326,7 @@ const ViewStudentByClass: React.FC = () => {
             </Button>
 
             <div className="text-sm text-gray-600 px-2">
-              Page {safePage} of {totalPages}
+              Halaman {safePage} dari {totalPages}
             </div>
 
             <Button

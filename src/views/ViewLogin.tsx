@@ -29,7 +29,7 @@ export default function ViewLogin() {
     try {
       await login({ identifier, password });
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Login Gagal:", error);
     }
   };
 
@@ -76,15 +76,16 @@ export default function ViewLogin() {
       <div className="flex flex-col p-6">
         <div className="flex gap-2 items-center">
           <img src={esakulogo} alt="" width={35} />
-          <span className="text-md font-semibold">E-Saku Siswa</span>
+          <span className="text-md font-semibold">E-Saku Peserta Didik</span>
         </div>
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">
             <Form onSubmit={handleSubmit} isLoading={isLoading}>
               <div className="flex flex-col items-center gap-1 text-center">
-                <h1 className="text-2xl font-bold">Welcome Back!</h1>
-                <p className="text-balance text-sm text-muted-foreground">
-                  Enter your username for login to your account.
+                <h1 className="text-2xl font-bold">Selamat Datang Kembali!</h1>
+                <p className=" text-sm text-muted-foreground">
+                  Masukan akun kamu untuk melanjutkan ke <br/>
+                  E-Saku Peserta Didik.
                 </p>
               </div>
 
@@ -100,7 +101,7 @@ export default function ViewLogin() {
                 label="Username"
                 value={identifier}
                 onChange={handleInputChange(setIdentifier)}
-                placeholder="Enter your username"
+                placeholder="Masukkan username anda"
                 disabled={isLoading}
               />
 
@@ -110,16 +111,16 @@ export default function ViewLogin() {
                 type="password"
                 value={password}
                 onChange={handleInputChange(setPassword)}
-                placeholder="Enter your password"
+                placeholder="Masukkan password anda"
                 disabled={isLoading}
               />
 
-              <FormButton isLoading={isLoading}>Login</FormButton>
+              <FormButton isLoading={isLoading}>Masuk</FormButton>
 
               <div className="text-center text-sm">
-                By logging in, you agree to our{" "}
+                Dengan masuk, Anda setuju dengan{" "} <br/>
                 <a href="#" className="underline underline-offset-4">
-                  Privacy Policy
+                  Kebijakan & Privasi E-Saku
                 </a>
               </div>
             </Form>
