@@ -15,7 +15,7 @@ const Navbar = ({
   const { toggleSidebar } = useSidebar();
 
   return (
-    <div className="flex items-center justify-between p-4 bg-white shadow-md w-full overflow-hidden">
+    <div className="flex items-center justify-between p-4 bg-white shadow-md w-full overflow-hidden sticky top-0">
       <div className="flex items-center space-x-3 flex-1 min-w-0">
         <Button
           variant="ghost"

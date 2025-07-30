@@ -6,6 +6,16 @@ import React, {
   useRef,
   useMemo,
 } from "react";
+import { 
+  Command, 
+  CommandEmpty, 
+  CommandGroup, 
+  CommandInput, 
+  CommandItem } from "@/components/ui/command";
+import {
+  Popover, 
+  PopoverContent, 
+  PopoverTrigger } from "@/components/ui/popover";
 import {
   AlertTriangle,
   Award,
@@ -25,6 +35,8 @@ import {
   Paperclip,
   Upload,
   File,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
 import {
   Card,
@@ -165,6 +177,10 @@ const ESakuForm: React.FC = () => {
   const { mutate: createAccomplishment } = useAccomplishmentCreate();
   const { mutate: createReport } = useReportCreate();
   const uploadViolationDocumentation = useViolationsDocumentationUpload();
+  const [openViolationSelect, setOpenViolationSelect] = useState(false);
+  const [openStudentSelect, setOpenStudentSelect] = useState(false);
+  const [violationSearchValue, setViolationSearchValue] = useState("");
+  const [studentSearchValue, setStudentSearchValue] = useState("");
   const uploadAccomplishmentDocumentation =
     useAccomplishmentsDocumentationUpload();
   const { data: accomplishmentTypes = [] } = useAccomplishmentsType();
@@ -1171,74 +1187,64 @@ const ESakuForm: React.FC = () => {
                           className="bg-gray-100"
                         />
                       ) : (
-                        <>
-                          <Select
-                            value={studentName}
-                            onValueChange={(value) => {
-                              setStudentName(value);
-                              const selectedStudent = students.find(
-                                (s) => s.name === value
-                              );
-                              setSelectedStudentId(
-                                selectedStudent?.id.toString() || null
-                              );
-                            }}
-                            disabled={!selectedClassId}
-                          >
-                            <SelectTrigger
-                              className={`${inputClass} ${
-                                errors.studentName ? inputErrorClass : ""
-                              }`}
+                        <Popover open={openStudentSelect} onOpenChange={setOpenStudentSelect}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={openStudentSelect}
+                              disabled={!selectedClassId}
+                              className={`w-full ${inputClass} justify-between ${errors.studentName ? inputErrorClass : ""}`}
                             >
-                              <SelectValue
-                                placeholder={
-                                  selectedClassId
-                                    ? "Pilih Siswa"
-                                    : "Pilih kelas terlebih dahulu"
-                                }
+                              {studentName || (selectedClassId ? "Pilih Siswa" : "Pilih kelas terlebih dahulu")}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                            <Command>
+                              <CommandInput 
+                                placeholder="Cari siswa..." 
+                                value={studentSearchValue}
+                                onValueChange={setStudentSearchValue}
                               />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {selectedClassId ? (
-                                students.length > 0 ? (
-                                  students.map((student) => (
-                                    <SelectItem
-                                      key={student.id}
-                                      value={
-                                        student.name || `student-${student.id}`
-                                      }
-                                    >
-                                      {student.name}
-                                    </SelectItem>
-                                  ))
+                              <CommandEmpty>
+                                {selectedClassId ? "Tidak ada siswa ditemukan." : "Pilih kelas terlebih dahulu"}
+                              </CommandEmpty>
+                              <CommandGroup className="max-h-64 overflow-auto">
+                                {selectedClassId && students.length > 0 ? (
+                                  students
+                                    .filter((student) => 
+                                      student.name?.toLowerCase().includes(studentSearchValue.toLowerCase())
+                                    )
+                                    .map((student) => (
+                                      <CommandItem
+                                        key={student.id}
+                                        value={student.name || `student-${student.id}`}
+                                        onSelect={(currentValue) => {
+                                          setStudentName(currentValue);
+                                          setOpenStudentSelect(false);
+                                          setStudentSearchValue("");
+                                        }}
+                                      >
+                                        <Check
+                                          className={`mr-2 h-4 w-4 ${
+                                            studentName === (student.name || `student-${student.id}`)
+                                              ? "opacity-100"  
+                                              : "opacity-0"
+                                          }`}
+                                        />
+                                        {student.name}
+                                      </CommandItem>
+                                    ))
                                 ) : (
-                                  <SelectItem value="no-data" disabled>
-                                    Tidak ada siswa di kelas ini
-                                  </SelectItem>
-                                )
-                              ) : (
-                                <SelectItem value="select-class-first" disabled>
-                                  Pilih kelas terlebih dahulu
-                                </SelectItem>
-                              )}
-                            </SelectContent>
-                          </Select>
-                          {selectedStudentId && (
-                            <div
-                              className={`mt-2 text-xs px-3 py-1.5 rounded-md flex items-center ${pointColorClass}`}
-                            >
-                              <AlertTriangle className="h-4 w-4 mr-1.5" />
-                              Total Poin Pelanggaran: {totalViolationPoints}
-                              {totalViolationPoints >= 50 && (
-                                <span className="ml-2 font-medium">
-                                  {totalViolationPoints >= 90
-                                    ? "(Siswa dalam kondisi bahaya)"
-                                    : "(Perlu perhatian khusus)"}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </>
+                                  <CommandItem disabled>
+                                    {selectedClassId ? "Tidak ada siswa di kelas ini" : "Pilih kelas terlebih dahulu"}
+                                  </CommandItem>
+                                )}
+                              </CommandGroup>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                       )}
                     </FormFieldGroup>
                   </div>
@@ -1272,49 +1278,58 @@ const ESakuForm: React.FC = () => {
                           error={errors.violationType}
                           required
                         >
-                          <Select
-                            value=""
-                            onValueChange={(value) => {
-                              const selectedRule = rulesData?.find(
-                                (rule) => rule.id.toString() === value
-                              );
-                              if (selectedRule) {
-                                handleViolationSelection(
-                                  value,
-                                  selectedRule.points
-                                );
-                              }
-                            }}
-                          >
-                            <SelectTrigger
-                              className={`${inputClass} ${
-                                violations.length === 0 && errors.violationType
-                                  ? inputErrorClass
-                                  : ""
-                              }`}
-                            >
-                              <SelectValue
-                                placeholder={
-                                  violations.length > 0
-                                    ? "Pilih lagi jenis pelanggaran"
-                                    : "Pilih Jenis Pelanggaran"
-                                }
-                              />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {rulesData?.map((rule) => (
-                                <SelectItem
-                                  key={rule.id}
-                                  value={rule.id.toString()}
-                                  disabled={violations.some(
-                                    (v) => v.id === rule.id.toString()
-                                  )}
-                                >
-                                  {rule.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <Popover open={openViolationSelect} onOpenChange={setOpenViolationSelect}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openViolationSelect}
+                                className={`w-full ${inputClass} justify-between ${violations.length === 0 && errors.violationType ? inputErrorClass : ""}`}
+                              >
+                                {violations.length > 0 ? "Pilih lagi jenis pelanggaran" : "Pilih Jenis Pelanggaran"}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                              <Command>
+                                <CommandInput 
+                                  placeholder="Cari pelanggaran..." 
+                                  value={violationSearchValue}
+                                  onValueChange={setViolationSearchValue}
+                                />
+                                <CommandEmpty>Tidak ada pelanggaran ditemukan.</CommandEmpty>
+                                <CommandGroup className="max-h-64 overflow-auto">
+                                  {rulesData
+                                    ?.filter((rule) => 
+                                      rule.name.toLowerCase().includes(violationSearchValue.toLowerCase())
+                                    )
+                                    ?.map((rule) => (
+                                      <CommandItem
+                                        key={rule.id}
+                                        value={rule.name}
+                                        disabled={violations.some((v) => v.id === rule.id.toString())}
+                                        onSelect={() => {
+                                          if (!violations.some((v) => v.id === rule.id.toString())) {
+                                            handleViolationSelection(rule.id.toString(), rule.points);
+                                          }
+                                          setOpenViolationSelect(false);
+                                          setViolationSearchValue("");
+                                        }}
+                                      >
+                                        <Check
+                                          className={`mr-2 h-4 w-4 ${
+                                            violations.some((v) => v.id === rule.id.toString())
+                                              ? "opacity-100"
+                                              : "opacity-0"
+                                          }`}
+                                        />
+                                        {rule.name}
+                                      </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
                           {violations.length === 0 && errors.violationType && (
                             <p className="text-red-500 text-xs mt-1">
                               {errors.violationType}

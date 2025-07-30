@@ -181,7 +181,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
       }}
       className="fixed top-0 left-0 h-full bg-white dark:bg-background shadow-lg z-50 flex flex-col overflow-hidden"
     >
-      <div className="flex items-center p-4 space-x-3 bg-gray-100">
+      <div className="flex items-center px-4 h-[4.2rem] space-x-3 bg-gray-100">
         <img
           src={skensalogo}
           alt="Logo"
