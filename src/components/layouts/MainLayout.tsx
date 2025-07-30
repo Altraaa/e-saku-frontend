@@ -17,15 +17,14 @@ const MainLayout = ({
     <div className="relative flex min-h-screen">
       <Sidebar isMobile={isMobile} />
 
-      {/* Overlay untuk mencegah interaksi saat sidebar terbuka */}
       {isMobile && isOpen && <div className="fixed inset-0 bg-black/50 z-40" />}
 
       <div
         className={`flex-1 flex flex-col bg-gray-100 transition-all duration-300 ${
           isOpen
             ? isMobile
-              ? "transform translate-x-64" // On mobile, translate the content
-              : "tablet:ml-64" // On desktop, use left margin to push content
+              ? "transform translate-x-64"
+              : "tablet:ml-64"
             : ""
         }`}
       >
