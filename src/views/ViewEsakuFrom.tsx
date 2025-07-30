@@ -4,6 +4,7 @@ import React, {
   ChangeEvent,
   FormEvent,
   useRef,
+  useMemo,
 } from "react";
 import {
   AlertTriangle,
@@ -68,6 +69,7 @@ import FormFieldGroup from "@/components/shared/component/FormField";
 import LoadingSpinnerButton from "@/components/shared/component/LoadingSpinnerButton";
 import {
   useViolationCreate,
+  useViolationsByStudentId,
   useViolationsDocumentationUpload,
 } from "@/config/Api/useViolation";
 import {
@@ -119,6 +121,9 @@ const ESakuForm: React.FC = () => {
   const [customViolation, setCustomViolation] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [studentName, setStudentName] = useState<string>("");
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+    null
+  );
   const [date, setDate] = useState<Date>(() => {
     return new Date();
   });
@@ -148,18 +153,20 @@ const ESakuForm: React.FC = () => {
     { id: string; points: number }[]
   >([]);
   const [totalPoints, setTotalPoints] = useState(0);
+  const [totalViolationPoints, setTotalViolationPoints] = useState<number>(0);
 
   const { data: rulesData } = useRules();
   const { data: classrooms } = useClassroom();
   const { data: students = [] } = useStudentsByClassId(selectedClassId ?? 0);
+  const { data: studentViolations } = useViolationsByStudentId(
+    selectedStudentId || ""
+  );
   const { mutate: createViolation } = useViolationCreate();
   const { mutate: createAccomplishment } = useAccomplishmentCreate();
   const { mutate: createReport } = useReportCreate();
   const uploadViolationDocumentation = useViolationsDocumentationUpload();
   const uploadAccomplishmentDocumentation =
     useAccomplishmentsDocumentationUpload();
-
-  // Fetch accomplishment types, levels, and ranks from API
   const { data: accomplishmentTypes = [] } = useAccomplishmentsType();
   const { data: accomplishmentLevels = [] } = useAccomplishmentsLevel();
   const { data: accomplishmentRanks = [] } = useAccomplishmentsRanks();
@@ -209,6 +216,26 @@ const ESakuForm: React.FC = () => {
       setPhotoUrl(localUrl);
     }
   };
+
+  useEffect(() => {
+    if (!studentViolations) {
+      setTotalViolationPoints(0);
+      return;
+    }
+
+    const totalPoints = studentViolations.reduce(
+      (sum, violation) => sum + violation.points,
+      0
+    );
+
+    setTotalViolationPoints(totalPoints);
+  }, [studentViolations]);
+
+  const pointColorClass = useMemo(() => {
+    if (totalViolationPoints >= 90) return "bg-red-100 text-red-800";
+    if (totalViolationPoints >= 50) return "bg-yellow-100 text-yellow-800";
+    return "bg-gray-100 text-gray-800";
+  }, [totalViolationPoints]);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -439,6 +466,8 @@ const ESakuForm: React.FC = () => {
     setErrors({});
     setIsEditMode(false);
     setViolations([]);
+    setTotalViolationPoints(0);
+    setSelectedStudentId("");
     setTotalPoints(0);
 
     if (formRef.current) {
@@ -1142,49 +1171,74 @@ const ESakuForm: React.FC = () => {
                           className="bg-gray-100"
                         />
                       ) : (
-                        <Select
-                          value={studentName}
-                          onValueChange={setStudentName}
-                          disabled={!selectedClassId}
-                        >
-                          <SelectTrigger
-                            className={`${inputClass} ${
-                              errors.studentName ? inputErrorClass : ""
-                            }`}
+                        <>
+                          <Select
+                            value={studentName}
+                            onValueChange={(value) => {
+                              setStudentName(value);
+                              const selectedStudent = students.find(
+                                (s) => s.name === value
+                              );
+                              setSelectedStudentId(
+                                selectedStudent?.id.toString() || null
+                              );
+                            }}
+                            disabled={!selectedClassId}
                           >
-                            <SelectValue
-                              placeholder={
-                                selectedClassId
-                                  ? "Pilih Siswa"
-                                  : "Pilih kelas terlebih dahulu"
-                              }
-                            />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {selectedClassId ? (
-                              students.length > 0 ? (
-                                students.map((student) => (
-                                  <SelectItem
-                                    key={student.id}
-                                    value={
-                                      student.name || `student-${student.id}`
-                                    }
-                                  >
-                                    {student.name}
+                            <SelectTrigger
+                              className={`${inputClass} ${
+                                errors.studentName ? inputErrorClass : ""
+                              }`}
+                            >
+                              <SelectValue
+                                placeholder={
+                                  selectedClassId
+                                    ? "Pilih Siswa"
+                                    : "Pilih kelas terlebih dahulu"
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {selectedClassId ? (
+                                students.length > 0 ? (
+                                  students.map((student) => (
+                                    <SelectItem
+                                      key={student.id}
+                                      value={
+                                        student.name || `student-${student.id}`
+                                      }
+                                    >
+                                      {student.name}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <SelectItem value="no-data" disabled>
+                                    Tidak ada siswa di kelas ini
                                   </SelectItem>
-                                ))
+                                )
                               ) : (
-                                <SelectItem value="no-data" disabled>
-                                  Tidak ada siswa di kelas ini
+                                <SelectItem value="select-class-first" disabled>
+                                  Pilih kelas terlebih dahulu
                                 </SelectItem>
-                              )
-                            ) : (
-                              <SelectItem value="select-class-first" disabled>
-                                Pilih kelas terlebih dahulu
-                              </SelectItem>
-                            )}
-                          </SelectContent>
-                        </Select>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          {selectedStudentId && (
+                            <div
+                              className={`mt-2 text-xs px-3 py-1.5 rounded-md flex items-center ${pointColorClass}`}
+                            >
+                              <AlertTriangle className="h-4 w-4 mr-1.5" />
+                              Total Poin Pelanggaran: {totalViolationPoints}
+                              {totalViolationPoints >= 50 && (
+                                <span className="ml-2 font-medium">
+                                  {totalViolationPoints >= 90
+                                    ? "(Siswa dalam kondisi bahaya)"
+                                    : "(Perlu perhatian khusus)"}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </>
                       )}
                     </FormFieldGroup>
                   </div>

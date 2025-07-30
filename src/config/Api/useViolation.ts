@@ -42,7 +42,7 @@ export const useViolationsByStudentId = (student_id: string) => {
         return [];
       });
     },
-    enabled: !!student_id, // Memastikan query hanya berjalan jika student_id ada
+    enabled: !!student_id, 
   });
 };
 
