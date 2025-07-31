@@ -166,6 +166,13 @@ const ViewStudentByClass: React.FC = () => {
     }
   }, []);
 
+    const statusTranslations: Record<string, string> = {
+      active: "Aktif",
+      rest: "Istirahat",
+      transfered: "Dipindahkan",
+      resign: "Mengundurkan Diri",
+    };
+
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
@@ -1139,13 +1146,15 @@ const ViewStudentByClass: React.FC = () => {
                                 "bg-green-50 text-green-600 border-green-200":
                                   student.status === "active",
                                 "bg-blue-50 text-blue-600 border-blue-200":
-                                  student.status === "inactive",
+                                  student.status === "rest",
+                                "bg-yellow-50 text-yellow-600 border-yellow-200":
+                                  student.status === "transfered",
                                 "bg-red-50 text-red-600 border-red-200":
-                                  student.status === "suspended",
+                                  student.status === "resign",
                               }
                             )}
                           >
-                            {student.status.toUpperCase()}
+                            {statusTranslations[student.status] || student.status}
                           </Badge>
                         </TableCell>
 
@@ -1242,7 +1251,7 @@ const ViewStudentByClass: React.FC = () => {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-4 gap-3">
                       <div className="text-center">
                         <div className="text-xs text-gray-500 mb-1">
                           Pelanggaran
@@ -1272,6 +1281,26 @@ const ViewStudentByClass: React.FC = () => {
                           className="bg-blue-50 text-blue-600 border-blue-200 text-xs"
                         >
                           {student.point_total || 0}
+                        </Badge>
+                      </div>
+                      <div className="text-center flex items-end justify-center">
+                        <Badge
+                          variant="outline"
+                          className={clsx(
+                            "border text-xs px-3 py-1 h-fit font-medium",
+                            {
+                              "bg-green-50 text-green-600 border-green-200":
+                                student.status === "active",
+                              "bg-blue-50 text-blue-600 border-blue-200":
+                                student.status === "rest",
+                              "bg-yellow-50 text-yellow-600 border-yellow-200":
+                                student.status === "transfered",
+                              "bg-red-50 text-red-600 border-red-200":
+                                student.status === "resign",
+                            }
+                          )}
+                        >
+                          {statusTranslations[student.status] || student.status}
                         </Badge>
                       </div>
                     </div>

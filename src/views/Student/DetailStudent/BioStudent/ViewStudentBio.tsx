@@ -1161,8 +1161,9 @@ const handleSaveChanges = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="active">Aktif</SelectItem>
-                        <SelectItem value="inactive">Tidak Aktif</SelectItem>
-                        <SelectItem value="suspended">Dihentikan</SelectItem>
+                        <SelectItem value="rest">Diistirahatkan</SelectItem>
+                        <SelectItem value="transfered">DiPindahkan</SelectItem>
+                        <SelectItem value="resign">Mengundurkan Diri</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
