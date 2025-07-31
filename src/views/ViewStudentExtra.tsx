@@ -298,7 +298,7 @@ const handleSelectExtracurricular = (id: number) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {registeredExtras?.map((item: IExtracurricular, index : any) => (
+                  {registeredExtras?.map((item: IExtracurricular, index : number) => (
                     <TableRow
                       key={item.id}
                       className="border-b hover:bg-gray-50"
