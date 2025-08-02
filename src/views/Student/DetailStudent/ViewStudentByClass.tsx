@@ -503,7 +503,7 @@ const ViewStudentByClass: React.FC = () => {
     <div className="space-y-4 sm:space-y-6">
       <Button
         variant="ghost"
-        onClick={() => navigate(-1)}
+        onClick={() => navigate(`/student`)}
         className="group flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors cursor-pointer"
       >
         <div className="flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 group-hover:border-green-500 group-hover:bg-green-50 transition-all">
