@@ -28,20 +28,22 @@ export const useClassroomByTeacherId = () => {
       if (!teacher_id) return [];
       return ApiClassrooms.getByTeacherId(teacher_id);
     },
-    enabled: !!teacher_id, 
+    enabled: !!teacher_id,
     select: (data) => data || [],
   });
 };
 
 //create classroom
 export const useClassroomCreate = () => {
-   const teacher_id = parseInt(localStorage.getItem("teacher_id") || "0", 10);
+  const teacher_id = parseInt(localStorage.getItem("teacher_id") || "0", 10);
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ApiClassrooms.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["teacherClasses", teacher_id] });
+      queryClient.invalidateQueries({
+        queryKey: ["teacherClasses", teacher_id],
+      });
     },
   });
 };
@@ -55,9 +57,40 @@ export const useClassroomUpdate = () => {
       ApiClassrooms.update(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["teacherClasses"] });
-      queryClient.invalidateQueries({ 
-        queryKey: ["classes", variables.id] 
+      queryClient.invalidateQueries({
+        queryKey: ["classes", variables.id],
       });
+    },
+  });
+};
+
+// assign teacher
+export const useAssignTeacherToClassroom = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      classroomId,
+      teacherId,
+    }: {
+      classroomId: number;
+      teacherId: number;
+    }) => ApiClassrooms.assignTeacher(classroomId, teacherId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
+    },
+  });
+};
+
+// remove teacher
+export const useRemoveTeacherFromClassroom = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (classroomId: number) =>
+      ApiClassrooms.removeTeacher(classroomId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
     },
   });
 };
@@ -70,8 +103,8 @@ export const useClassroomDelete = () => {
   return useMutation({
     mutationFn: (id: number) => ApiClassrooms.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ["teacherClasses", teacher_id] 
+      queryClient.invalidateQueries({
+        queryKey: ["teacherClasses", teacher_id],
       });
       queryClient.invalidateQueries({ queryKey: ["classes"] });
     },
