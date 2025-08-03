@@ -18,6 +18,21 @@ export const ApiClassrooms = {
       method: "POST",
       body: { ...data, _method: "PUT" },
     }),
+  assignTeacher: (
+    classroomId: number,
+    teacherId: number
+  ): Promise<{ message: string }> =>
+    ApiRequest({
+      url: `/classroom/${classroomId}/assign-teacher`,
+      method: "POST",
+      body: { _method: "PUT", teacher_id: teacherId }, 
+    }),
+  removeTeacher: (classroomId: number): Promise<{ message: string }> =>
+    ApiRequest({
+      url: `/classroom/${classroomId}/remove-teacher`,
+      method: "POST",
+      body: { _method: "PUT" }, 
+    }),
   delete: (id: number): Promise<{ message: string }> =>
     ApiRequest({
       url: `/classes/${id}`,
