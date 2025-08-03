@@ -4,7 +4,7 @@ export interface IExtracurricular {
   id?: number;
   name: string;
   description: string;
-  trainer: string;
+  trainer_id: number;
   status: string;
   students_count?: number;
   student_id?: string;
