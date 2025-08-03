@@ -59,6 +59,8 @@ import {
   IExtracurricular,
   IExtracurricularHistory,
 } from "@/config/Models/Extracurriculars";
+import { ITrainer } from "@/config/Models/Trainer";
+import { useTrainer } from "@/config/Api/useTrainers";
 import { Textarea } from "@/components/ui/textarea";
 
 interface IStudentExtracurricular {
@@ -93,7 +95,7 @@ const ViewManageActivity = () => {
   const [formData, setFormData] = useState<IExtracurricular>({
     name: "",
     status: "active",
-    trainer: "",
+    trainer_id: 0,
     description: "",
   });
   const [filters, setFilters] = useState({
@@ -150,6 +152,16 @@ const ViewManageActivity = () => {
     }
   }, [extracurricularHistoryData]);
 
+  const [trainerData, setTrainerData] = useState<ITrainer[]>([]);
+  const { data: trainers, isLoading: trainersLoading } = useTrainer(); 
+
+  useEffect(() => {
+      if (trainers) {
+      setTrainerData(trainers);
+    }
+  }, [trainers]);
+
+
   const handleExtraChange = (value: string) => {
     setSelectedExtracurricularId(value);
     setCurrentPage(1);
@@ -197,7 +209,7 @@ const ViewManageActivity = () => {
   const resetForm = () => {
     setFormData({
       name: "",
-      trainer: "",
+      trainer_id: 0,
       status: "active",
       description: "",
     });
@@ -207,7 +219,7 @@ const ViewManageActivity = () => {
     setFormData({
       id: item.id,
       name: item.name,
-      trainer: item.trainer,
+      trainer_id: item.trainer_id,
       description: item.description,
       status: item.status,
     });
@@ -220,41 +232,38 @@ const ViewManageActivity = () => {
     setIsSubmitting(true);
 
     try {
-      const { name, trainer, description } = formData;
+      const { name, trainer_id, description } = formData;
 
       await createExtracurricular.mutateAsync({
         name,
-        trainer,
+        trainer_id,  // Mengirimkan nama trainer
         description,
         status: "active",
       });
 
-      const loadingToastId = toast.loading("Menambahkan data...");
-      toast.success("Ekstrakurikuler berhasil ditambahkan", {
-        id: loadingToastId,
-      });
+      toast.success("Ekstrakurikuler berhasil ditambahkan");
       setIsAddDialogOpen(false);
       resetForm();
     } catch (error) {
       toast.error("Gagal menambahkan ekstrakurikuler");
-      console.error("Gagal menambahkan ekstrakurikuler:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const { id, name, trainer, description } = formData;
+      const { id, name, trainer_id, description } = formData;
 
       if (!id) throw new Error("ID ekstrakurikuler tidak ditemukan");
 
       await updateExtracurricular.mutateAsync({
         id,
-        data: { name, trainer, description },
+        data: { name, trainer_id, description },
       });
 
       const loadingToastId = toast.loading("Memperbarui data...");
@@ -386,7 +395,7 @@ const ViewManageActivity = () => {
         if (
           filters.searchTerm &&
           !item.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) &&
-          !item.trainer.toLowerCase().includes(filters.searchTerm.toLowerCase())
+          !item.trainer_id.toLowerCase().includes(filters.searchTerm.toLowerCase())
         ) {
           return false;
         }
@@ -711,7 +720,7 @@ const ViewManageActivity = () => {
                           </div>
                         </TableCell>
                         <TableCell className="text-center font-normal">
-                          {item.trainer || "N/A"}
+                          {trainerData.find((t) => t.id === item.trainer_id)?.name || "N/A"}
                         </TableCell>
                         <TableCell className="text-center font-normal">
                           <span
@@ -894,7 +903,7 @@ const ViewManageActivity = () => {
                         <div className="text-sm text-gray-500 space-y-1">
                           <div>
                             <span className="font-medium">Pembina:</span>{" "}
-                            {item.trainer || "N/A"}
+                            {item.trainer_id || "N/A"}
                           </div>
                           <div>
                             <span className="font-medium">Peserta:</span>{" "}
@@ -1092,29 +1101,31 @@ const ViewManageActivity = () => {
                   className="w-full"
                   required
                 />
-                {/* Pembina */}
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="trainer"
-                    className="text-sm font-medium text-gray-700 flex items-center gap-1"
-                  >
-                    <UserCheck className="w-4 h-4" /> Pembina{" "}
-                    <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="trainer"
-                    type="text"
-                    placeholder="Masukkan nama pembina"
-                    value={formData.trainer}
-                    onChange={(e) =>
-                      handleFormChange("trainer", e.target.value)
-                    }
-                    className="w-full"
-                    required
-                  />
-                </div>
               </div>
-
+              {/* Pembina */}
+              <div className="space-y-4 sm:col-span-2">
+                <Label htmlFor="trainer" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                  <UserCheck className="w-4 h-4" /> Pembina <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  id="trainer"
+                  value={formData.trainer_id?.toString() || ""}
+                  onValueChange={(value) => handleFormChange("trainer_id", Number(value))}
+                  className="w-full"
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Pembina" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {trainerData.map((trainer) => (
+                      <SelectItem key={trainer.id} value={trainer.id.toString()}>
+                        {trainer.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               {/* Description */}
               <div className="space-y-2 sm:col-span-2">
                 <Label
