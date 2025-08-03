@@ -704,6 +704,7 @@ const ViewManageActivity = () => {
                         <TableCell className="text-center px-6 font-normal">
                           {startIndex + index + 1}
                         </TableCell>
+                        
                         <TableCell className="text-left font-normal">
                           <div>
                             <div className="font-medium">{item.name}</div>
@@ -798,6 +799,7 @@ const ViewManageActivity = () => {
                 <TableBody>
                   {paginatedData.length > 0 ? (
                     (paginatedData as IExtracurricularHistory[]).map(
+                      
                       (item, index) => (
                         <TableRow
                           key={item.id}
