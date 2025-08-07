@@ -16,6 +16,7 @@ import {
   Users,
   UserCheck,
   UploadIcon,
+  Save,
 } from "lucide-react";
 import {
   Dialog,
@@ -199,7 +200,7 @@ const ViewManageActivity = () => {
     }
   };
 
-  const handleFormChange = (field: keyof IExtracurricular, value: string) => {
+  const handleFormChange = (field: keyof IExtracurricular, value: string | number) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -257,13 +258,13 @@ const ViewManageActivity = () => {
     setIsSubmitting(true);
 
     try {
-      const { id, name, trainer_id, description } = formData;
+      const { id, name, trainer_id, description, status } = formData;
 
       if (!id) throw new Error("ID ekstrakurikuler tidak ditemukan");
 
       await updateExtracurricular.mutateAsync({
         id,
-        data: { name, trainer_id, description },
+        data: { name, trainer_id, description, status },
       });
 
       const loadingToastId = toast.loading("Memperbarui data...");
@@ -1108,10 +1109,8 @@ const ViewManageActivity = () => {
                   <UserCheck className="w-4 h-4" /> Pembina <span className="text-red-500">*</span>
                 </Label>
                 <Select
-                  id="trainer"
                   value={formData.trainer_id?.toString() || ""}
                   onValueChange={(value) => handleFormChange("trainer_id", Number(value))}
-                  className="w-full"
                   required
                 >
                   <SelectTrigger>
@@ -1146,6 +1145,28 @@ const ViewManageActivity = () => {
                 />
               </div>
             </div>
+            
+            {/* Status */}
+            {formData.id && (
+                <div className="space-y-4 sm:col-span-2">
+                <Label htmlFor="status" className="text-sm font-medium text-gray-700">
+                  Status <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={formData.status || "active"}
+                  onValueChange={(value) => handleFormChange("status", value)}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Aktif</SelectItem>
+                    <SelectItem value="inactive">Tidak Aktif</SelectItem>
+                  </SelectContent>
+                </Select>
+                </div>
+            )}
 
             <DialogFooter className="flex gap-3 pt-6">
               <Button
@@ -1171,7 +1192,10 @@ const ViewManageActivity = () => {
                   </>
                 ) : (
                   <>
-                    <Plus className="h-4 w-4 mr-2" />
+                    {formData.id 
+                      ? <Save className="h-4 w-4 mr-2" />
+                      : <Plus className="h-4 w-4 mr-2" />
+                    }
                     {formData.id
                       ? "Perbarui Ekstrakurikuler"
                       : "Tambah Ekstrakurikuler"}
