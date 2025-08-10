@@ -88,7 +88,6 @@ import ComboBox, {
   ComboBoxOption,
 } from "@/components/shared/component/ComboBox";
 
-
 // Rank options will be fetched from API
 export type RankOptions = string;
 const followUpOptions = [
@@ -137,7 +136,7 @@ const ESakuForm: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmType, setConfirmType] = useState<"report" | "save" | null>(
     null
-  );  
+  );
   const [searchViolation, setSearchViolation] = useState("");
   const [point, setPoint] = useState<string>("0");
   const [formStep, setFormStep] = useState<number>(0);
@@ -180,22 +179,22 @@ const ESakuForm: React.FC = () => {
   const dragCounter = useRef<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
 
-const studentOptions = useMemo((): ComboBoxOption[] => {
-  return students.map((student) => ({
-    value: student.id.toString(),
-    label: student.name,
-    id: student.id,
-  }));
-}, [students]);
+  const studentOptions = useMemo((): ComboBoxOption[] => {
+    return students.map((student) => ({
+      value: student.id.toString(),
+      label: student.name,
+      id: student.id,
+    }));
+  }, [students]);
 
-    const filteredRules = useMemo(() => {
-      if (!rulesData) return [];
-      if (!searchViolation) return rulesData;
+  const filteredRules = useMemo(() => {
+    if (!rulesData) return [];
+    if (!searchViolation) return rulesData;
 
-      return rulesData.filter((rule) =>
-        rule.name.toLowerCase().includes(searchViolation.toLowerCase())
-      );
-    }, [rulesData, searchViolation]);
+    return rulesData.filter((rule) =>
+      rule.name.toLowerCase().includes(searchViolation.toLowerCase())
+    );
+  }, [rulesData, searchViolation]);
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -266,8 +265,6 @@ const studentOptions = useMemo((): ComboBoxOption[] => {
     return "bg-gray-100 text-gray-800";
   }, [totalViolationPoints]);
 
-  
-  
   const location = useLocation();
   const navigate = useNavigate();
   const editData = location.state?.editData as any;
@@ -311,20 +308,16 @@ const studentOptions = useMemo((): ComboBoxOption[] => {
 
       // Set kelas berdasarkan data siswa
       if (editData.student?.class) {
-        setClassType(editData.student.class.name);
+        setClassType(editData.student.class.display_name);
+        setSelectedClassId(editData.student.class.id);
       } else if (editData.student?.class_id && classrooms) {
         const studentClass = classrooms.find(
           (c: IClassroom) => c.id === editData.student.class_id
         );
         if (studentClass) {
-          setClassType(studentClass.name);
+          setClassType(studentClass.display_name);
+          setSelectedClassId(studentClass.id);
         }
-      }
-
-      // Set rule jika tersedia
-      if (editData.rules_of_conduct) {
-        setSelectedRule(editData.rules_of_conduct);
-        setPoint(editData.rules_of_conduct.points.toString());
       }
     }
   }, [editData, classrooms]);
@@ -990,7 +983,6 @@ const studentOptions = useMemo((): ComboBoxOption[] => {
     return showOnlyTeacherClass ? classroom.teacher_id === teacherId : true;
   });
 
-
   const handleConfirm = () => {
     setIsModalOpen(false);
     setConfirmType(null); // Reset confirmType setelah digunakan
@@ -1133,7 +1125,7 @@ const studentOptions = useMemo((): ComboBoxOption[] => {
                           onValueChange={(value) => {
                             setClassType(value);
                             const selectedClass = classrooms?.find(
-                              (c: IClassroom) => c.name === value
+                              (c: IClassroom) => c.display_name === value
                             );
                             setSelectedClassId(selectedClass?.id || null);
                             setStudentName("");

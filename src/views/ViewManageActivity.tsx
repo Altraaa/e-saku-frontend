@@ -396,10 +396,14 @@ const ViewManageActivity = () => {
       return extracurriculars.filter((item) => {
         if (
           filters.searchTerm &&
-          !item.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) &&
-          !item.trainer_id.toLowerCase().includes(filters.searchTerm.toLowerCase())
+          !item.name.toLowerCase().includes(filters.searchTerm.toLowerCase())
         ) {
-          return false;
+          // Check if trainer name matches search term
+          const trainer = trainerData.find((t) => t.id === item.trainer_id);
+          const trainerName = trainer?.name || "";
+          if (!trainerName.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
+            return false;
+          }
         }
 
         if (filters.statusFilter && item.status !== filters.statusFilter) {
@@ -410,7 +414,6 @@ const ViewManageActivity = () => {
       });
     } else {
       return studentExtracurriculars.filter((item) => {
-        // Search term filtering
         if (
           filters.searchTerm &&
           !item.students?.name
@@ -441,6 +444,7 @@ const ViewManageActivity = () => {
     studentExtracurriculars,
     activeTab,
     selectedExtracurricularId,
+    trainerData,
   ]);
 
   const totalPages = Math.ceil(filteredData.length / parseInt(rowsPerPage));
@@ -1119,8 +1123,8 @@ const ViewManageActivity = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {trainerData.map((trainer) => (
-                      <SelectItem key={trainer.id} value={trainer.id.toString()}>
-                        {trainer.name}
+                      <SelectItem key={trainer.id} value={trainer.id?.toString() ?? ""}>
+                        {trainer.name || "N/A"}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -1,5 +1,5 @@
 export interface ITrainer{
-    id: number;
-    name: string;
-    phone_number: string;
+    id?: number;
+    name?: string;
+    phone_number?: string;
 }

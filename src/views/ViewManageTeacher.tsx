@@ -144,7 +144,6 @@ const ViewManageTeacher: React.FC = () => {
     dialogType === "assignTeacher" ? formData.id : 0
   );
 
-  // Handle assigned classrooms data
   useEffect(() => {
     if (dialogType === "assignTeacher" && assignedClassroomsData) {
       if (Array.isArray(assignedClassroomsData)) {

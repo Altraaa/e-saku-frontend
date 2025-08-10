@@ -1,10 +1,12 @@
 import { IStudent } from "./Student";
+import { ITrainer } from "./Trainer";
 
 export interface IExtracurricular {
   id?: number;
   name: string;
   description: string;
   trainer_id: number;
+  trainer?: ITrainer;
   status: string;
   students_count?: number;
   student_id?: string;
