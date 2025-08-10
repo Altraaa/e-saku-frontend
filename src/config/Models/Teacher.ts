@@ -1,5 +1,5 @@
 export interface ITeacher {
-  id: number;
+  id: string;
   teacher_code: string;
   name: string;
   nip: string | null;

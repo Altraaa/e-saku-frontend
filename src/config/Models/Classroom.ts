@@ -6,16 +6,23 @@ export interface IClassroom {
   display_name: string;
   id: number;
   name: string;
-  grade: string;
+  grade: IGrade;
+  grade_id: number;
   teacher_id: number;
   total_student: number;
   major_id: number;
   teacher?: ITeacher;
   students?: IStudent[];
-  major?: IMajor[];
+  major?: IMajor;
   created_at: string;
   updated_at: string;
 }
+
+export interface IGrade{
+  id: number;
+  name: string;
+} 
+
 
 export interface IAssignClass {
   id: IClassroom['id'];

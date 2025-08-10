@@ -51,10 +51,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmationModal from "@/components/ui/confirmation";
 import { useClassroom } from "@/config/Api/useClasroom";
 import { setServers } from "dns";
+import { useTeacherUpdate } from "@/config/Api/useTeacher";
 
 const ViewManageTeacher: React.FC = () => {
   const inputClass =
     "border-gray-300 focus:border-green-500 focus:ring-green-500 rounded-lg h-10";
+
+  const updateTeacherData = useTeacherUpdate();
 
   const { data: classroomsList } = useClassroom();
   const [teachers, setTeachers] = useState<ITeacher[]>([]);
@@ -83,13 +86,13 @@ const ViewManageTeacher: React.FC = () => {
   const [dataClassroom, setDataClassroom] = useState<
       { id: string; name: string }[]
     >([]);
+  const [isDeleteAssignedModalOpen, setIsDeletAssignedeModalOpen] = useState(false);
 
   const [formData, setFormData] = useState<ITeacher>({
-    id: 0, 
+    id: "", 
     teacher_code: "",
     name: "",
     nip: "",
-    email: "",
   });
 
 
@@ -98,7 +101,6 @@ const ViewManageTeacher: React.FC = () => {
       teacher_code: "",
       name: "",
       nip: "",
-      email: "",
     });
   };
 
@@ -206,10 +208,9 @@ const ViewManageTeacher: React.FC = () => {
       startIndex,
       startIndex + rowsPerPage
     );
-
     return { paginatedData, totalPages };
   };
-
+  console.log(classroomsList);
   const { paginatedData, totalPages } = paginateData();
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -246,6 +247,34 @@ const ViewManageTeacher: React.FC = () => {
     setDialogType("assignTeacher")
     setIsEditDialogOpen(true);
   }
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const { id, teacher_code, name, nip  } = formData;
+
+      if (!id) throw new Error("ID guru tidak ditemukan");
+
+      await updateTeacherData.mutateAsync({
+        id,
+        data: {teacher_code, name, nip},
+      })
+
+      const loadingToastId = toast.loading("Memperbarui data ...");
+      toast.success("Guru Pengampu berhasil diperbarui", {
+        id: loadingToastId,
+      })
+      setIsEditDialogOpen(false);
+      resetFormEditTeacher();
+    } catch (error) {
+        toast.error("Gagal memperbarui guru pengampu");
+        console.error("Gagal memperbarui guru pengampu:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   
   
 
@@ -263,6 +292,12 @@ const ViewManageTeacher: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  const handleClickDeleteAssignedTeacher = (
+    class_id: IClassroom['id'], teacher_id: ITeacher['id']
+  ) => {
+    setIsDeletAssignedeModalOpen(true);
+  }
 
   const LoadingSpinner = () => (
     <div className="p-6 flex justify-center items-center h-64">
@@ -335,13 +370,16 @@ const ViewManageTeacher: React.FC = () => {
                 : "Daftar Kelas"}
             </CardTitle>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <Button
-                className="bg-green-500 hover:bg-green-600 text-white transition-all duration-300 w-full sm:w-auto"
-                onClick={() => toast("Fitur tambah guru akan segera tersedia")}
-              >
-                <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
-                <span className="truncate">Tambah Guru</span>
-              </Button>
+              {activeTab === 'teachers' && (
+                <Button
+                  className="bg-green-500 hover:bg-green-600 text-white transition-all duration-300 w-full sm:w-auto"
+                  onClick={() => toast("Fitur tambah guru akan segera tersedia")}
+                >
+                  <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Tambah Guru</span>
+                </Button>     
+              )}
+              
               <div className="relative flex w-full">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 {activeTab === 'teachers' ? (
@@ -397,9 +435,6 @@ const ViewManageTeacher: React.FC = () => {
                       <TableHead className="text-left font-medium text-black">
                         NIP
                       </TableHead>
-                      <TableHead className="text-left font-medium text-black">
-                        Email
-                      </TableHead>
                       <TableHead className="text-center font-medium text-black">
                         Aksi
                       </TableHead>
@@ -428,9 +463,6 @@ const ViewManageTeacher: React.FC = () => {
                           </TableCell>
                           <TableCell className="text-left">
                             {teacher.nip || "-"}
-                          </TableCell>
-                          <TableCell className="text-left">
-                            {teacher.email || "-"}
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-3 items-center">
@@ -515,31 +547,31 @@ const ViewManageTeacher: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedData.length > 0 ? (
-                      paginatedData.map((teacher, index) => (
+                    {(classroomsList ?? []).length > 0 ? (
+                      classroomsList?.map((classroom, index) => (
                         <TableRow
-                          key={teacher.id}
+                          key={classroom.id}
                           className="border-b hover:bg-gray-50"
                         >
                           <TableCell className="text-center px-6 font-normal">
                             {(currentPage - 1) * rowsPerPage + index + 1}
                           </TableCell>
                           <TableCell className="text-left font-medium text-gray-900">
-                            X
+                            {classroom.grade?.name}
                           </TableCell>
                           <TableCell className="text-left">
-                            DPIB
+                            {classroom.major?.name}
                           </TableCell>
                           <TableCell className="text-left">
                             <div className="flex items-center gap-3">
                               <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8 flex items-center justify-center">
                                 <School className="w-4 h-4 text-gray-500" />
                               </div>
-                              <span>X DPIB 1</span>
+                              <span>{classroom.display_name}</span>
                             </div>
                           </TableCell>
                           <TableCell className="text-left">
-                            -
+                            Guru 1
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-3 items-center">
@@ -547,7 +579,7 @@ const ViewManageTeacher: React.FC = () => {
                               {/* ! Ubah ke confirmation delete untuk assigned guru */}
                               <Button
                                 variant="outline"
-                                onClick={() => handleDialogEditTeacherOpen(teacher)}
+                                onClick={() => handleClickDeleteAssignedTeacher(teacher)}
                                 className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -783,22 +815,6 @@ const ViewManageTeacher: React.FC = () => {
                     className="inputClass"
                   />
                 </FormFieldGroup>
-                
-                <FormFieldGroup 
-                  label="Email" 
-                  icon={<User className="h-4 w-4 text-green-600"/>}
-                  error={errors.email}
-                >
-                  <Input 
-                    value={formData.email ?? '-'}
-                    onChange={e => setFormData(prev => ({
-                        ...prev,
-                        email: e.target.value
-                      }))
-                    }
-                    className="inputClass"
-                  />
-                </FormFieldGroup>
               </div>
             ) : (
               <div className="flex gap-2 w-full h-full">
@@ -907,6 +923,7 @@ const ViewManageTeacher: React.FC = () => {
                 type="submit"
                 className="bg-green-600 hover:bg-green-700 text-white"
                 disabled={isSubmitting}
+                onClick={handleUpdate}
               >
                 {isSubmitting ? (
                   <>
