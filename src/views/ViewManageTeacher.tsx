@@ -597,7 +597,7 @@ const ViewManageTeacher: React.FC = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto pt-3">
+        <div className="pt-3">
           {isLoading ? (
             <LoadingSpinner />
           ) : error ? (
@@ -615,216 +615,346 @@ const ViewManageTeacher: React.FC = () => {
           ) : (
             <div>
               {activeTab === "teachers" ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gray-50 hover:bg-gray-50">
-                      <TableHead className="w-12 text-center px-6 font-medium text-black">
-                        No
-                      </TableHead>
-                      <TableHead className="text-left font-medium text-black">
-                        Kode Guru
-                      </TableHead>
-                      <TableHead className="text-left font-medium text-black">
-                        Nama
-                      </TableHead>
-                      <TableHead className="text-left font-medium text-black">
-                        NIP
-                      </TableHead>
-                      <TableHead className="text-center font-medium text-black">
-                        Aksi
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {teachersPagination.paginatedData.length > 0 ? (
-                      teachersPagination.paginatedData.map((teacher, index) => (
-                        <TableRow
-                          key={teacher.id}
-                          className="border-b hover:bg-gray-50"
-                        >
-                          <TableCell className="text-center px-6 font-normal">
-                            {(teachersPagination.currentPage - 1) *
-                              teachersPagination.rowsPerPage +
-                              index +
-                              1}
-                          </TableCell>
-                          <TableCell className="text-left font-medium text-gray-900">
-                            {teacher.teacher_code}
-                          </TableCell>
-                          <TableCell className="text-left">
-                            <div className="flex items-center gap-3">
-                              <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8 flex items-center justify-center">
-                                <User className="w-4 h-4 text-gray-500" />
-                              </div>
-                              <span>{teacher.name}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-left">
-                            {teacher.nip || "-"}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center gap-3 items-center">
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() =>
-                                  handleDialogAssignedOpen(teacher.id)
-                                }
-                                className="text-green-500 hover:text-green-600 hover:bg-green-50 border-green-200"
-                              >
-                                <UserRoundCheck className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() =>
-                                  handleDialogEditTeacherOpen(teacher)
-                                }
-                                className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 border-blue-200"
-                              >
-                                <Pencil className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() =>
-                                  setConfirmationModal({
-                                    isOpen: true,
-                                    teacherId: teacher.id,
-                                    teacherName: teacher.name,
-                                  })
-                                }
-                                className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={6}
-                          className="text-center py-12 text-gray-500"
-                        >
-                          <User className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-                          <p className="text-lg font-medium mb-2">
-                            {teachersSearchText
-                              ? "Tidak ada guru yang sesuai dengan pencarian"
-                              : "Belum ada data guru"}
-                          </p>
-                          <p className="text-sm">
-                            {teachersSearchText
-                              ? "Coba sesuaikan kriteria pencarian Anda"
-                              : "Tambahkan guru baru untuk memulai"}
-                          </p>
-                        </TableCell>
+                <>
+                  {/* Teachers Table for Desktop */}
+                  <Table className="hidden md:table">
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 hover:bg-gray-50">
+                        <TableHead className="w-12 text-center px-6 font-medium text-black">
+                          No
+                        </TableHead>
+                        <TableHead className="text-left font-medium text-black">
+                          Kode Guru
+                        </TableHead>
+                        <TableHead className="text-left font-medium text-black">
+                          Nama
+                        </TableHead>
+                        <TableHead className="text-left font-medium text-black">
+                          NIP
+                        </TableHead>
+                        <TableHead className="text-center font-medium text-black">
+                          Aksi
+                        </TableHead>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gray-50 hover:bg-gray-50">
-                      <TableHead className="w-12 text-center px-6 font-medium text-black">
-                        No
-                      </TableHead>
-                      <TableHead className="text-left font-medium text-black">
-                        Tingkat
-                      </TableHead>
-                      <TableHead className="text-left font-medium text-black">
-                        Jurusan
-                      </TableHead>
-                      <TableHead className="text-left font-medium text-black">
-                        Nama Kelas
-                      </TableHead>
-                      <TableHead className="text-left font-medium text-black">
-                        Guru Pengampu
-                      </TableHead>
-                      <TableHead className="text-center font-medium text-black">
-                        Aksi
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {classesPagination.paginatedData.length > 0 ? (
-                      classesPagination.paginatedData.map(
-                        (classroom, index) => (
-                          <TableRow
-                            key={classroom.id}
-                            className="border-b hover:bg-gray-50"
-                          >
-                            <TableCell className="text-center px-6 font-normal">
-                              {(classesPagination.currentPage - 1) *
-                                classesPagination.rowsPerPage +
-                                index +
-                                1}
-                            </TableCell>
-                            <TableCell className="text-left font-medium text-gray-900">
-                              {classroom.grade?.name}
-                            </TableCell>
-                            <TableCell className="text-left">
-                              {classroom.major?.name}
-                            </TableCell>
-                            <TableCell className="text-left">
-                              {classroom.display_name}
-                            </TableCell>
-                            <TableCell className="text-left">
-                              {classroom.teacher?.name ? (
-                                <div className="flex items-center gap-2">
-                                  <span>{classroom.teacher.name}</span>
+                    </TableHeader>
+                    <TableBody>
+                      {teachersPagination.paginatedData.length > 0 ? (
+                        teachersPagination.paginatedData.map(
+                          (teacher, index) => (
+                            <TableRow
+                              key={teacher.id}
+                              className="border-b hover:bg-gray-50"
+                            >
+                              <TableCell className="text-center px-6 font-normal">
+                                {(teachersPagination.currentPage - 1) *
+                                  teachersPagination.rowsPerPage +
+                                  index +
+                                  1}
+                              </TableCell>
+                              <TableCell className="text-left font-medium text-gray-900">
+                                {teacher.teacher_code}
+                              </TableCell>
+                              <TableCell className="text-left">
+                                <div className="flex items-center gap-3">
+                                  <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8 flex items-center justify-center">
+                                    <User className="w-4 h-4 text-gray-500" />
+                                  </div>
+                                  <span>{teacher.name}</span>
                                 </div>
-                              ) : (
-                                <span className="text-gray-500">
-                                  Belum ada guru
-                                </span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex justify-center gap-3 items-center">
-                                {classroom.teacher && (
+                              </TableCell>
+                              <TableCell className="text-left">
+                                {teacher.nip || "-"}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <div className="flex justify-center gap-3 items-center">
                                   <Button
                                     variant="outline"
+                                    size="icon"
                                     onClick={() =>
-                                      handleClickDeleteAssignedTeacher(
-                                        classroom.id
-                                      )
+                                      handleDialogAssignedOpen(teacher.id)
+                                    }
+                                    className="text-green-500 hover:text-green-600 hover:bg-green-50 border-green-200"
+                                  >
+                                    <UserRoundCheck className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() =>
+                                      handleDialogEditTeacherOpen(teacher)
+                                    }
+                                    className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 border-blue-200"
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() =>
+                                      setConfirmationModal({
+                                        isOpen: true,
+                                        teacherId: teacher.id,
+                                        teacherName: teacher.name,
+                                      })
                                     }
                                     className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
                                   >
-                                    <Trash2 className="w-4 h-4 mr-1" />
-                                    Hapus Pengampu
+                                    <Trash2 className="w-4 h-4" />
                                   </Button>
-                                )}
-                              </div>
-                            </TableCell>
-                          </TableRow>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )
                         )
-                      )
+                      ) : (
+                        <TableRow>
+                          <TableCell
+                            colSpan={5}
+                            className="text-center py-12 text-gray-500"
+                          >
+                            <User className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                            <p className="text-lg font-medium mb-2">
+                              {teachersSearchText
+                                ? "Tidak ada guru yang sesuai dengan pencarian"
+                                : "Belum ada data guru"}
+                            </p>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+
+                  {/* Teachers Card View for Mobile/Tablet */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 md:hidden">
+                    {teachersPagination.paginatedData.length > 0 ? (
+                      teachersPagination.paginatedData.map((teacher) => (
+                        <Card key={teacher.id} className="p-4 space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 flex items-center justify-center flex-shrink-0">
+                              <User className="w-5 h-5 text-gray-500" />
+                            </div>
+                            <div className="flex-grow">
+                              <p className="font-bold text-gray-800">
+                                {teacher.name}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {teacher.teacher_code}
+                              </p>
+                            </div>
+                          </div>
+                          <div>
+                            <span className="font-medium text-sm text-gray-600">
+                              NIP:
+                            </span>
+                            <span className="ml-2 text-sm text-gray-800">
+                              {teacher.nip || "-"}
+                            </span>
+                          </div>
+                          <div className="flex justify-end gap-2 pt-2 border-t mt-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() =>
+                                handleDialogAssignedOpen(teacher.id)
+                              }
+                              className="text-green-500 hover:text-green-600 hover:bg-green-50 border-green-200"
+                            >
+                              <UserRoundCheck className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() =>
+                                handleDialogEditTeacherOpen(teacher)
+                              }
+                              className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 border-blue-200"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() =>
+                                setConfirmationModal({
+                                  isOpen: true,
+                                  teacherId: teacher.id,
+                                  teacherName: teacher.name,
+                                })
+                              }
+                              className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </Card>
+                      ))
                     ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={6}
-                          className="text-center py-12 text-gray-500"
-                        >
-                          <User className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-                          <p className="text-lg font-medium mb-2">
-                            {classesSearchText
-                              ? "Tidak ada kelas yang sesuai dengan pencarian"
-                              : "Belum ada data kelas"}
-                          </p>
-                          <p className="text-sm">
-                            {classesSearchText
-                              ? "Coba sesuaikan kriteria pencarian Anda"
-                              : "Tambahkan kelas baru untuk memulai"}
-                          </p>
-                        </TableCell>
-                      </TableRow>
+                      <div className="col-span-1 sm:col-span-2 text-center py-12 text-gray-500">
+                        <User className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                        <p className="text-lg font-medium mb-2">
+                          {teachersSearchText
+                            ? "Tidak ada guru yang sesuai dengan pencarian"
+                            : "Belum ada data guru"}
+                        </p>
+                      </div>
                     )}
-                  </TableBody>
-                </Table>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Classes Table for Desktop */}
+                  <Table className="hidden md:table">
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 hover:bg-gray-50">
+                        <TableHead className="w-12 text-center px-6 font-medium text-black">
+                          No
+                        </TableHead>
+                        <TableHead className="text-left font-medium text-black">
+                          Tingkat
+                        </TableHead>
+                        <TableHead className="text-left font-medium text-black">
+                          Jurusan
+                        </TableHead>
+                        <TableHead className="text-left font-medium text-black">
+                          Nama Kelas
+                        </TableHead>
+                        <TableHead className="text-left font-medium text-black">
+                          Guru Pengampu
+                        </TableHead>
+                        <TableHead className="text-center font-medium text-black">
+                          Aksi
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {classesPagination.paginatedData.length > 0 ? (
+                        classesPagination.paginatedData.map(
+                          (classroom, index) => (
+                            <TableRow
+                              key={classroom.id}
+                              className="border-b hover:bg-gray-50"
+                            >
+                              <TableCell className="text-center px-6 font-normal">
+                                {(classesPagination.currentPage - 1) *
+                                  classesPagination.rowsPerPage +
+                                  index +
+                                  1}
+                              </TableCell>
+                              <TableCell className="text-left font-medium text-gray-900">
+                                {classroom.grade?.name}
+                              </TableCell>
+                              <TableCell className="text-left">
+                                {classroom.major?.name}
+                              </TableCell>
+                              <TableCell className="text-left">
+                                {classroom.display_name}
+                              </TableCell>
+                              <TableCell className="text-left">
+                                {classroom.teacher?.name ? (
+                                  <div className="flex items-center gap-2">
+                                    <span>{classroom.teacher.name}</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-500">
+                                    Belum ada guru
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <div className="flex justify-center gap-3 items-center">
+                                  {classroom.teacher && (
+                                    <Button
+                                      variant="outline"
+                                      onClick={() =>
+                                        handleClickDeleteAssignedTeacher(
+                                          classroom.id
+                                        )
+                                      }
+                                      className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
+                                    >
+                                      <Trash2 className="w-4 h-4 mr-1" />
+                                      Hapus Pengampu
+                                    </Button>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )
+                        )
+                      ) : (
+                        <TableRow>
+                          <TableCell
+                            colSpan={6}
+                            className="text-center py-12 text-gray-500"
+                          >
+                            <School className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                            <p className="text-lg font-medium mb-2">
+                              {classesSearchText
+                                ? "Tidak ada kelas yang sesuai dengan pencarian"
+                                : "Belum ada data kelas"}
+                            </p>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+
+                  {/* Classes Card View for Mobile/Tablet */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 md:hidden">
+                    {classesPagination.paginatedData.length > 0 ? (
+                      classesPagination.paginatedData.map((classroom) => (
+                        <Card key={classroom.id} className="p-4 space-y-3">
+                          <p className="font-bold text-gray-800">
+                            {classroom.display_name}
+                          </p>
+                          <div>
+                            <p className="text-sm text-gray-500">
+                              {classroom.grade?.name} - {classroom.major?.name}
+                            </p>
+                          </div>
+                          <div className="border-t pt-3">
+                            <p className="font-medium text-sm text-gray-600 mb-1">
+                              Guru Pengampu:
+                            </p>
+                            {classroom.teacher?.name ? (
+                              <div className="flex items-center gap-2">
+                                <span>{classroom.teacher.name}</span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-500 text-sm">
+                                Belum ada guru
+                              </span>
+                            )}
+                          </div>
+                          {classroom.teacher && (
+                            <div className="flex justify-end gap-2 pt-2 border-t mt-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handleClickDeleteAssignedTeacher(classroom.id)
+                                }
+                                className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200 w-full"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Hapus Pengampu
+                              </Button>
+                            </div>
+                          )}
+                        </Card>
+                      ))
+                    ) : (
+                      <div className="col-span-1 sm:col-span-2 text-center py-12 text-gray-500">
+                        <School className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                        <p className="text-lg font-medium mb-2">
+                          {classesSearchText
+                            ? "Tidak ada kelas yang sesuai dengan pencarian"
+                            : "Belum ada data kelas"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
 
               {/* Pagination */}
@@ -925,7 +1055,7 @@ const ViewManageTeacher: React.FC = () => {
       </Card>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-full sm:max-w-2xl sm:w-full max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           {dialogType === "editTeacher" ? (
             <DialogHeader>
               <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -949,7 +1079,7 @@ const ViewManageTeacher: React.FC = () => {
           )}
 
           {dialogType === "editTeacher" ? (
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-6 py-4">
               <FormFieldGroup
                 label="Kode Guru"
                 icon={<Key className="h-4 w-4 text-green-600" />}
@@ -999,9 +1129,9 @@ const ViewManageTeacher: React.FC = () => {
               </FormFieldGroup>
             </div>
           ) : (
-            <div className="flex flex-col gap-6">
-              <div className="flex gap-4">
-                <div className="w-1/2">
+            <div className="flex flex-col gap-6 py-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="w-full md:w-1/2">
                   <FormFieldGroup
                     label="Daftar Kelas"
                     icon={<School className="h-4 w-4 text-green-600" />}
@@ -1091,7 +1221,7 @@ const ViewManageTeacher: React.FC = () => {
                   </FormFieldGroup>
                 </div>
 
-                <div className="w-1/2">
+                <div className="w-full md:w-1/2">
                   <FormFieldGroup
                     label="Kelas yang Dipilih"
                     icon={<List className="h-4 w-4 text-green-600" />}
