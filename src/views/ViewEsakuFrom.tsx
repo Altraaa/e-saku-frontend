@@ -1156,9 +1156,9 @@ const studentOptions = useMemo((): ComboBoxOption[] => {
                               (classroom: IClassroom) => (
                                 <SelectItem
                                   key={classroom.id}
-                                  value={classroom.name}
+                                  value={classroom.display_name}
                                 >
-                                  {classroom.name}
+                                  {classroom.display_name}
                                 </SelectItem>
                               )
                             )}

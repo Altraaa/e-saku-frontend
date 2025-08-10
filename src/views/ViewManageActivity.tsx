@@ -154,7 +154,7 @@ const ViewManageActivity = () => {
   }, [extracurricularHistoryData]);
 
   const [trainerData, setTrainerData] = useState<ITrainer[]>([]);
-  const { data: trainers, isLoading: trainersLoading } = useTrainer(); 
+  const { data: trainers } = useTrainer(); 
 
   useEffect(() => {
       if (trainers) {
@@ -246,6 +246,7 @@ const ViewManageActivity = () => {
       setIsAddDialogOpen(false);
       resetForm();
     } catch (error) {
+      console.error(error);
       toast.error("Gagal menambahkan ekstrakurikuler");
     } finally {
       setIsSubmitting(false);

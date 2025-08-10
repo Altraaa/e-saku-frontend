@@ -1,5 +1,5 @@
 export interface ITeacher {
-  id: number;
+  id: string;
   teacher_code: string;
   name: string;
   nip: string | null;
@@ -11,4 +11,16 @@ export interface ITeacher {
   classes?: Array<{ id: string | number; name?: string }>;
   password: string;
   password_confirmation: string;
+}
+
+export interface ErrorState{
+    [key: string]: string | undefined;
+}
+
+export interface TeacherErrorState extends ErrorState{
+  teacher_code?: string;
+  name?: string;
+  nip?: string;
+  email?: string;
+  classes?: string;
 }

@@ -193,7 +193,7 @@ const ViewStudent = () => {
   };
 
   const filteredClassrooms = classrooms?.filter((classroom: IClassroom) => {
-    const matchesSearch = classroom.name
+    const matchesSearch = classroom.display_name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
 
@@ -201,7 +201,7 @@ const ViewStudent = () => {
       return matchesSearch;
     }
 
-    const classroomMajor = findMajorByNamePattern(classroom.name);
+    const classroomMajor = findMajorByNamePattern(classroom.display_name);
     const matchesProgram = classroomMajor?.id?.toString() === programFilter;
 
     return matchesSearch && matchesProgram;
@@ -818,12 +818,12 @@ const ViewStudent = () => {
                 <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center h-full justify-center">
                   <CardHeader className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-gray-200 flex items-center justify-center p-0 mb-3 sm:mb-4">
                     <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-400">
-                      {getProgramInitial(classroom.name)}
+                      {getProgramInitial(classroom.display_name)}
                     </span>
                   </CardHeader>
                   <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold mb-2 break-words">
                     <span className="group-hover:text-green-500 transition-all duration-200">
-                      {classroom.name}
+                      {classroom.display_name}
                     </span>
                   </CardTitle>
                   <div className="text-gray-400 text-xs sm:text-sm md:text-base mb-3">
@@ -832,11 +832,11 @@ const ViewStudent = () => {
                   <div className="flex items-center justify-center px-2">
                     <div className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded-full bg-green-100 border border-green-500 flex items-center justify-center mr-2 flex-shrink-0">
                       <span className="text-green-500 text-xs font-bold">
-                        {getProgramInitial(classroom.name)}
+                        {getProgramInitial(classroom.display_name)}
                       </span>
                     </div>
                     <span className="text-gray-500 text-xs sm:text-sm break-words text-center">
-                      {getProgramFullName(classroom.name)}
+                      {getProgramFullName(classroom.display_name)}
                     </span>
                   </div>
                 </CardContent>
