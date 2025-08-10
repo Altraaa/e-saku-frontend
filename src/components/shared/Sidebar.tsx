@@ -43,6 +43,7 @@ const Sidebar = ({ isMobile }: { isMobile?: boolean }) => {
       toast.success("Logout berhasil");
       navigate("/login", { replace: true });
     } catch (error) {
+      console.error(error)
       toast.error("Logout gagal");
     }
   };

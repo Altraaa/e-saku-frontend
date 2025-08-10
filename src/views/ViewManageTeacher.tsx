@@ -66,7 +66,6 @@ const ViewManageTeacher: React.FC = () => {
 
   const { data: classroomsList } = useClassroom();
   const [teachers, setTeachers] = useState<ITeacher[]>([]);
-  const [filteredTeachers, setFilteredTeachers] = useState<ITeacher[]>([]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -83,15 +82,22 @@ const ViewManageTeacher: React.FC = () => {
     "editTeacher"
   );
 
+  // Separate search states for each tab
+  const [teachersSearchText, setTeachersSearchText] = useState<string>("");
+  const [classesSearchText, setClassesSearchText] = useState<string>("");
+
+  // Separate pagination states for each tab
+  const [teachersCurrentPage, setTeachersCurrentPage] = useState<number>(1);
+  const [classesCurrentPage, setClassesCurrentPage] = useState<number>(1);
+  const [teachersRowsPerPage, setTeachersRowsPerPage] = useState<number>(10);
+  const [classesRowsPerPage, setClassesRowsPerPage] = useState<number>(10);
+
   const [searchClassroom, setSearchClassroom] = useState("");
   const [classroomsToDelete, setClassroomsToDelete] = useState<number[]>([]);
   const [assignedByOtherTeachers, setAssignedByOtherTeachers] = useState<
     number[]
   >([]);
 
-  const [searchText, setSearchText] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const [isDeleteAssignedModalOpen, setIsDeletAssignedeModalOpen] =
     useState(false);
 
@@ -150,7 +156,6 @@ const ViewManageTeacher: React.FC = () => {
         const assignedIds = assignedClassroomsData.map((c) => c.id);
         setInitiallyAssigned(assignedIds);
 
-        // Tambahkan pengecekan untuk classroomsList
         if (!classroomsList) {
           console.warn("Classrooms list is not available");
           return;
@@ -188,12 +193,10 @@ const ViewManageTeacher: React.FC = () => {
   useEffect(() => {
     if (teachersData) {
       setTeachers(teachersData);
-      setFilteredTeachers(teachersData);
       setIsLoading(false);
     }
   }, [teachersData]);
 
-  // Effect untuk menangani error
   useEffect(() => {
     if (error) {
       toast.error(error);
@@ -202,7 +205,7 @@ const ViewManageTeacher: React.FC = () => {
 
   const handleTabChange = (tab: "teachers" | "classes") => {
     setActiveTab(tab);
-    setCurrentPage(1);
+    // Don't reset search or pagination when switching tabs
 
     const tabRef = tab === "teachers" ? teachersTabRef : classesTabRef;
     if (tabRef.current && tabsRef.current) {
@@ -216,62 +219,122 @@ const ViewManageTeacher: React.FC = () => {
     }
   };
 
-  const filteredClasses = useMemo(() => {
-    if (!classroomsList) return [];
-    if (!searchClassroom) return classroomsList;
+  // Filter teachers based on search
+  const filteredTeachers = useMemo(() => {
+    if (!teachersSearchText.trim()) return teachers;
 
-    return classroomsList.filter((classroom) =>
-      classroom.display_name
-        .toLowerCase()
-        .includes(searchClassroom.toLowerCase())
-    );
-  }, [classroomsList, searchClassroom]);
-
-  const filterTeachers = (data: ITeacher[], searchText: string): ITeacher[] => {
-    if (!searchText.trim()) return data;
-
-    const lowerSearchText = searchText.toLowerCase();
-    return data.filter((teacher) => {
-      // Check each field safely
+    const lowerSearchText = teachersSearchText.toLowerCase();
+    return teachers.filter((teacher) => {
       const codeMatch = teacher.teacher_code
         .toLowerCase()
         .includes(lowerSearchText);
       const nameMatch = teacher.name.toLowerCase().includes(lowerSearchText);
-
-      // Handle null values for nip and email
       const nipMatch = teacher.nip
         ? teacher.nip.toLowerCase().includes(lowerSearchText)
         : false;
-
       const emailMatch = teacher.email
         ? teacher.email.toLowerCase().includes(lowerSearchText)
         : false;
 
       return codeMatch || nameMatch || nipMatch || emailMatch;
     });
-  };
+  }, [teachers, teachersSearchText]);
 
-  useEffect(() => {
-    if (teachers) {
-      setFilteredTeachers(filterTeachers(teachers, searchText));
-      setCurrentPage(1);
-    }
-  }, [searchText, teachers]);
+  // Filter classes based on search
+  const filteredClasses = useMemo(() => {
+    if (!classroomsList) return [];
+    if (!classesSearchText.trim()) return classroomsList;
 
-  const paginateData = () => {
-    const totalPages = Math.ceil(filteredTeachers.length / rowsPerPage);
-    const startIndex = (currentPage - 1) * rowsPerPage;
+    const lowerSearchText = classesSearchText.toLowerCase();
+    return classroomsList.filter((classroom) => {
+      const displayNameMatch = classroom.display_name
+        .toLowerCase()
+        .includes(lowerSearchText);
+      const gradeMatch = classroom.grade?.name
+        .toLowerCase()
+        .includes(lowerSearchText);
+      const majorMatch = classroom.major?.name
+        .toLowerCase()
+        .includes(lowerSearchText);
+      const teacherMatch = classroom.teacher?.name
+        ?.toLowerCase()
+        .includes(lowerSearchText);
+
+      return displayNameMatch || gradeMatch || majorMatch || teacherMatch;
+    });
+  }, [classroomsList, classesSearchText]);
+
+  const teachersPagination = useMemo(() => {
+    const totalPages = Math.ceil(filteredTeachers.length / teachersRowsPerPage);
+    const startIndex = (teachersCurrentPage - 1) * teachersRowsPerPage;
     const paginatedData = filteredTeachers.slice(
       startIndex,
-      startIndex + rowsPerPage
+      startIndex + teachersRowsPerPage
     );
-    return { paginatedData, totalPages };
+    return {
+      paginatedData,
+      totalPages,
+      currentData: filteredTeachers,
+      currentPage: teachersCurrentPage,
+      rowsPerPage: teachersRowsPerPage,
+    };
+  }, [filteredTeachers, teachersCurrentPage, teachersRowsPerPage]);
+
+  // Handle pagination for teachers
+  const handleTeachersPageChange = (newPage: number) => {
+    setTeachersCurrentPage(newPage);
   };
 
-  const { paginatedData, totalPages } = paginateData();
+  const handleTeachersRowsPerPageChange = (newRowsPerPage: number) => {
+    setTeachersRowsPerPage(newRowsPerPage);
+    setTeachersCurrentPage(1); // Reset to first page
+  };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchText(e.target.value);
+  // Classes pagination
+  // Classes pagination logic
+  const classesPagination = useMemo(() => {
+    const totalPages = Math.ceil(filteredClasses.length / classesRowsPerPage);
+    const startIndex = (classesCurrentPage - 1) * classesRowsPerPage;
+    const paginatedData = filteredClasses.slice(
+      startIndex,
+      startIndex + classesRowsPerPage
+    );
+    return {
+      paginatedData,
+      totalPages,
+      currentData: filteredClasses,
+      currentPage: classesCurrentPage,
+      rowsPerPage: classesRowsPerPage,
+    };
+  }, [filteredClasses, classesCurrentPage, classesRowsPerPage]);
+
+  // Handle pagination for classes
+  const handleClassesPageChange = (newPage: number) => {
+    setClassesCurrentPage(newPage);
+  };
+
+  const handleClassesRowsPerPageChange = (newRowsPerPage: number) => {
+    setClassesRowsPerPage(newRowsPerPage);
+    setClassesCurrentPage(1); // Reset to first page
+  };
+
+  // Get current pagination data based on active tab
+  const currentPaginationData =
+    activeTab === "teachers" ? teachersPagination : classesPagination;
+
+  // Handle search changes for each tab
+  const handleTeachersSearchChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setTeachersSearchText(e.target.value);
+    setTeachersCurrentPage(1); // Reset to first page when searching
+  };
+
+  const handleClassesSearchChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setClassesSearchText(e.target.value);
+    setClassesCurrentPage(1); // Reset to first page when searching
   };
 
   const handleClassSelection = (classId: string, name: string) => {
@@ -333,15 +396,12 @@ const ViewManageTeacher: React.FC = () => {
     try {
       const teacherId = formData.id;
 
-      // Kelas yang perlu diassign (baru ditambahkan)
       const toAssign = selectedClassrooms
         .filter((c) => !initiallyAssigned.includes(parseInt(c.id)))
         .map((c) => parseInt(c.id));
 
-      // Kelas yang perlu dihapus
       const toRemove = classroomsToRemove;
 
-      // Jalankan operasi secara paralel
       const assignments = [];
 
       if (toAssign.length > 0) {
@@ -357,7 +417,6 @@ const ViewManageTeacher: React.FC = () => {
         assignments.push(removeTeacherMutation.mutateAsync(toRemove));
       }
 
-      // Tunggu semua operasi selesai
       await Promise.all(assignments);
 
       toast.success("Perubahan kelas ampuan berhasil disimpan");
@@ -371,7 +430,6 @@ const ViewManageTeacher: React.FC = () => {
     }
   };
 
-  // Untuk menghapus single classroom
   const handleClickDeleteAssignedTeacher = (classroomId: number) => {
     setIsDeletAssignedeModalOpen(true);
     setClassroomsToDelete([classroomId]);
@@ -426,7 +484,7 @@ const ViewManageTeacher: React.FC = () => {
       toast.success("Guru berhasil dihapus dari kelas");
       setIsDeletAssignedeModalOpen(false);
       setClassroomsToDelete([]);
-      refetch(); // Refresh data setelah penghapusan
+      refetch();
     } catch (error) {
       toast.error("Gagal menghapus guru dari kelas");
       console.error("Gagal menghapus guru:", error);
@@ -518,21 +576,22 @@ const ViewManageTeacher: React.FC = () => {
 
               <div className="relative flex w-full">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                {activeTab === "teachers" ? (
-                  <Input
-                    placeholder="Cari guru..."
-                    value={searchText}
-                    onChange={handleSearchChange}
-                    className="pl-9 bg-white border-gray-200 w-full rounded-lg"
-                  />
-                ) : (
-                  <Input
-                    placeholder="Cari kelas..."
-                    value={searchText}
-                    onChange={handleSearchChange}
-                    className="pl-9 bg-white border-gray-200 w-full rounded-lg"
-                  />
-                )}
+                <Input
+                  placeholder={
+                    activeTab === "teachers" ? "Cari guru..." : "Cari kelas..."
+                  }
+                  value={
+                    activeTab === "teachers"
+                      ? teachersSearchText
+                      : classesSearchText
+                  }
+                  onChange={
+                    activeTab === "teachers"
+                      ? handleTeachersSearchChange
+                      : handleClassesSearchChange
+                  }
+                  className="pl-9 bg-white border-gray-200 w-full rounded-lg"
+                />
               </div>
             </div>
           </div>
@@ -577,14 +636,17 @@ const ViewManageTeacher: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedData.length > 0 ? (
-                      paginatedData.map((teacher, index) => (
+                    {teachersPagination.paginatedData.length > 0 ? (
+                      teachersPagination.paginatedData.map((teacher, index) => (
                         <TableRow
                           key={teacher.id}
                           className="border-b hover:bg-gray-50"
                         >
                           <TableCell className="text-center px-6 font-normal">
-                            {(currentPage - 1) * rowsPerPage + index + 1}
+                            {(teachersPagination.currentPage - 1) *
+                              teachersPagination.rowsPerPage +
+                              index +
+                              1}
                           </TableCell>
                           <TableCell className="text-left font-medium text-gray-900">
                             {teacher.teacher_code}
@@ -648,12 +710,12 @@ const ViewManageTeacher: React.FC = () => {
                         >
                           <User className="mx-auto h-12 w-12 text-gray-300 mb-4" />
                           <p className="text-lg font-medium mb-2">
-                            {searchText
+                            {teachersSearchText
                               ? "Tidak ada guru yang sesuai dengan pencarian"
                               : "Belum ada data guru"}
                           </p>
                           <p className="text-sm">
-                            {searchText
+                            {teachersSearchText
                               ? "Coba sesuaikan kriteria pencarian Anda"
                               : "Tambahkan guru baru untuk memulai"}
                           </p>
@@ -687,55 +749,60 @@ const ViewManageTeacher: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(classroomsList ?? []).length > 0 ? (
-                      classroomsList?.map((classroom, index) => (
-                        <TableRow
-                          key={classroom.id}
-                          className="border-b hover:bg-gray-50"
-                        >
-                          <TableCell className="text-center px-6 font-normal">
-                            {(currentPage - 1) * rowsPerPage + index + 1}
-                          </TableCell>
-                          <TableCell className="text-left font-medium text-gray-900">
-                            {classroom.grade?.name}
-                          </TableCell>
-                          <TableCell className="text-left">
-                            {classroom.major?.name}
-                          </TableCell>
-                          <TableCell className="text-left">
-                            {classroom.display_name}
-                          </TableCell>
-                          <TableCell className="text-left">
-                            {classroom.teacher?.name ? (
-                              <div className="flex items-center gap-2">
-                                <span>{classroom.teacher.name}</span>
-                              </div>
-                            ) : (
-                              <span className="text-gray-500">
-                                Belum ada guru
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center gap-3 items-center">
-                              {classroom.teacher && (
-                                <Button
-                                  variant="outline"
-                                  onClick={() =>
-                                    handleClickDeleteAssignedTeacher(
-                                      classroom.id
-                                    )
-                                  }
-                                  className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
-                                >
-                                  <Trash2 className="w-4 h-4 mr-1" />
-                                  Hapus Pengampu
-                                </Button>
+                    {classesPagination.paginatedData.length > 0 ? (
+                      classesPagination.paginatedData.map(
+                        (classroom, index) => (
+                          <TableRow
+                            key={classroom.id}
+                            className="border-b hover:bg-gray-50"
+                          >
+                            <TableCell className="text-center px-6 font-normal">
+                              {(classesPagination.currentPage - 1) *
+                                classesPagination.rowsPerPage +
+                                index +
+                                1}
+                            </TableCell>
+                            <TableCell className="text-left font-medium text-gray-900">
+                              {classroom.grade?.name}
+                            </TableCell>
+                            <TableCell className="text-left">
+                              {classroom.major?.name}
+                            </TableCell>
+                            <TableCell className="text-left">
+                              {classroom.display_name}
+                            </TableCell>
+                            <TableCell className="text-left">
+                              {classroom.teacher?.name ? (
+                                <div className="flex items-center gap-2">
+                                  <span>{classroom.teacher.name}</span>
+                                </div>
+                              ) : (
+                                <span className="text-gray-500">
+                                  Belum ada guru
+                                </span>
                               )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className="flex justify-center gap-3 items-center">
+                                {classroom.teacher && (
+                                  <Button
+                                    variant="outline"
+                                    onClick={() =>
+                                      handleClickDeleteAssignedTeacher(
+                                        classroom.id
+                                      )
+                                    }
+                                    className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-1" />
+                                    Hapus Pengampu
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )
+                      )
                     ) : (
                       <TableRow>
                         <TableCell
@@ -744,12 +811,12 @@ const ViewManageTeacher: React.FC = () => {
                         >
                           <User className="mx-auto h-12 w-12 text-gray-300 mb-4" />
                           <p className="text-lg font-medium mb-2">
-                            {searchText
+                            {classesSearchText
                               ? "Tidak ada kelas yang sesuai dengan pencarian"
                               : "Belum ada data kelas"}
                           </p>
                           <p className="text-sm">
-                            {searchText
+                            {classesSearchText
                               ? "Coba sesuaikan kriteria pencarian Anda"
                               : "Tambahkan kelas baru untuk memulai"}
                           </p>
@@ -760,32 +827,36 @@ const ViewManageTeacher: React.FC = () => {
                 </Table>
               )}
 
-              {filteredTeachers.length > 0 && activeTab === "teachers" ? (
-                // Paginate Guru
+              {/* Pagination */}
+              {currentPaginationData.currentData.length > 0 && (
                 <div className="px-4 sm:px-6 pt-4 pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center border-t space-y-4 sm:space-y-0">
                   <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                     <div className="text-sm text-gray-500 text-center sm:text-left">
-                      Menampilkan {paginatedData.length} dari{" "}
-                      {filteredTeachers.length} guru
+                      Menampilkan {currentPaginationData.paginatedData.length}{" "}
+                      dari {currentPaginationData.currentData.length}{" "}
+                      {activeTab === "teachers" ? "guru" : "kelas"}
                     </div>
                     <div className="flex items-center justify-center sm:justify-start space-x-2">
                       <span className="text-sm text-gray-600">Baris:</span>
                       <Select
-                        value={String(rowsPerPage)}
+                        value={String(currentPaginationData.rowsPerPage)}
                         onValueChange={(value) => {
-                          setRowsPerPage(parseInt(value));
-                          setCurrentPage(1);
+                          const newRowsPerPage = parseInt(value);
+                          if (activeTab === "teachers") {
+                            handleTeachersRowsPerPageChange(newRowsPerPage);
+                          } else {
+                            handleClassesRowsPerPageChange(newRowsPerPage);
+                          }
                         }}
                       >
                         <SelectTrigger className="w-16 h-8 border-gray-200 focus:ring-green-400 rounded-lg">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="w-16 min-w-[4rem]">
-                          <SelectItem value="5">5</SelectItem>
                           <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="20">20</SelectItem>
-                          <SelectItem value="30">30</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
                           <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -796,43 +867,58 @@ const ViewManageTeacher: React.FC = () => {
                       variant="outline"
                       size="icon"
                       className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(prev - 1, 1))
-                      }
-                      disabled={currentPage === 1}
+                      onClick={() => {
+                        if (activeTab === "teachers") {
+                          handleTeachersPageChange(
+                            Math.max(currentPaginationData.currentPage - 1, 1)
+                          );
+                        } else {
+                          handleClassesPageChange(
+                            Math.max(currentPaginationData.currentPage - 1, 1)
+                          );
+                        }
+                      }}
+                      disabled={currentPaginationData.currentPage === 1}
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
 
                     <div className="text-sm text-gray-600 px-2">
-                      Halaman {currentPage} dari {totalPages}
+                      Halaman {currentPaginationData.currentPage} dari{" "}
+                      {currentPaginationData.totalPages}
                     </div>
 
                     <Button
                       variant="outline"
                       size="icon"
                       className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      onClick={() => {
+                        if (activeTab === "teachers") {
+                          handleTeachersPageChange(
+                            Math.min(
+                              currentPaginationData.currentPage + 1,
+                              currentPaginationData.totalPages
+                            )
+                          );
+                        } else {
+                          handleClassesPageChange(
+                            Math.min(
+                              currentPaginationData.currentPage + 1,
+                              currentPaginationData.totalPages
+                            )
+                          );
+                        }
+                      }}
+                      disabled={
+                        currentPaginationData.currentPage >=
+                        currentPaginationData.totalPages
                       }
-                      disabled={currentPage >= totalPages}
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
-              ) : activeTab === "classes" &&
-                (classroomsList ?? []).length > 0 ? (
-                // Paginate Kelas
-                <div className="px-4 sm:px-6 pt-4 pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center border-t space-y-4 sm:space-y-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                    <div className="text-sm text-gray-500 text-center sm:text-left">
-                      Menampilkan {classroomsList?.length} dari{" "}
-                      {classroomsList?.length} kelas
-                    </div>
-                  </div>
-                </div>
-              ) : null}
+              )}
             </div>
           )}
         </div>
@@ -936,55 +1022,65 @@ const ViewManageTeacher: React.FC = () => {
                           <div className="p-4 flex justify-center">
                             <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
                           </div>
-                        ) : filteredClasses.length > 0 ? (
-                          filteredClasses.map((classroom) => {
-                            const isSelected = selectedClassrooms.some(
-                              (c) => c.id === classroom.id.toString()
-                            );
-                            const isAssignedByCurrent =
-                              initiallyAssigned.includes(classroom.id);
-                            const isAssignedByOther =
-                              assignedByOtherTeachers.includes(classroom.id);
+                        ) : (classroomsList || []).filter((classroom) =>
+                            classroom.display_name
+                              .toLowerCase()
+                              .includes(searchClassroom.toLowerCase())
+                          ).length > 0 ? (
+                          (classroomsList || [])
+                            .filter((classroom) =>
+                              classroom.display_name
+                                .toLowerCase()
+                                .includes(searchClassroom.toLowerCase())
+                            )
+                            .map((classroom) => {
+                              const isSelected = selectedClassrooms.some(
+                                (c) => c.id === classroom.id.toString()
+                              );
+                              const isAssignedByCurrent =
+                                initiallyAssigned.includes(classroom.id);
+                              const isAssignedByOther =
+                                assignedByOtherTeachers.includes(classroom.id);
 
-                            return (
-                              <div
-                                key={classroom.id}
-                                className={`flex items-center p-3 hover:bg-gray-50 cursor-pointer ${
-                                  isSelected ? "bg-green-50" : ""
-                                } ${isAssignedByOther ? "bg-red-50" : ""}`}
-                                onClick={() => {
-                                  if (!isAssignedByOther) {
-                                    handleClassSelection(
-                                      classroom.id.toString(),
-                                      classroom.display_name
-                                    );
-                                  }
-                                }}
-                              >
-                                <Checkbox
-                                  checked={isSelected}
-                                  className="mr-3"
-                                  disabled={isAssignedByOther}
-                                />
-                                <div className="flex-1">
-                                  {classroom.display_name}
+                              return (
+                                <div
+                                  key={classroom.id}
+                                  className={`flex items-center p-3 hover:bg-gray-50 cursor-pointer ${
+                                    isSelected ? "bg-green-50" : ""
+                                  } ${isAssignedByOther ? "bg-red-50" : ""}`}
+                                  onClick={() => {
+                                    if (!isAssignedByOther) {
+                                      handleClassSelection(
+                                        classroom.id.toString(),
+                                        classroom.display_name
+                                      );
+                                    }
+                                  }}
+                                >
+                                  <Checkbox
+                                    checked={isSelected}
+                                    className="mr-3"
+                                    disabled={isAssignedByOther}
+                                  />
+                                  <div className="flex-1">
+                                    {classroom.display_name}
 
-                                  {isAssignedByCurrent && (
-                                    <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                                      Sudah Diampu (guru ini)
-                                    </span>
-                                  )}
+                                    {isAssignedByCurrent && (
+                                      <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                        Sudah Diampu (guru ini)
+                                      </span>
+                                    )}
 
-                                  {isAssignedByOther && classroom.teacher && (
-                                    <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
-                                      Sudah Diampu oleh:{" "}
-                                      {classroom.teacher.name}
-                                    </span>
-                                  )}
+                                    {isAssignedByOther && classroom.teacher && (
+                                      <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                                        Sudah Diampu oleh:{" "}
+                                        {classroom.teacher.name}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })
+                              );
+                            })
                         ) : (
                           <div className="p-4 text-center text-gray-500">
                             Tidak ada kelas yang cocok
