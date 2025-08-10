@@ -94,14 +94,14 @@ const {
           const searchLower = filters.searchTerm.toLowerCase();
           return (
             item.name.toLowerCase().includes(searchLower) ||
-            (item.trainer && item.trainer.toLowerCase().includes(searchLower))
+            (item.trainer?.name &&
+              item.trainer.name.toLowerCase().includes(searchLower))
           );
         })
-        // Filter out already registered extracurriculars
         .filter(
           (item) =>
             !registeredExtras?.some(
-              (registered : IExtracurricular) => registered.id === item.id
+              (registered: IExtracurricular) => registered.id === item.id
             )
         )
     );
@@ -310,7 +310,7 @@ const handleSelectExtracurricular = (id: number) => {
                         {item.name}
                       </TableCell>
                       <TableCell className="text-center px-4 py-3">
-                        {item.trainer || "-"}
+                        {item.trainer?.name || "-"}
                       </TableCell>
                       <TableCell className="text-center px-4 py-3">
                         <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
@@ -424,7 +424,7 @@ const handleSelectExtracurricular = (id: number) => {
                         {item.name}
                       </TableCell>
                       <TableCell className="text-center px-4 py-3">
-                        {item.trainer || "-"}
+                        {item.trainer?.name || "-"}
                       </TableCell>
                       <TableCell className="text-center px-4 py-3">
                         <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
