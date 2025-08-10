@@ -8,7 +8,7 @@ export const ApiTeachers = {
     ApiRequest({ url: `/teachers/${id}`, method: "GET" }),
   create: (data: Partial<ITeacher>): Promise<ITeacher> =>
     ApiRequest({ url: "/teachers", method: "POST", body: data }),
-  update: (id: string, data: Partial<ITeacher>): Promise<ITeacher> =>
+  update: (id: number, data: Partial<ITeacher>): Promise<ITeacher> =>
     ApiRequest({
       url: `/teachers/${id}`,
       method: "POST",

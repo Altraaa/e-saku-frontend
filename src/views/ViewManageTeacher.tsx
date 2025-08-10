@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { ApiTeachers } from "@/config/Services/Teachers.service";
-import { ITeacher, TeacherErrorState  } from "@/config/Models/Teacher";
-import { IClassroom, IAssignClass } from "@/config/Models/Classroom";
+import { ITeacher } from "@/config/Models/Teacher";
 import { Card, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -49,8 +48,12 @@ import { useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmationModal from "@/components/ui/confirmation";
-import { useClassroom } from "@/config/Api/useClasroom";
-import { setServers } from "dns";
+import {
+  useAssignTeacherToClassroom,
+  useClassroom,
+  useClassroomByAssignTeacherId,
+  useRemoveTeacherFromClassroom,
+} from "@/config/Api/useClasroom";
 import { useTeacherUpdate } from "@/config/Api/useTeacher";
 
 const ViewManageTeacher: React.FC = () => {
@@ -58,6 +61,8 @@ const ViewManageTeacher: React.FC = () => {
     "border-gray-300 focus:border-green-500 focus:ring-green-500 rounded-lg h-10";
 
   const updateTeacherData = useTeacherUpdate();
+  const assignTeacherMutation = useAssignTeacherToClassroom();
+  const removeTeacherMutation = useRemoveTeacherFromClassroom();
 
   const { data: classroomsList } = useClassroom();
   const [teachers, setTeachers] = useState<ITeacher[]>([]);
@@ -65,7 +70,6 @@ const ViewManageTeacher: React.FC = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [errors, setErrors] = useState<TeacherErrorState>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
@@ -80,42 +84,45 @@ const ViewManageTeacher: React.FC = () => {
   );
 
   const [searchClassroom, setSearchClassroom] = useState("");
+  const [classroomsToDelete, setClassroomsToDelete] = useState<number[]>([]);
+  const [assignedByOtherTeachers, setAssignedByOtherTeachers] = useState<
+    number[]
+  >([]);
+
   const [searchText, setSearchText] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
-  const [dataClassroom, setDataClassroom] = useState<
-      { id: string; name: string }[]
-    >([]);
-  const [isDeleteAssignedModalOpen, setIsDeletAssignedeModalOpen] = useState(false);
+  const [isDeleteAssignedModalOpen, setIsDeletAssignedeModalOpen] =
+    useState(false);
 
   const [formData, setFormData] = useState<ITeacher>({
-    id: "", 
+    id: 0,
     teacher_code: "",
     name: "",
     nip: "",
   });
 
-
   const resetFormEditTeacher = () => {
     setFormData({
+      id: 0,
       teacher_code: "",
       name: "",
       nip: "",
     });
   };
 
-  const [formAssignedClass, setfromAssignedClass] = useState<{ teacher_id: number, classes: IAssignClass[]}>({
-    teacher_id: 0,
-    classes: [],
-  });
+  // State untuk dialog assign teacher
+  const [selectedClassrooms, setSelectedClassrooms] = useState<
+    { id: string; name: string }[]
+  >([]);
+  const [initiallyAssigned, setInitiallyAssigned] = useState<number[]>([]);
+  const [classroomsToRemove, setClassroomsToRemove] = useState<number[]>([]);
 
   const resetFormAssignedTeacher = () => {
-    setfromAssignedClass({
-      teacher_id: 0,
-      classes: [],
-    });
-    setDataClassroom([]);
-  }
+    setSelectedClassrooms([]);
+    setInitiallyAssigned([]);
+    setClassroomsToRemove([]);
+  };
 
   const [confirmationModal, setConfirmationModal] = useState<{
     isOpen: boolean;
@@ -128,6 +135,56 @@ const ViewManageTeacher: React.FC = () => {
     queryFn: () => ApiTeachers.getAll(),
     enabled: true,
   });
+
+  const {
+    data: assignedClassroomsData,
+    isLoading: isLoadingAssigned,
+    error: assignedError,
+  } = useClassroomByAssignTeacherId(
+    dialogType === "assignTeacher" ? formData.id : 0
+  );
+
+  // Handle assigned classrooms data
+  useEffect(() => {
+    if (dialogType === "assignTeacher" && assignedClassroomsData) {
+      if (Array.isArray(assignedClassroomsData)) {
+        const assignedIds = assignedClassroomsData.map((c) => c.id);
+        setInitiallyAssigned(assignedIds);
+
+        // Tambahkan pengecekan untuk classroomsList
+        if (!classroomsList) {
+          console.warn("Classrooms list is not available");
+          return;
+        }
+
+        const assignedByOthers = classroomsList
+          .filter((c) => c.teacher && c.teacher.id !== formData.id)
+          .map((c) => c.id);
+
+        setAssignedByOtherTeachers(assignedByOthers);
+        setSelectedClassrooms(
+          assignedIds.map((id) => {
+            const classroom = classroomsList.find((c) => c.id === id);
+            return {
+              id: id.toString(),
+              name: classroom?.display_name || "Kelas tidak ditemukan",
+            };
+          })
+        );
+      } else if (assignedError) {
+        console.error("Error fetching assigned classrooms:", assignedError);
+        toast.error("Gagal memuat data kelas yang diampu");
+        setInitiallyAssigned([]);
+        setSelectedClassrooms([]);
+      }
+    }
+  }, [
+    assignedClassroomsData,
+    assignedError,
+    dialogType,
+    formData.id,
+    classroomsList,
+  ]);
 
   useEffect(() => {
     if (teachersData) {
@@ -148,8 +205,7 @@ const ViewManageTeacher: React.FC = () => {
     setActiveTab(tab);
     setCurrentPage(1);
 
-    const tabRef =
-      tab === "teachers" ? teachersTabRef : classesTabRef;
+    const tabRef = tab === "teachers" ? teachersTabRef : classesTabRef;
     if (tabRef.current && tabsRef.current) {
       const tabRect = tabRef.current.getBoundingClientRect();
       const containerRect = tabsRef.current.getBoundingClientRect();
@@ -167,6 +223,8 @@ const ViewManageTeacher: React.FC = () => {
 
     return classroomsList.filter((classroom) =>
       classroom.display_name
+        .toLowerCase()
+        .includes(searchClassroom.toLowerCase())
     );
   }, [classroomsList, searchClassroom]);
 
@@ -210,7 +268,7 @@ const ViewManageTeacher: React.FC = () => {
     );
     return { paginatedData, totalPages };
   };
-  console.log(classroomsList);
+
   const { paginatedData, totalPages } = paginateData();
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -218,12 +276,21 @@ const ViewManageTeacher: React.FC = () => {
   };
 
   const handleClassSelection = (classId: string, name: string) => {
-    const existingClass = dataClassroom.find((v) => v.id === classId);
+    const classIdNum = parseInt(classId);
+    const isSelected = selectedClassrooms.some((c) => c.id === classId);
 
-    if (existingClass) {
-      setDataClassroom(dataClassroom.filter((v) => v.id !== classId));
+    if (isSelected) {
+      if (initiallyAssigned.includes(classIdNum)) {
+        setClassroomsToRemove((prev) => [...prev, classIdNum]);
+      }
+      if (assignedByOtherTeachers.includes(classIdNum)) {
+        toast.error("Kelas ini sudah diampu oleh guru lain");
+        return;
+      }
+      setSelectedClassrooms(selectedClassrooms.filter((c) => c.id !== classId));
     } else {
-      setDataClassroom([...dataClassroom, { id: classId, name }]);
+      setClassroomsToRemove((prev) => prev.filter((id) => id !== classIdNum));
+      setSelectedClassrooms([...selectedClassrooms, { id: classId, name }]);
     }
   };
 
@@ -235,53 +302,114 @@ const ViewManageTeacher: React.FC = () => {
       nip: item.nip,
       email: item.email,
     });
-    setDialogType("editTeacher")
+    setDialogType("editTeacher");
     setIsEditDialogOpen(true);
-  }
+  };
 
-  const handleDialogAssignedOpen = (item: ITeacher['id']) => {
-    setfromAssignedClass({
-      teacher_id: item,
-      classes: []
-    });
-    setDialogType("assignTeacher")
+  const handleDialogAssignedOpen = (teacherId: number) => {
+    setDialogType("assignTeacher");
     setIsEditDialogOpen(true);
-  }
+    resetFormAssignedTeacher();
+
+    const teacher = teachers.find((t) => t.id === teacherId);
+    if (teacher) {
+      setFormData({
+        id: teacher.id,
+        teacher_code: teacher.teacher_code,
+        name: teacher.name,
+        nip: teacher.nip,
+      });
+    }
+
+    const classroomsWithTeachers = classroomsList || [];
+    const assignedByOthers = classroomsWithTeachers
+      .filter((c) => c.teacher && c.teacher.id !== teacherId)
+      .map((c) => c.id);
+
+    setAssignedByOtherTeachers(assignedByOthers);
+  };
+
+  const handleAssignSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const teacherId = formData.id;
+
+      // Kelas yang perlu diassign (baru ditambahkan)
+      const toAssign = selectedClassrooms
+        .filter((c) => !initiallyAssigned.includes(parseInt(c.id)))
+        .map((c) => parseInt(c.id));
+
+      // Kelas yang perlu dihapus
+      const toRemove = classroomsToRemove;
+
+      // Jalankan operasi secara paralel
+      const assignments = [];
+
+      if (toAssign.length > 0) {
+        assignments.push(
+          assignTeacherMutation.mutateAsync({
+            classroomIds: toAssign,
+            teacherId,
+          })
+        );
+      }
+
+      if (toRemove.length > 0) {
+        assignments.push(removeTeacherMutation.mutateAsync(toRemove));
+      }
+
+      // Tunggu semua operasi selesai
+      await Promise.all(assignments);
+
+      toast.success("Perubahan kelas ampuan berhasil disimpan");
+      setIsEditDialogOpen(false);
+      resetFormAssignedTeacher();
+    } catch (error) {
+      toast.error("Gagal menyimpan perubahan");
+      console.error("Gagal menyimpan perubahan:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Untuk menghapus single classroom
+  const handleClickDeleteAssignedTeacher = (classroomId: number) => {
+    setIsDeletAssignedeModalOpen(true);
+    setClassroomsToDelete([classroomId]);
+  };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const { id, teacher_code, name, nip  } = formData;
+      const { id, teacher_code, name, nip } = formData;
 
       if (!id) throw new Error("ID guru tidak ditemukan");
 
       await updateTeacherData.mutateAsync({
         id,
-        data: {teacher_code, name, nip},
-      })
+        data: { teacher_code, name, nip },
+      });
 
       const loadingToastId = toast.loading("Memperbarui data ...");
       toast.success("Guru Pengampu berhasil diperbarui", {
         id: loadingToastId,
-      })
+      });
       setIsEditDialogOpen(false);
       resetFormEditTeacher();
     } catch (error) {
-        toast.error("Gagal memperbarui guru pengampu");
-        console.error("Gagal memperbarui guru pengampu:", error);
+      toast.error("Gagal memperbarui guru pengampu");
+      console.error("Gagal memperbarui guru pengampu:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
-  
-  
 
   const handleDeleteTeacher = async (id: number) => {
     try {
       setIsLoading(true);
-    await ApiTeachers.delete(id);
+      await ApiTeachers.delete(id);
       toast.success("Guru berhasil dihapus");
       refetch();
       setConfirmationModal(null);
@@ -293,11 +421,18 @@ const ViewManageTeacher: React.FC = () => {
     }
   };
 
-  const handleClickDeleteAssignedTeacher = (
-    class_id: IClassroom['id'], teacher_id: ITeacher['id']
-  ) => {
-    setIsDeletAssignedeModalOpen(true);
-  }
+  const handleRemoveTeacher = async (classroomIds: number[]) => {
+    try {
+      await removeTeacherMutation.mutateAsync(classroomIds);
+      toast.success("Guru berhasil dihapus dari kelas");
+      setIsDeletAssignedeModalOpen(false);
+      setClassroomsToDelete([]);
+      refetch(); // Refresh data setelah penghapusan
+    } catch (error) {
+      toast.error("Gagal menghapus guru dari kelas");
+      console.error("Gagal menghapus guru:", error);
+    }
+  };
 
   const LoadingSpinner = () => (
     <div className="p-6 flex justify-center items-center h-64">
@@ -365,24 +500,26 @@ const ViewManageTeacher: React.FC = () => {
               ) : (
                 <School className="h-5 w-5 text-green-500" />
               )}
-              {activeTab === "teachers" 
+              {activeTab === "teachers"
                 ? "Daftar Guru Pengampu"
                 : "Daftar Kelas"}
             </CardTitle>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              {activeTab === 'teachers' && (
+              {activeTab === "teachers" && (
                 <Button
                   className="bg-green-500 hover:bg-green-600 text-white transition-all duration-300 w-full sm:w-auto"
-                  onClick={() => toast("Fitur tambah guru akan segera tersedia")}
+                  onClick={() =>
+                    toast("Fitur tambah guru akan segera tersedia")
+                  }
                 >
                   <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
                   <span className="truncate">Tambah Guru</span>
-                </Button>     
+                </Button>
               )}
-              
+
               <div className="relative flex w-full">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                {activeTab === 'teachers' ? (
+                {activeTab === "teachers" ? (
                   <Input
                     placeholder="Cari guru..."
                     value={searchText}
@@ -419,7 +556,7 @@ const ViewManageTeacher: React.FC = () => {
             </div>
           ) : (
             <div>
-              {activeTab === 'teachers' ? (
+              {activeTab === "teachers" ? (
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50 hover:bg-gray-50">
@@ -469,7 +606,9 @@ const ViewManageTeacher: React.FC = () => {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                onClick={() => handleDialogAssignedOpen(teacher.id)}
+                                onClick={() =>
+                                  handleDialogAssignedOpen(teacher.id)
+                                }
                                 className="text-green-500 hover:text-green-600 hover:bg-green-50 border-green-200"
                               >
                                 <UserRoundCheck className="w-4 h-4" />
@@ -477,7 +616,9 @@ const ViewManageTeacher: React.FC = () => {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                onClick={() => handleDialogEditTeacherOpen(teacher)}
+                                onClick={() =>
+                                  handleDialogEditTeacherOpen(teacher)
+                                }
                                 className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 border-blue-200"
                               >
                                 <Pencil className="w-4 h-4" />
@@ -523,7 +664,7 @@ const ViewManageTeacher: React.FC = () => {
                   </TableBody>
                 </Table>
               ) : (
-                  <Table>
+                <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50 hover:bg-gray-50">
                       <TableHead className="w-12 text-center px-6 font-medium text-black">
@@ -563,28 +704,35 @@ const ViewManageTeacher: React.FC = () => {
                             {classroom.major?.name}
                           </TableCell>
                           <TableCell className="text-left">
-                            <div className="flex items-center gap-3">
-                              <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8 flex items-center justify-center">
-                                <School className="w-4 h-4 text-gray-500" />
-                              </div>
-                              <span>{classroom.display_name}</span>
-                            </div>
+                            {classroom.display_name}
                           </TableCell>
                           <TableCell className="text-left">
-                            Guru 1
+                            {classroom.teacher?.name ? (
+                              <div className="flex items-center gap-2">
+                                <span>{classroom.teacher.name}</span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-500">
+                                Belum ada guru
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-3 items-center">
-
-                              {/* ! Ubah ke confirmation delete untuk assigned guru */}
-                              <Button
-                                variant="outline"
-                                onClick={() => handleClickDeleteAssignedTeacher(teacher)}
-                                className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                                Hapus Pengampu
-                              </Button>
+                              {classroom.teacher && (
+                                <Button
+                                  variant="outline"
+                                  onClick={() =>
+                                    handleClickDeleteAssignedTeacher(
+                                      classroom.id
+                                    )
+                                  }
+                                  className="text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-1" />
+                                  Hapus Pengampu
+                                </Button>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -613,7 +761,7 @@ const ViewManageTeacher: React.FC = () => {
                 </Table>
               )}
 
-              {filteredTeachers.length > 0 && activeTab === 'teachers' ? (
+              {filteredTeachers.length > 0 && activeTab === "teachers" ? (
                 // Paginate Guru
                 <div className="px-4 sm:px-6 pt-4 pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center border-t space-y-4 sm:space-y-0">
                   <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
@@ -674,154 +822,104 @@ const ViewManageTeacher: React.FC = () => {
                     </Button>
                   </div>
                 </div>
-              ) : (
+              ) : activeTab === "classes" &&
+                (classroomsList ?? []).length > 0 ? (
                 // Paginate Kelas
                 <div className="px-4 sm:px-6 pt-4 pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-center border-t space-y-4 sm:space-y-0">
                   <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                     <div className="text-sm text-gray-500 text-center sm:text-left">
-                      Menampilkan {paginatedData.length} dari{" "}
-                      {filteredTeachers.length} guru
+                      Menampilkan {classroomsList?.length} dari{" "}
+                      {classroomsList?.length} kelas
                     </div>
-                    <div className="flex items-center justify-center sm:justify-start space-x-2">
-                      <span className="text-sm text-gray-600">Baris:</span>
-                      <Select
-                        value={String(rowsPerPage)}
-                        onValueChange={(value) => {
-                          setRowsPerPage(parseInt(value));
-                          setCurrentPage(1);
-                        }}
-                      >
-                        <SelectTrigger className="w-16 h-8 border-gray-200 focus:ring-green-400 rounded-lg">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="w-16 min-w-[4rem]">
-                          <SelectItem value="5">5</SelectItem>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="20">20</SelectItem>
-                          <SelectItem value="30">30</SelectItem>
-                          <SelectItem value="50">50</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.max(prev - 1, 1))
-                      }
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-
-                    <div className="text-sm text-gray-600 px-2">
-                      Halaman {currentPage} dari {totalPages}
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="text-gray-700 rounded-lg h-8 w-8 hover:bg-green-50 hover:text-green-600 hover:border-green-500 transition-colors"
-                      onClick={() =>
-                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                      }
-                      disabled={currentPage >= totalPages}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
           )}
         </div>
       </Card>
+
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-full sm:max-w-2xl sm:w-full max-h-[90vh] overflow-y-auto">
-            {dialogType === 'editTeacher' ? (
-              <DialogHeader> 
-                <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <School className="h-5 w-5 text-green-600"/>
-                  <p>Edit Guru Pengampu</p>
-                </DialogTitle>
-                <DialogDescription>
-                  {/* Edit nama gurunya dinamis */}
-                  Edit data guru ....
-                </DialogDescription>
-              </DialogHeader>
-            ) : (
-                <DialogHeader> 
-                  <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <UserRoundCheck className="h-5 w-5 text-green-600"/>
-                    <p>Edit Kelas yang Diampu</p>
-                  </DialogTitle>
-                  <DialogDescription>
-                    {/* Edit nama gurunya dinamis */}
-                    Edit kelas yang diampu oleh guru .....
-                  </DialogDescription>
-                </DialogHeader>
-            )}
+          {dialogType === "editTeacher" ? (
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <School className="h-5 w-5 text-green-600" />
+                <p>Edit Guru Pengampu</p>
+              </DialogTitle>
+              <DialogDescription>
+                Edit data guru {formData.name}
+              </DialogDescription>
+            </DialogHeader>
+          ) : (
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <UserRoundCheck className="h-5 w-5 text-green-600" />
+                <p>Edit Kelas yang Diampu</p>
+              </DialogTitle>
+              <DialogDescription>
+                Edit kelas yang diampu oleh guru {formData.name}
+              </DialogDescription>
+            </DialogHeader>
+          )}
 
-            {dialogType === 'editTeacher' ? (
-              <div className="grid grid-cols-1 gap-6">
-                <FormFieldGroup 
-                  label="Kode Guru" 
-                  icon={<Key className="h-4 w-4 text-green-600"/>}
-                  error={errors.teacher_code}
-                >
-                  <Input 
-                    value={formData.teacher_code}
-                    onChange={e => setFormData(prev => ({
-                        ...prev,
-                        teacher_code: e.target.value
-                      }))
-                    }
-                    className="inputClass"
-                  />
-                </FormFieldGroup>
+          {dialogType === "editTeacher" ? (
+            <div className="grid grid-cols-1 gap-6">
+              <FormFieldGroup
+                label="Kode Guru"
+                icon={<Key className="h-4 w-4 text-green-600" />}
+              >
+                <Input
+                  value={formData.teacher_code}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      teacher_code: e.target.value,
+                    }))
+                  }
+                  className={inputClass}
+                />
+              </FormFieldGroup>
 
-                <FormFieldGroup 
-                  label="Nama Guru" 
-                  icon={<User className="h-4 w-4 text-green-600"/>}
-                  error={errors.name}
-                >
-                  <Input 
-                    value={formData.name}
-                    onChange={e => setFormData(prev => ({
-                        ...prev,
-                        name: e.target.value
-                      }))
-                    }
-                    className="inputClass"
-                  />
-                </FormFieldGroup>
-                
-                <FormFieldGroup 
-                  label="NIP" 
-                  icon={<User className="h-4 w-4 text-green-600"/>}
-                  error={errors.nip}
-                >
-                  <Input 
-                    value={formData.nip ?? '-'}
-                    onChange={e => setFormData(prev => ({
-                        ...prev,
-                        nip: e.target.value
-                      }))
-                    }
-                    className="inputClass"
-                  />
-                </FormFieldGroup>
-              </div>
-            ) : (
-              <div className="flex gap-2 w-full h-full">
+              <FormFieldGroup
+                label="Nama Guru"
+                icon={<User className="h-4 w-4 text-green-600" />}
+              >
+                <Input
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
+                  }
+                  className={inputClass}
+                />
+              </FormFieldGroup>
+
+              <FormFieldGroup
+                label="NIP"
+                icon={<User className="h-4 w-4 text-green-600" />}
+              >
+                <Input
+                  value={formData.nip ?? ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      nip: e.target.value,
+                    }))
+                  }
+                  className={inputClass}
+                />
+              </FormFieldGroup>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-6">
+              <div className="flex gap-4">
                 <div className="w-1/2">
                   <FormFieldGroup
                     label="Daftar Kelas"
-                    icon={<School className="h-4 w-4 text-green-600"/>}
+                    icon={<School className="h-4 w-4 text-green-600" />}
                     required
                   >
                     <div className="relative w-full">
@@ -829,42 +927,65 @@ const ViewManageTeacher: React.FC = () => {
                         <Input
                           placeholder="Cari Kelas"
                           value={searchClassroom}
-                          onChange={(e) =>
-                            setSearchClassroom(e.target.value)
-                          }
-                          className={`${inputClass}`}
+                          onChange={(e) => setSearchClassroom(e.target.value)}
+                          className={inputClass}
                         />
                       </div>
 
-                      {/* Daftar kelas dengan checkbox */}
                       <div className="max-h-60 overflow-y-auto border rounded-md">
-                        {filteredClasses.length > 0 ? (
-                          filteredClasses.map((classroom) => (
-                            <div
-                              key={classroom.id}
-                              className={`flex items-center p-3 hover:bg-gray-50 cursor-pointer ${
-                                dataClassroom.some(
-                                  (selected) => selected.id === classroom.id.toString()
-                                )
-                                  ? "bg-green-50"
-                                  : ""
-                              }`}
-                              onClick={() =>
-                                handleClassSelection(
-                                  classroom.id.toString(),
-                                  classroom.display_name
-                                )
-                              }
-                            >
-                              <Checkbox
-                                checked={dataClassroom.some(
-                                  (selected) => selected.id === classroom.id.toString()
-                                )}
-                                className="mr-3"
-                              />
-                                <div className="">{classroom.display_name}</div>
-                            </div>
-                          ))
+                        {isLoadingAssigned ? (
+                          <div className="p-4 flex justify-center">
+                            <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        ) : filteredClasses.length > 0 ? (
+                          filteredClasses.map((classroom) => {
+                            const isSelected = selectedClassrooms.some(
+                              (c) => c.id === classroom.id.toString()
+                            );
+                            const isAssignedByCurrent =
+                              initiallyAssigned.includes(classroom.id);
+                            const isAssignedByOther =
+                              assignedByOtherTeachers.includes(classroom.id);
+
+                            return (
+                              <div
+                                key={classroom.id}
+                                className={`flex items-center p-3 hover:bg-gray-50 cursor-pointer ${
+                                  isSelected ? "bg-green-50" : ""
+                                } ${isAssignedByOther ? "bg-red-50" : ""}`}
+                                onClick={() => {
+                                  if (!isAssignedByOther) {
+                                    handleClassSelection(
+                                      classroom.id.toString(),
+                                      classroom.display_name
+                                    );
+                                  }
+                                }}
+                              >
+                                <Checkbox
+                                  checked={isSelected}
+                                  className="mr-3"
+                                  disabled={isAssignedByOther}
+                                />
+                                <div className="flex-1">
+                                  {classroom.display_name}
+
+                                  {isAssignedByCurrent && (
+                                    <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                      Sudah Diampu (guru ini)
+                                    </span>
+                                  )}
+
+                                  {isAssignedByOther && classroom.teacher && (
+                                    <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                                      Sudah Diampu oleh:{" "}
+                                      {classroom.teacher.name}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })
                         ) : (
                           <div className="p-4 text-center text-gray-500">
                             Tidak ada kelas yang cocok
@@ -874,51 +995,144 @@ const ViewManageTeacher: React.FC = () => {
                     </div>
                   </FormFieldGroup>
                 </div>
-                <div className="w-1/2 h">
+
+                <div className="w-1/2">
                   <FormFieldGroup
-                    label="Daftar Kelas"
-                    icon={<List className="h-4 w-4 text-green-600"/>}
+                    label="Kelas yang Dipilih"
+                    icon={<List className="h-4 w-4 text-green-600" />}
                   >
-                    <div className="w-full h-full max-h-72 overflow-y-auto border border-gray-200 rounded-lg p-4">
-                      {dataClassroom.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {dataClassroom.map((classroom) => (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setDataClassroom(
-                                    dataClassroom.filter(
-                                      (c) => c.id !== classroom.id
-                                    )
-                                  )
-                                }
-                                className="border border-green-600 px-3 py-1 rounded-md"
+                    <div className="w-full h-full max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-4">
+                      {selectedClassrooms.length > 0 ? (
+                        <div className="flex flex-col gap-2">
+                          {selectedClassrooms.map((classroom) => {
+                            const isInitiallyAssigned =
+                              initiallyAssigned.includes(
+                                parseInt(classroom.id)
+                              );
+                            return (
+                              <div
+                                key={classroom.id}
+                                className="flex items-center justify-between p-2 border-b"
                               >
-                                {classroom.name}
-                              </button>
-                          ))}
+                                <div className="flex items-center">
+                                  <span className="font-medium">
+                                    {classroom.name}
+                                  </span>
+                                  {isInitiallyAssigned && (
+                                    <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                      Sudah Diampu
+                                    </span>
+                                  )}
+                                </div>
+                                {isInitiallyAssigned && (
+                                  <span className="text-green-600">
+                                    <UserRoundCheck className="w-4 h-4" />
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center text-gray-500 h-full flex items-center justify-center">
+                          <div>
+                            <List className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+                            <p>Belum ada kelas yang dipilih</p>
+                          </div>
                         </div>
                       )}
-
                     </div>
                   </FormFieldGroup>
                 </div>
               </div>
-            )}
-          
-          {dialogType === "editTeacher" ? (
-            <DialogFooter className="flex gap-3 pt-6">
+
+              {/* Bagian kelas yang akan dihapus */}
+              {classroomsToRemove.length > 0 && (
+                <div className="border border-red-200 rounded-lg p-4 bg-red-50">
+                  <div className="font-medium text-red-700 mb-2 flex items-center gap-2">
+                    <Trash2 className="h-4 w-4" />
+                    Kelas yang akan dihapus dari guru ini
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {classroomsToRemove.map((classId) => {
+                      const classroom = classroomsList?.find(
+                        (c) => c.id === classId
+                      );
+                      return (
+                        <div
+                          key={classId}
+                          className="px-3 py-1 bg-red-100 text-red-800 rounded-md flex items-center"
+                        >
+                          <span>
+                            {classroom?.display_name || `Kelas ${classId}`}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setClassroomsToRemove((prev) =>
+                                prev.filter((id) => id !== classId)
+                              );
+                              // Tambahkan kembali ke kelas yang dipilih
+                              if (classroom) {
+                                setSelectedClassrooms((prev) => [
+                                  ...prev,
+                                  {
+                                    id: classId.toString(),
+                                    name: classroom.display_name,
+                                  },
+                                ]);
+                              }
+                            }}
+                            className="ml-2 text-red-600 hover:text-red-800"
+                          >
+                            <span className="text-sm">×</span>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="flex gap-3 pt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsEditDialogOpen(false);
+                if (dialogType === "editTeacher") {
+                  resetFormEditTeacher();
+                } else {
+                  resetFormAssignedTeacher();
+                }
+              }}
+              disabled={isSubmitting}
+            >
+              Tutup
+            </Button>
+
+            {dialogType === "assignTeacher" ? (
               <Button
                 type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsEditDialogOpen(false);
-                  resetFormEditTeacher();
-                }}
+                className="bg-green-600 hover:bg-green-700 text-white"
                 disabled={isSubmitting}
+                onClick={handleAssignSubmit}
               >
-                Batal
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Menyimpan...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Perbarui Guru Pengampu
+                  </>
+                )}
               </Button>
+            ) : (
               <Button
                 type="submit"
                 className="bg-green-600 hover:bg-green-700 text-white"
@@ -932,47 +1146,17 @@ const ViewManageTeacher: React.FC = () => {
                   </>
                 ) : (
                   <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Perbarui Guru Pengampu
+                    <Save className="h-4 w-4 mr-2" />
+                    Perbarui Guru Pengampu
                   </>
                 )}
               </Button>
-            </DialogFooter>
-          ) : (
-            <DialogFooter className="flex gap-3 pt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsEditDialogOpen(false);
-                  resetFormAssignedTeacher();
-                }}
-                disabled={isSubmitting}
-              >
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                className="bg-green-600 hover:bg-green-700 text-white"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Menyimpan...
-                  </>
-                ) : (
-                  <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Perbarui Kelas Ampuan
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          )}
+            )}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Confirmation Modal for deleting teacher */}
       {confirmationModal && (
         <ConfirmationModal
           isOpen={confirmationModal.isOpen}
@@ -984,6 +1168,24 @@ const ViewManageTeacher: React.FC = () => {
           type="delete"
         />
       )}
+
+      {/* Confirmation Modal for removing teacher from classroom */}
+      <ConfirmationModal
+        isOpen={isDeleteAssignedModalOpen}
+        onClose={() => {
+          setIsDeletAssignedeModalOpen(false);
+          setClassroomsToDelete([]);
+        }}
+        onConfirm={() => handleRemoveTeacher(classroomsToDelete)}
+        title="Hapus Guru dari Kelas"
+        description={`Anda yakin ingin menghapus guru dari ${
+          classroomsToDelete.length === 1
+            ? "kelas ini"
+            : `${classroomsToDelete.length} kelas`
+        }? Tindakan ini tidak dapat dibatalkan.`}
+        confirmText="Hapus"
+        type="delete"
+      />
     </div>
   );
 };

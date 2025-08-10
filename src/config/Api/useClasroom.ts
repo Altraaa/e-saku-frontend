@@ -33,6 +33,19 @@ export const useClassroomByTeacherId = () => {
   });
 };
 
+
+export const useClassroomByAssignTeacherId = (teacherId: number,) => {
+  return useQuery({
+    queryKey: ["teacherClasses", teacherId],
+    queryFn: async () => {
+      if (!teacherId) return [];
+      return ApiClassrooms.getByTeacherId(teacherId);
+    },
+    enabled: !!teacherId,
+    select: (data) => data || [],
+  });
+};
+
 //create classroom
 export const useClassroomCreate = () => {
   const teacher_id = parseInt(localStorage.getItem("teacher_id") || "0", 10);
@@ -64,33 +77,33 @@ export const useClassroomUpdate = () => {
   });
 };
 
-// assign teacher
 export const useAssignTeacherToClassroom = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({
-      classroomId,
+      classroomIds,
       teacherId,
     }: {
-      classroomId: number;
+      classroomIds: number[];
       teacherId: number;
-    }) => ApiClassrooms.assignTeacher(classroomId, teacherId),
+    }) => ApiClassrooms.assignTeacher(teacherId, classroomIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["classes"] });
+      queryClient.invalidateQueries({ queryKey: ["teachers"] });
     },
   });
 };
 
-// remove teacher
 export const useRemoveTeacherFromClassroom = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (classroomId: number) =>
-      ApiClassrooms.removeTeacher(classroomId),
+    mutationFn: (classroomIds: number[]) =>
+      ApiClassrooms.removeTeacher(classroomIds),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["classes"] });
+      queryClient.invalidateQueries({ queryKey: ["teachers"] });
     },
   });
 };
